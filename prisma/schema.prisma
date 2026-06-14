@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Product model containing description and fabric contents
+model Product {
+  id               String           @id @default(uuid())
+  name             String
+  slug             String           @unique
+  price            Int              // In cents or local currency units
+  category         Category
+  description      String
+  longDescription  String           @db.Text
+  features         String[]         // Array of key features
+  fabricDetails    String
+  shippingData     String
+  returnsData      String
+  rating           Float            @default(0.0)
+  reviewsCount     Int              @default(0)
+  variants         ProductVariant[]
+  reviews          Review[]
+  tags             String[]
+  isNewArrival     Boolean          @default(false)
+  isBestSeller     Boolean          @default(false)
+  isSeasonal       Boolean          @default(false)
+  seoTitle         String?
+  seoDescription   String?
+  seoKeywords      String[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Self-referencing relationship for related items
+  relatedProducts  Product[]        @relation("ProductCoordinates")
+  coordinatedWith  Product[]        @relation("ProductCoordinates")
+}
+
+enum Category {
+  MEN
+  WOMEN
+  ESSENTIALS
+  ACTIVE
+  OUTERWEAR
+  ACCESSORIES
+}
+
+// ProductVariant maps a specific color to images and size metrics
+model ProductVariant {
+  id          String        @id @default(uuid())
+  productId   String
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  colorName   String
+  colorCode   String        // Hex code (e.g. #FFFFFF)
+  images      String[]      // List of image URLs
+  sizes       StockSize[]
+  orderItems  OrderItem[]
+}
+
+// StockSize maps size parameters to active inventory metrics
+model StockSize {
+  id               String         @id @default(uuid())
+  variantId        String
+  variant          ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  size             Size
+  inventory        Int            @default(0)
+}
+
+enum Size {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+}
+
+// Review logs verified ratings and fit indices
+model Review {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  authorName  String
+  rating      Int      @default(5)
+  date        DateTime @default(now())
+  title       String
+  comment     String   @db.Text
+  verified    Boolean  @default(true)
+  fit         FitStyle @default(TRUE_TO_SIZE)
+}
+
+enum FitStyle {
+  RUNS_SMALL
+  TRUE_TO_SIZE
+  RUNS_LARGE
+}
+
+// Customer account profile and address binders
+model Customer {
+  id           String        @id @default(uuid())
+  clerkId      String?       @unique // Optional sync with Clerk SDK
+  email        String        @unique
+  firstName    String?
+  lastName     String?
+  phone        String?
+  loyaltyPoints Int          @default(0)
+  tier         LoyaltyTier   @default(BRONZE)
+  addresses    Address[]
+  orders       Order[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  street      String
+  city        String
+  state       String?
+  zipCode     String
+  country     String
+  isDefault   Boolean  @default(false)
+}
+
+// Transaction and Checkout logs
+model Order {
+  id          String        @id @default(uuid())
+  customerId  String?
+  customer    Customer?     @relation(fields: [customerId], references: [id])
+  email       String
+  status      OrderStatus   @default(PENDING)
+  subtotal    Int
+  discount    Int           @default(0)
+  shipping    Int           @default(0)
+  total       Int
+  addressLine String
+  city        String
+  zipCode     String
+  paymentId   String?       // Stripe Session ID reference
+  couponCode  String?
+  coupon      Coupon?       @relation(fields: [couponCode], references: [code])
+  items       OrderItem[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id          String         @id @default(uuid())
+  orderId     String
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId   String
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+  size        Size
+  quantity    Int            @default(1)
+  price       Int            // Locked purchase price in cents
+}
+
+model Coupon {
+  code        String    @id
+  discountVal Float     // Percentage discount (e.g. 0.1 for 10% off)
+  active      Boolean   @default(true)
+  expiresAt   DateTime?
+  orders      Order[]
+}
