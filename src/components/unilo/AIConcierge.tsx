@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Sparkles, ArrowRight, RefreshCw } from 'lucide-react';
 import { mockProducts, type Product } from '../../features/products';
 import { useCartStore } from '../../stores/useCartStore';
 import { toast } from 'react-toastify';
+import { formatVND } from '../../utils/formatters';
 
 // AI Size Recommendation Engine interface
 interface SizeCalculatorProps {
@@ -51,13 +52,13 @@ export function AISizeCalculator({ product, onSelectSize, onClose }: SizeCalcula
   };
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-900 border border-unilo-border dark:border-gray-800 rounded-2xl w-full max-w-md animate-slide-up text-left">
+    <div className="p-6 bg-white dark:bg-gray-900 border border-unilo-border dark:border-gray-800 rounded-2xl w-full max-w-md animate-slide-up text-left z-50">
       <div className="flex justify-between items-center mb-4">
         <h4 className="font-heading text-lg font-bold flex items-center gap-2">
           <Sparkles className="text-accent w-5 h-5 animate-pulse" />
-          AI Size Advisor
+          Gợi ý kích cỡ AI
         </h4>
-        <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full cursor-pointer">
+        <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full cursor-pointer border-none bg-transparent">
           <X className="w-5 h-5 text-gray-500" />
         </button>
       </div>
@@ -65,29 +66,29 @@ export function AISizeCalculator({ product, onSelectSize, onClose }: SizeCalcula
       {!result ? (
         <form onSubmit={calculateSize} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Height (cm)</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Chiều cao (cm)</label>
             <input
               type="number"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
               className="w-full px-4 py-3 bg-unilo-muted dark:bg-gray-800 border-none rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="e.g. 175"
+              placeholder="Ví dụ: 175"
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Weight (kg)</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Cân nặng (kg)</label>
             <input
               type="number"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               className="w-full px-4 py-3 bg-unilo-muted dark:bg-gray-800 border-none rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="e.g. 68"
+              placeholder="Ví dụ: 68"
               required
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Fit Preference</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-2">Sở thích phom dáng</label>
             <div className="grid grid-cols-3 gap-2">
               {(['fitted', 'regular', 'loose'] as const).map((pref) => (
                 <button
@@ -99,20 +100,20 @@ export function AISizeCalculator({ product, onSelectSize, onClose }: SizeCalcula
                       : 'border-unilo-border text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800'
                     }`}
                 >
-                  {pref}
+                  {pref === 'fitted' ? 'Ôm sát' : pref === 'regular' ? 'Vừa vặn' : 'Oversize'}
                 </button>
               ))}
             </div>
           </div>
           <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 active:scale-[0.98] transition-all border-none mt-2 cursor-pointer">
-            Calculate Best Fit
+            Tính toán kích cỡ phù hợp
           </button>
         </form>
       ) : (
         <div className="text-center space-y-4 py-4 animate-fade-in">
-          <div className="text-sm text-gray-500">Based on your measurements, we suggest size:</div>
+          <div className="text-sm text-gray-500">Dựa trên số đo cơ thể, kích cỡ khuyên dùng của bạn:</div>
           <div className="text-5xl font-heading font-black text-primary dark:text-white">{result}</div>
-          <p className="text-xs text-gray-400">This matches {product.name} styling guidelines.</p>
+          <p className="text-xs text-gray-400">Đề xuất phù hợp với tiêu chuẩn thiết kế {product.product_name}.</p>
           <div className="flex gap-2 pt-2">
             <button
               onClick={() => {
@@ -121,7 +122,7 @@ export function AISizeCalculator({ product, onSelectSize, onClose }: SizeCalcula
               }}
               className="flex-1 py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer border-none"
             >
-              Apply Size {result}
+              Áp dụng cỡ {result}
             </button>
             <button
               onClick={() => setResult(null)}
@@ -144,110 +145,124 @@ export function AIOutfitBuilder() {
   ]);
   const addItem = useCartStore((state) => state.addItem);
 
-  const availableAdditions = mockProducts.filter(
-    (p) => !selectedItems.some((s) => s.id === p.id) && (p.category === 'outerwear' || p.category === 'accessories')
-  );
+  const availableAdditions = useMemo(() => {
+    return mockProducts.filter(
+      (p) => !selectedItems.some((s) => s.product_id === p.product_id) && 
+             (p.category_id === 'outerwear' || p.category_id === 'men' || p.category_id === 'women')
+    );
+  }, [selectedItems]);
 
   const toggleProduct = (product: Product) => {
-    if (selectedItems.some((s) => s.id === product.id)) {
-      setSelectedItems(selectedItems.filter((s) => s.id !== product.id));
+    if (selectedItems.some((s) => s.product_id === product.product_id)) {
+      setSelectedItems(selectedItems.filter((s) => s.product_id !== product.product_id));
     } else {
       setSelectedItems([...selectedItems, product]);
     }
   };
 
-  const totalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
+  const totalPrice = useMemo(() => {
+    return selectedItems.reduce((sum, item) => sum + (item.variants[0]?.price || 0), 0);
+  }, [selectedItems]);
+
   const bundleDiscount = 0.15; // 15% discount for AI outfit bundle
   const discountedPrice = Math.round(totalPrice * (1 - bundleDiscount));
 
   const addBundleToCart = () => {
     selectedItems.forEach((item) => {
-      // Find first variant size S
       const firstVar = item.variants[0];
-      const sizeSelected = firstVar?.sizes.find(s => s.inventory > 0)?.size || 'M';
-      const colorSelected = firstVar?.colorName || 'Default';
+      const sizeSelected = firstVar?.variant_attributes.size || 'M';
+      const colorSelected = firstVar?.variant_attributes.colorName || 'Default';
+      const price = firstVar?.price || 0;
+      const image = firstVar?.variant_image || item.images[0]?.image_url || '';
 
       addItem({
-        id: `${item.id}-${colorSelected}-${sizeSelected}`,
-        name: `${item.name} (${colorSelected} / ${sizeSelected})`,
-        price: Math.round(item.price * (1 - bundleDiscount)),
-        image: firstVar?.images[0] || ''
+        id: `${item.product_id}-${colorSelected}-${sizeSelected}`,
+        name: `${item.product_name} (${colorSelected} / ${sizeSelected})`,
+        price: Math.round(price * (1 - bundleDiscount)),
+        image: image
       }, 1);
     });
-    toast.success('AI Outfit Bundle added to cart with 15% discount!');
+    toast.success('Đã thêm trọn bộ trang phục AI với ưu đãi giảm 15%!');
   };
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-unilo-border dark:border-gray-800 rounded-2xl p-6 text-left shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <Sparkles className="text-accent w-5 h-5 animate-pulse" />
-        <h4 className="font-heading text-lg font-bold">AI Outfit Builder</h4>
+        <h4 className="font-heading text-lg font-bold">AI Phối đồ tự động</h4>
       </div>
-      <p className="text-xs text-gray-500 mb-6">Coordinate your wardrobe with high-converting AI recommendations and save 15% on bundle deals.</p>
+      <p className="text-xs text-gray-500 mb-6">Tự động đề xuất các trang phục đồng bộ và nhận ngay ưu đãi giảm giá 15% khi mua trọn bộ.</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left: Current look preview */}
         <div className="space-y-4">
-          <h5 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Your Coordinates</h5>
+          <h5 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Trang phục đang phối</h5>
           <div className="space-y-3">
-            {selectedItems.map((item) => (
-              <div key={item.id} className="flex gap-3 items-center bg-unilo-muted dark:bg-gray-800 p-3 rounded-xl">
-                <img src={item.variants[0]?.images[0]} alt={item.name} className="w-12 h-16 object-cover rounded-lg" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold text-gray-500 uppercase">{item.category}</div>
-                  <h6 className="text-sm font-semibold truncate text-primary dark:text-white m-0">{item.name}</h6>
-                  <div className="text-sm font-bold mt-0.5">${(item.price / 23000).toFixed(0)}</div>
+            {selectedItems.map((item) => {
+              const price = item.variants[0]?.price || 0;
+              const image = item.variants[0]?.variant_image || item.images[0]?.image_url || '';
+              return (
+                <div key={item.product_id} className="flex gap-3 items-center bg-unilo-muted dark:bg-gray-800 p-3 rounded-xl">
+                  <img src={image} alt={item.product_name} className="w-12 h-16 object-cover rounded-lg" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-gray-500 uppercase">{item.category_id}</div>
+                    <h6 className="text-sm font-semibold truncate text-primary dark:text-white m-0">{item.product_name}</h6>
+                    <div className="text-sm font-bold mt-0.5">{formatVND(price)}</div>
+                  </div>
+                  {selectedItems.length > 1 && (
+                    <button onClick={() => toggleProduct(item)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full cursor-pointer border-none bg-transparent">
+                      <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                    </button>
+                  )}
                 </div>
-                {selectedItems.length > 1 && (
-                  <button onClick={() => toggleProduct(item)} className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full cursor-pointer">
-                    <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                  </button>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         {/* Right: Suggestions and bundle values */}
         <div className="flex flex-col justify-between">
           <div className="space-y-4">
-            <h5 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Complete the Look Suggestions</h5>
+            <h5 className="text-xs font-bold uppercase text-gray-400 tracking-wider">Gợi ý hoàn thiện phong cách</h5>
             <div className="grid grid-cols-2 gap-2">
-              {availableAdditions.slice(0, 4).map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => toggleProduct(item)}
-                  className="flex items-center gap-2 p-2 border border-unilo-border dark:border-gray-800 hover:border-primary rounded-xl text-left bg-transparent cursor-pointer transition-all hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <img src={item.variants[0]?.images[0]} alt={item.name} className="w-10 h-12 object-cover rounded-lg" />
-                  <div className="min-w-0 flex-1">
-                    <h6 className="text-xs font-semibold truncate text-primary dark:text-white m-0">{item.name}</h6>
-                    <div className="text-xs font-bold text-accent mt-0.5">+ Add</div>
-                  </div>
-                </button>
-              ))}
+              {availableAdditions.slice(0, 4).map((item) => {
+                const image = item.variants[0]?.variant_image || item.images[0]?.image_url || '';
+                return (
+                  <button
+                    key={item.product_id}
+                    onClick={() => toggleProduct(item)}
+                    className="flex items-center gap-2 p-2 border border-unilo-border dark:border-gray-800 hover:border-primary rounded-xl text-left bg-transparent cursor-pointer transition-all hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <img src={image} alt={item.product_name} className="w-10 h-12 object-cover rounded-lg" />
+                    <div className="min-w-0 flex-1">
+                      <h6 className="text-xs font-semibold truncate text-primary dark:text-white m-0">{item.product_name}</h6>
+                      <div className="text-xs font-bold text-accent mt-0.5">+ Thêm</div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div className="mt-6 pt-4 border-t border-unilo-border dark:border-gray-800 space-y-3">
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-500">Individual Subtotal</span>
-              <span className="font-semibold text-gray-400 line-through">${(totalPrice / 23000).toFixed(2)}</span>
+              <span className="text-gray-500">Tổng giá trị sản phẩm</span>
+              <span className="font-semibold text-gray-400 line-through">{formatVND(totalPrice)}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-500">AI Look Bundle Discount (15%)</span>
-              <span className="text-accent font-bold">-${((totalPrice * bundleDiscount) / 23000).toFixed(2)}</span>
+              <span className="text-gray-500">Giảm giá đồng bộ (15%)</span>
+              <span className="text-accent font-bold">-{formatVND(Math.round(totalPrice * bundleDiscount))}</span>
             </div>
             <div className="flex justify-between items-center font-bold">
-              <span className="text-primary dark:text-white">Bundle Price</span>
-              <span className="text-lg text-primary dark:text-white">${(discountedPrice / 23000).toFixed(2)}</span>
+              <span className="text-primary dark:text-white">Giá mua trọn bộ</span>
+              <span className="text-lg text-primary dark:text-white">{formatVND(discountedPrice)}</span>
             </div>
 
             <button
               onClick={addBundleToCart}
               className="w-full py-3 bg-primary text-white font-bold rounded-xl text-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-2"
             >
-              Add Outfit Bundle <ArrowRight className="w-4 h-4" />
+              Thêm bộ trang phục vào giỏ <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -263,7 +278,7 @@ export function AIShoppingConcierge() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; text: string; products?: Product[] }[]>([
     {
       role: 'assistant',
-      text: 'Hello, welcome to UNILO. I am your AI Wardrobe Assistant. How can I help you curate your perfect minimalist wardrobe today?'
+      text: 'Xin chào! Chào mừng đến với UNILO. Tôi là Trợ lý phong cách AI. Tôi có thể giúp bạn lựa chọn trang phục tối giản hoàn hảo nào hôm nay?'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -280,26 +295,26 @@ export function AIShoppingConcierge() {
 
     // Simulate AI response based on keywords
     setTimeout(() => {
-      let replyText = "I'm looking for our best minimalist essentials to match that! Check out these curated recommendations:";
+      let replyText = "Tôi đã tìm thấy các sản phẩm phù hợp nhất với phong cách của bạn! Hãy xem các gợi ý sau:";
       let recommendedProducts: Product[] = [];
 
       const normalized = userText.toLowerCase();
 
-      if (normalized.includes('men') || normalized.includes('guy') || normalized.includes('boy')) {
-        recommendedProducts = mockProducts.filter((p) => p.category === 'men' || p.category === 'essentials');
-        replyText = "Here are some of UNILO's essential menswear recommendations, engineered for natural texture and versatile layering:";
-      } else if (normalized.includes('women') || normalized.includes('girl') || normalized.includes('dress') || normalized.includes('trousers')) {
-        recommendedProducts = mockProducts.filter((p) => p.category === 'women' || p.id === 'wide-trousers');
-        replyText = "For effortless women's coordinates, I recommend our 3D knit fabrics and flowing trousers:";
-      } else if (normalized.includes('cold') || normalized.includes('winter') || normalized.includes('coat') || normalized.includes('sweater') || normalized.includes('vest')) {
-        recommendedProducts = mockProducts.filter((p) => p.category === 'outerwear' || p.id === 'merino-sweater');
-        replyText = "To combat cool weather while maintaining a sharp minimal silhouette, try these premium layering essentials:";
-      } else if (normalized.includes('active') || normalized.includes('sport') || normalized.includes('leggings') || normalized.includes('hoodie')) {
-        recommendedProducts = mockProducts.filter((p) => p.category === 'active');
-        replyText = "Our athletic activewear collection blends four-way stretch and Dry-EX moisture cooling, perfect for daily movement:";
+      if (normalized.includes('men') || normalized.includes('nam') || normalized.includes('trai')) {
+        recommendedProducts = mockProducts.filter((p) => p.category_id === 'men' || p.category_id === 'essentials');
+        replyText = "Dưới đây là một số đề xuất thời trang Nam cơ bản của UNILO dệt thoáng khí, lý tưởng cho việc mặc nhiều lớp:";
+      } else if (normalized.includes('women') || normalized.includes('nữ') || normalized.includes('váy') || normalized.includes('quần')) {
+        recommendedProducts = mockProducts.filter((p) => p.category_id === 'women' || p.product_slug === 'wide-trousers');
+        replyText = "Đối với đồ nữ thanh lịch nhẹ nhàng, tôi gợi ý đầm dệt 3D và quần ống rộng rủ tự nhiên:";
+      } else if (normalized.includes('lạnh') || normalized.includes('đông') || normalized.includes('ấm') || normalized.includes('khoác') || normalized.includes('len')) {
+        recommendedProducts = mockProducts.filter((p) => p.category_id === 'outerwear' || p.product_slug === 'merino-sweater');
+        replyText = "Để giữ ấm vào thời tiết se lạnh mà vẫn giữ nguyên form dáng tối giản gọn gàng, hãy thử các sản phẩm này:";
+      } else if (normalized.includes('thao') || normalized.includes('chạy') || normalized.includes('active') || normalized.includes('sport')) {
+        recommendedProducts = mockProducts.filter((p) => p.category_id === 'active');
+        replyText = "Dòng đồ thể thao activewear kết hợp công nghệ Dry-EX mát lạnh co giãn bốn chiều cực kỳ phù hợp cho vận động hàng ngày:";
       } else {
         recommendedProducts = [mockProducts[0], mockProducts[1], mockProducts[9]];
-        replyText = "To begin your minimalist capsule wardrobe, we recommend starting with our bestselling fundamentals:";
+        replyText = "Để bắt đầu tủ đồ tối giản gọn gàng của bạn, tôi khuyên dùng các sản phẩm cơ bản bán chạy nhất sau:";
       }
 
       setMessages((prev) => [
@@ -310,8 +325,8 @@ export function AIShoppingConcierge() {
     }, 1200);
   };
 
-  const navigateToProduct = (id: string) => {
-    navigate(`/product/${id}`);
+  const navigateToProduct = (slug: string) => {
+    navigate(`/product/${slug}`);
     setIsOpen(false);
   };
 
@@ -326,7 +341,7 @@ export function AIShoppingConcierge() {
               <Sparkles className="w-5 h-5 text-accent animate-pulse" />
               <div>
                 <div className="font-heading font-bold text-sm">UNILO AI Concierge</div>
-                <div className="text-[10px] text-gray-300">Everyday wardrobe curator</div>
+                <div className="text-[10px] text-gray-300">Trợ lý phong cách cá nhân</div>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full border-none bg-transparent cursor-pointer text-white">
@@ -339,7 +354,7 @@ export function AIShoppingConcierge() {
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.role === 'user'
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm text-left ${msg.role === 'user'
                       ? 'bg-primary text-white rounded-tr-none'
                       : 'bg-unilo-muted dark:bg-gray-800 text-primary dark:text-white rounded-tl-none border border-unilo-border dark:border-gray-700'
                     }`}
@@ -348,17 +363,21 @@ export function AIShoppingConcierge() {
                 </div>
                 {msg.products && (
                   <div className="grid grid-cols-2 gap-2 mt-2 w-full">
-                    {msg.products.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => navigateToProduct(p.id)}
-                        className="flex flex-col p-2 bg-white dark:bg-gray-800 border border-unilo-border dark:border-gray-700 rounded-xl hover:border-primary transition-all text-left bg-transparent cursor-pointer"
-                      >
-                        <img src={p.variants[0]?.images[0]} alt={p.name} className="w-full h-24 object-cover rounded-lg" />
-                        <span className="text-xs font-bold text-gray-900 dark:text-white truncate mt-1.5 w-full block">{p.name}</span>
-                        <span className="text-xs font-semibold text-accent mt-0.5">${(p.price / 23000).toFixed(0)}</span>
-                      </button>
-                    ))}
+                    {msg.products.map((p) => {
+                      const image = p.variants[0]?.variant_image || p.images[0]?.image_url || '';
+                      const price = p.variants[0]?.price || 0;
+                      return (
+                        <button
+                          key={p.product_id}
+                          onClick={() => navigateToProduct(p.product_slug)}
+                          className="flex flex-col p-2 bg-white dark:bg-gray-800 border border-unilo-border dark:border-gray-700 rounded-xl hover:border-primary transition-all text-left bg-transparent cursor-pointer"
+                        >
+                          <img src={image} alt={p.product_name} className="w-full h-24 object-cover rounded-lg" />
+                          <span className="text-xs font-bold text-gray-900 dark:text-white truncate mt-1.5 w-full block">{p.product_name}</span>
+                          <span className="text-xs font-semibold text-accent mt-0.5">{formatVND(price)}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -368,7 +387,7 @@ export function AIShoppingConcierge() {
                 <span className="animate-bounce">●</span>
                 <span className="animate-bounce delay-150">●</span>
                 <span className="animate-bounce delay-300">●</span>
-                <span>AI typing...</span>
+                <span>AI đang phân tích...</span>
               </div>
             )}
           </div>
@@ -379,7 +398,7 @@ export function AIShoppingConcierge() {
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask AI Concierge for clothing recommendations..."
+              placeholder="Hỏi AI Concierge về tư vấn quần áo..."
               className="flex-1 px-3 py-2 bg-unilo-muted dark:bg-gray-800 border-none rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-accent text-primary dark:text-white placeholder-gray-400"
             />
             <button type="submit" className="p-2.5 bg-primary hover:bg-black text-white rounded-xl cursor-pointer border-none flex items-center justify-center shrink-0">

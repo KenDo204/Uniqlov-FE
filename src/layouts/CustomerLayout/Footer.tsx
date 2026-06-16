@@ -3,6 +3,7 @@ import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
 import { Search, User, Heart, ShoppingCart } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useCartStore } from '@/stores/useCartStore';
+import { BRAND } from '@/constants/brand';
 
 export function Footer() {
     const { items: cartItems} = useCartStore();
@@ -19,10 +20,10 @@ export function Footer() {
             {/* Branding Column */}
             <div className="md:col-span-2 space-y-6">
               <h4 className="font-heading font-black text-2xl uppercase text-primary dark:text-white m-0 tracking-widest">
-                UNILO
+                {BRAND.NAME}
               </h4>
               <p className="text-base text-gray-500 dark:text-gray-400 font-medium leading-relaxed max-w-sm m-0">
-                Premium garments designed under Scandinavian simplicity and Japanese functional craftsmanship principles.
+                {BRAND.SLOGAN}
               </p>
               <div className="flex space-x-6 pt-2">
                 <a href="#" className="text-gray-400 hover:text-primary dark:hover:text-white transition-colors duration-300"><FaFacebook className="w-6 h-6" /></a>
@@ -49,8 +50,7 @@ export function Footer() {
               <div className="flex flex-col gap-4 text-base text-gray-500 dark:text-gray-400 font-medium">
                 <Link to={paths.customer.about} className="hover:text-accent transition-colors decoration-none">Our Story</Link>
                 <Link to={paths.customer.sustainability} className="hover:text-accent transition-colors decoration-none">Ecology Commit</Link>
-                <Link to={paths.customer.blog} className="hover:text-accent transition-colors decoration-none">UNILO Journal</Link>
-                <Link to={paths.customer.storeLocator} className="hover:text-accent transition-colors decoration-none">Locator Maps</Link>
+                <Link to={paths.customer.blog} className="hover:text-accent transition-colors decoration-none">{BRAND.NAME} Journal</Link>
               </div>
             </div>
 
@@ -67,7 +67,7 @@ export function Footer() {
 
           {/* Copyright Row */}
           <div className="border-t border-unilo-border dark:border-gray-800 pt-8 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400 font-medium">
-            <p className="m-0">&copy; {new Date().getFullYear()} UNILO Apparel Ltd. All rights reserved.</p>
+            <p className="m-0">&copy; {new Date().getFullYear()} {BRAND.COPYRIGHT}</p>
           </div>
         </div>
       </footer>

@@ -1,22 +1,29 @@
-import type { RouteObject } from 'react-router-dom';
+import { Navigate, type RouteObject } from 'react-router-dom';
 import CustomerLayout from '../layouts/CustomerLayout';
 import {
   CustomerHome,
   CustomerProductDetail,
   CustomerCart,
   CustomerCheckout,
+  Login,
+  Register,
   Collection,
   Search,
   Account,
-  Wishlist,
-  StoreLocator,
   About,
   Sustainability,
   Help,
   Contact,
   Blog,
   BlogArticle,
-  NotFound
+  NotFound,
+  ForgotPassword,
+  Orders,
+  Wishlists,
+  Reviews,
+  ProfileDetails,
+  Addresses,
+  ChangePassword,
 } from '../pages/customer';
 
 export const customerRoutes: RouteObject = {
@@ -24,11 +31,13 @@ export const customerRoutes: RouteObject = {
   element: <CustomerLayout />,
   children: [
     { path: '', element: <CustomerHome /> },
-    { path: 'customer/home', element: <CustomerHome /> },
-    { path: 'customer/product/:id', element: <CustomerProductDetail /> },
-    { path: 'customer/cart', element: <CustomerCart /> },
-    { path: 'customer/checkout', element: <CustomerCheckout /> },
-
+    { path: 'home', element: <CustomerHome /> },
+    { path: 'product/:id', element: <CustomerProductDetail /> },
+    { path: 'cart', element: <CustomerCart /> },
+    { path: 'checkout', element: <CustomerCheckout /> },
+    { path: 'login', element: <Login /> },
+    { path: 'register', element: <Register /> },
+    { path: 'forgot-password', element: <ForgotPassword /> },
     // UNILO routes
     { path: 'men', element: <Collection /> },
     { path: 'women', element: <Collection /> },
@@ -39,9 +48,19 @@ export const customerRoutes: RouteObject = {
     { path: 'search', element: <Search /> },
     { path: 'cart', element: <CustomerCart /> },
     { path: 'checkout', element: <CustomerCheckout /> },
-    { path: 'account', element: <Account /> },
-    { path: 'wishlist', element: <Wishlist /> },
-    { path: 'store-locator', element: <StoreLocator /> },
+    { 
+      path: 'account', 
+      element: <Account />,
+      children: [
+        { index: true, element: <Navigate to="orders" replace /> }, // Mặc định vào trang orders
+        { path: 'orders', element: <Orders /> },
+        { path: 'wishlists', element: <Wishlists /> },
+        { path: 'reviews', element: <Reviews /> },
+        { path: 'details', element: <ProfileDetails /> },
+        { path: 'addresses', element: <Addresses /> },
+        { path: 'password', element: <ChangePassword /> },
+      ]
+    },
     { path: 'about', element: <About /> },
     { path: 'sustainability', element: <Sustainability /> },
     { path: 'help', element: <Help /> },

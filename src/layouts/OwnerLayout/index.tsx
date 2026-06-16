@@ -19,7 +19,7 @@ export default function OwnerLayout() {
       <aside className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
           <Link to="/" className="text-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-            Yami Partner
+            Unilov Partner
           </Link>
         </div>
         

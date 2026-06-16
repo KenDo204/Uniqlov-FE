@@ -11,10 +11,10 @@ export default function AuthLayout() {
         
         <div className="max-w-md text-white relative z-10 space-y-6">
           <Link to="/" className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-300 to-purple-200 bg-clip-text text-transparent">
-            Yami Music
+            Unilov
           </Link>
           <p className="text-lg text-indigo-100">
-            Nơi kết nối đam mê nghệ thuật với các loại nhạc cụ chất lượng hàng đầu.
+            Nơi kết nối đam mê thời trang với các sản phẩm chất lượng hàng đầu.
           </p>
           <div className="pt-8 border-t border-white/10 flex gap-8 text-sm text-indigo-200">
             <div>
@@ -23,7 +23,7 @@ export default function AuthLayout() {
             </div>
             <div>
               <span className="font-bold text-white block text-xl">500+</span>
-              Nhạc cụ cao cấp
+              Sản phẩm cao cấp
             </div>
           </div>
         </div>
