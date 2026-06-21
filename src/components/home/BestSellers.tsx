@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Star, Heart, ArrowRight } from 'lucide-react';
+import { Star, Heart, ArrowRight } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
 import { paths } from '@/config/paths';
 import { formatVND } from '@/utils/formatters';
@@ -14,7 +14,7 @@ interface BestSellersProps {
 export function BestSellers({ products, onAddToCart }: BestSellersProps) {
   const navigate = useNavigate();
   const [selectedColors, setSelectedColors] = useState<Record<string, string>>({});
-  
+
   // Filter popular products for best sellers
   const bestSellers = products.filter((p) => p.in_popular).slice(0, 8);
 
@@ -32,7 +32,7 @@ export function BestSellers({ products, onAddToCart }: BestSellersProps) {
         </div>
         <button
           onClick={() => navigate(paths.customer.bestSellers)}
-          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent border-none bg-transparent cursor-pointer hover:underline"
+          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent border-none bg-transparent cursor-pointer "
         >
           Xem tất cả <ArrowRight className="w-3.5 h-3.5" />
         </button>
@@ -107,9 +107,8 @@ export function BestSellers({ products, onAddToCart }: BestSellersProps) {
                         key={color.colorName}
                         onClick={() => setSelectedColors((prev) => ({ ...prev, [product.product_id]: color.colorName }))}
                         style={{ backgroundColor: color.colorCode }}
-                        className={`w-3.5 h-3.5 rounded-full border cursor-pointer hover:scale-110 transition-transform ${
-                          activeColor === color.colorName ? 'border-primary scale-110 ring-1 ring-primary/40' : 'border-gray-200 dark:border-gray-700'
-                        }`}
+                        className={`w-3.5 h-3.5 rounded-full border cursor-pointer hover:scale-110 transition-transform ${activeColor === color.colorName ? 'border-primary scale-110 ring-1 ring-primary/40' : 'border-gray-200 dark:border-gray-700'
+                          }`}
                         title={color.colorName}
                       />
                     ))}

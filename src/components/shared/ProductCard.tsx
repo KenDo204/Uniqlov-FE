@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Star } from "lucide-react";
+import { Star } from '@/components/ui/icons';
 import { cn } from "@/lib/utils";
 
 export interface ProductCardProps {
@@ -30,7 +30,7 @@ export function ProductCard({
   const isSale = originalPrice !== undefined && originalPrice > price;
 
   return (
-    <div 
+    <div
       className="group flex flex-col gap-3 relative w-full cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -77,8 +77,8 @@ export function ProductCard({
         {colors.length > 0 && (
           <div className="flex gap-1.5 mb-1">
             {colors.slice(0, 4).map((color, idx) => (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 className="w-4 h-4 rounded-sm border border-border-base cursor-pointer hover:border-black transition-colors"
                 style={{ backgroundColor: color }}
                 aria-label={`Color ${color}`}
@@ -94,7 +94,7 @@ export function ProductCard({
 
         {/* Title */}
         <Link to={`/product/${id}`}>
-          <h3 className="text-sm font-medium line-clamp-2 leading-snug group-hover:underline">
+          <h3 className="text-sm font-medium line-clamp-2 leading-snug group-">
             {name}
           </h3>
         </Link>
@@ -116,9 +116,9 @@ export function ProductCard({
           <div className="flex items-center gap-1 mt-0.5">
             <div className="flex text-yellow-400">
               {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i} 
-                  className={cn("w-3 h-3", i < Math.floor(rating) ? "fill-current" : "fill-gray-200 text-gray-200")} 
+                <Star
+                  key={i}
+                  className={cn("w-3 h-3", i < Math.floor(rating) ? "fill-current" : "fill-gray-200 text-gray-200")}
                 />
               ))}
             </div>

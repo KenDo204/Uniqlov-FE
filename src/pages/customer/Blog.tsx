@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Clock } from 'lucide-react';
+import { ArrowRight, Clock } from '@/components/ui/icons';
 import { paths } from '../../config/paths';
 
 export interface BlogEntry {
@@ -80,7 +80,7 @@ export function Blog() {
             <p className="text-xs md:text-sm text-gray-500 font-light leading-relaxed m-0">
               {mockBlogEntries[0].excerpt}
             </p>
-            <span className="text-xs font-bold text-accent group-hover:underline flex items-center gap-1.5 pt-2">
+            <span className="text-xs font-bold text-accent group- flex items-center gap-1.5 pt-2">
               Read Entire Article <ArrowRight className="w-4 h-4" />
             </span>
           </div>
@@ -119,7 +119,7 @@ export function Blog() {
 
                 <div className="pt-2 border-t border-unilo-border dark:border-gray-850 flex items-center justify-between text-gray-400 font-bold text-[10px]">
                   <span>{entry.date}</span>
-                  <span className="text-accent group-hover:underline flex items-center gap-1">Read &gt;</span>
+                  <span className="text-accent group- flex items-center gap-1">Read &gt;</span>
                 </div>
               </div>
             </div>

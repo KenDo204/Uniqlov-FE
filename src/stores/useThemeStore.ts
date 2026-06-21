@@ -1,39 +1,27 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from './store';
+import { toggleTheme, setTheme } from './themeSlice';
 
-interface ThemeState {
+interface ThemeStore {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   setTheme: (theme: 'light' | 'dark') => void;
 }
 
-export const useThemeStore = create<ThemeState>()(
-  persist(
-    (set) => ({
-      theme: 'light',
-      toggleTheme: () =>
-        set((state) => {
-          const nextTheme = state.theme === 'light' ? 'dark' : 'light';
-          const root = window.document.documentElement;
-          if (nextTheme === 'dark') {
-            root.classList.add('dark');
-          } else {
-            root.classList.remove('dark');
-          }
-          return { theme: nextTheme };
-        }),
-      setTheme: (theme) => {
-        const root = window.document.documentElement;
-        if (theme === 'dark') {
-          root.classList.add('dark');
-        } else {
-          root.classList.remove('dark');
-        }
-        set({ theme });
-      },
-    }),
-    {
-      name: 'theme-storage',
-    }
-  )
-);
+export function useThemeStore(): ThemeStore;
+export function useThemeStore<T>(selector: (state: ThemeStore) => T): T;
+export function useThemeStore<T>(selector?: (state: ThemeStore) => T): T | ThemeStore {
+  const dispatch = useDispatch();
+  const theme = useSelector((state: RootState) => state.theme.theme);
+
+  const store: ThemeStore = {
+    theme,
+    toggleTheme: () => dispatch(toggleTheme()),
+    setTheme: (t) => dispatch(setTheme(t)),
+  };
+
+  if (selector) {
+    return selector(store);
+  }
+  return store;
+}

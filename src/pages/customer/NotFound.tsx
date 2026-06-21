@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowRight } from 'lucide-react';
+import {  AlertCircle, ArrowRight  } from '@/components/ui/icons';
 import { paths } from '../../config/paths';
 
 export function NotFound() {

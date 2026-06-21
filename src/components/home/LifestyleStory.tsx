@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import {  ArrowRight  } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 
 export function LifestyleStory() {

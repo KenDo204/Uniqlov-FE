@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, User, Heart, ShoppingCart, HelpCircle, Sun, Moon, Menu, ArrowRight, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, User, Heart, ShoppingCart, HelpCircle, Moon, Menu, ArrowRight, X } from '@/components/ui/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useThemeStore } from '@/stores/useThemeStore';
 import { useCartStore } from '@/stores/useCartStore';
-import { useFetchProducts } from '@/features/products';
 import { paths } from '@/config/paths';
-import logo from '@/assets/icons/final_logo.png';
+import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
 import { HeaderMegaMenu } from './HeaderMegaMenu';
 import { formatVND } from '@/utils/formatters';
 import { BRAND } from '@/constants/brand';
@@ -13,64 +11,30 @@ import { BRAND } from '@/constants/brand';
 export function Header() {
     const navigate = useNavigate();
     const location = useLocation();
-    // const { theme, toggleTheme } = useThemeStore();
     const { items: cartItems, removeItem, updateQuantity } = useCartStore();
-    
+
     const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-    const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const cartSubtotal = cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
 
     // States
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-    const { data: searchResults } = useFetchProducts({ search: searchQuery });
-    const displaySearchMatches = searchQuery ? (searchResults || []).slice(0, 4) : [];
-
-    const searchContainerRef = useRef<HTMLDivElement>(null);
-      
-    // Close search popup if clicked outside
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-                setIsSearchFocused(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-    
     // Close drawers on path change
     useEffect(() => {
         setIsCartOpen(false);
         setIsMobileMenuOpen(false);
-        setIsSearchFocused(false);
-        setSearchQuery('');
     }, [location.pathname]);
-    
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!searchQuery.trim()) return;
-        navigate(`${paths.customer.search}?q=${encodeURIComponent(searchQuery)}`);
-        setIsSearchFocused(false);
-    };
 
-    const isHome = location.pathname === '/'; 
 
-  const headerContainerClass = isHome 
-    ? "fixed left-0 top-0 z-50 w-full bg-gradient-to-b from-black/60 via-black/20 to-transparent pointer-events-none pb-4" 
-    : "sticky left-0 top-0 z-50 w-full bg-white dark:bg-gray-950 border-b border-unilo-border shadow-sm pointer-events-auto transition-colors";
 
-  // Màu icon
-  const iconClass = isHome 
-    ? "text-white hover:bg-white/10" 
-    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800";
+    const headerContainerClass = "sticky left-0 top-0 z-50 w-full bg-white dark:bg-gray-950 border-b border-unilo-border shadow-sm pointer-events-auto transition-colors";
 
-  // Thanh tìm kiếm
-  const searchBgClass = isHome
-    ? "bg-white/95 hover:bg-white"
-    : "bg-unilo-muted dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700";
+    // Màu icon
+    const iconClass = `text-gray-700 hover:text-theme`;
+
+    // Thanh tìm kiếm
+    const searchBgClass = "bg-white/95 hover:bg-white";
 
     return (
         <>
@@ -79,55 +43,54 @@ export function Header() {
 
                     {/* 1. LOGO */}
                     <Link to="/" className="flex flex-col shrink-0 decoration-none group order-1">
-                    <img 
-                        src={logo} 
-                        alt={`${BRAND.NAME} Logo`} 
-                        // Nếu bạn có logo màu đen cho nền trắng, có thể dùng src={isHome ? logoWhite : logoBlack}
-                        className="w-16 h-16 md:w-20 md:h-20 object-contain" 
-                    />
+                        <img
+                            src={EasyMall_Logo}
+                            alt={`${BRAND.NAME} Logo`}
+                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                        />
                     </Link>
 
                     {/* 2. CỤM PHẢI: SEARCH + ICONS */}
                     <div className="flex items-center gap-2 sm:gap-4 shrink-0 order-2 lg:order-3">
-                    
-                    {/* Thanh tìm kiếm */}
-                    <div className="relative hidden md:block w-48 md:w-64 lg:w-[320px] mr-1 sm:mr-2">
-                        <form className={`flex items-center transition-colors rounded-full px-3 py-2 sm:px-4 sm:py-2.5 shadow-sm ${searchBgClass}`}>
-                        <Search className="text-gray-500 w-4 h-4 mr-2 sm:mr-2.5 shrink-0" />
-                        <input
-                            type="text"
-                            placeholder="Bạn đang tìm sản phẩm gì?"
-                            className="bg-transparent border-none outline-none w-full text-xs sm:text-sm text-gray-800 dark:text-white placeholder-gray-500 font-medium"
-                        />
-                        </form>
-                    </div>
 
-                    {/* Icons áp dụng biến iconClass động */}
-                    <button className={`p-1.5 sm:p-2 rounded-full transition-colors border-none bg-transparent cursor-pointer ${iconClass}`}>
+                        {/* Thanh tìm kiếm */}
+                        <div className="relative hidden md:block w-48 md:w-64 lg:w-[320px] mr-1 sm:mr-2">
+                            <form className={`flex items-center transition-colors rounded-full px-3 py-2 sm:px-4 sm:py-2.5 shadow-sm ${searchBgClass}`}>
+                                <Search className="text-gray-500 w-4 h-4 mr-2 sm:mr-2.5 shrink-0" />
+                                <input
+                                    type="text"
+                                    placeholder="Bạn đang tìm sản phẩm gì?"
+                                    className="bg-transparent border-none outline-none w-full text-xs sm:text-sm text-gray-800 dark:text-white placeholder-gray-500 font-medium"
+                                />
+                            </form>
+                        </div>
+
+                        {/* Icons áp dụng biến iconClass động */}
+                        {/* <button className={`p-1.5 sm:p-2 rounded-full transition-colors border-none bg-transparent cursor-pointer ${iconClass}`}>
                         <Moon size={20} strokeWidth={1.5} />
-                    </button>
-                    <Link to="/wishlist" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
-                        <Heart size={20} strokeWidth={1.5} />
-                    </Link>
-                    <Link to="/account" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
-                        <User size={20} strokeWidth={1.5} />
-                    </Link>
-                    <button className={`p-1.5 sm:p-2 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}>
-                        <ShoppingCart size={20} strokeWidth={1.5} />
-                    </button>
-                    <button className={`lg:hidden p-1.5 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}>
-                        <Menu size={22} strokeWidth={1.5} />
-                    </button>
-                    
+                    </button> */}
+                        <Link to="/account/wishlists" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
+                            <Heart size={20} strokeWidth={1.5} />
+                        </Link>
+                        <button className={`p-1.5 sm:p-2 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}>
+                            <ShoppingCart size={20} strokeWidth={1.5} />
+                        </button>
+                        <Link to="/account" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
+                            <User size={20} strokeWidth={1.5} />
+                        </Link>
+                        <button className={`lg:hidden p-1.5 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}>
+                            <Menu size={22} strokeWidth={1.5} />
+                        </button>
+
                     </div>
 
                     {/* 3. MENU - Truyền prop isHome vào để đổi màu chữ */}
                     <div className="order-3 lg:order-2 w-full basis-full lg:basis-auto lg:flex-1 lg:px-8 overflow-x-auto scrollbar-hide border-white/20 lg:border-none pt-2 lg:pt-0">
-                    <HeaderMegaMenu isHome={isHome} />
+                        <HeaderMegaMenu />
                     </div>
 
                 </div>
-                </header>
+            </header>
 
             {/* Mobile Menu Drawer Overlay */}
             {isMobileMenuOpen && (
@@ -251,7 +214,7 @@ export function Header() {
                                 <Link
                                     to={paths.customer.cart}
                                     onClick={() => setIsCartOpen(false)}
-                                    className="block text-center text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-accent hover:underline decoration-none"
+                                    className="block text-center text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-accent  decoration-none"
                                 >
                                     Xem giỏ hàng chi tiết
                                 </Link>

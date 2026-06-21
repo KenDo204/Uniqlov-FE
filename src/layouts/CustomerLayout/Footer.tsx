@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
-import { Search, User, Heart, ShoppingCart } from 'lucide-react';
+import {  Search, User, Heart, ShoppingCart  } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 import { useCartStore } from '@/stores/useCartStore';
 import { BRAND } from '@/constants/brand';

@@ -1,0 +1,10 @@
+export const THEME = '#00927c';
+export const THEME_HOVER = '#007a68';
+export const CANCEL = '#d32f2f';
+export const CANCEL_HOVER = '#b71c1c';
+export const YELLOW = '#f59e0b';
+export const ORANGE = '#d97706';
+export const LIGHT_BLUE = '#3b82f6';
+export const BLUE = '#2563eb';
+export const LIGHT_GREEN = '#10b981';
+export const GREEN = '#059669';

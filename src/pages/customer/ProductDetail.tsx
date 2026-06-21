@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, Heart, Upload, ChevronRight, Info } from 'lucide-react';
+import {  Star, Heart, ChevronRight  } from '@/components/ui/icons';
 import { useFetchProducts, mockProducts } from '../../features/products';
 import { useCartStore } from '../../stores/useCartStore';
-import { paths } from '../../config/paths';
 import { toast } from 'react-toastify';
 // Nhớ đảm bảo bạn có hàm formatVND
 import { formatVND } from '../../utils/formatters';

@@ -1,4 +1,4 @@
-import { EyeOff, Lock } from 'lucide-react';
+import { EyeOff, Lock } from '@/components/ui/icons';
 
 export function ChangePassword() {
   return (
@@ -18,8 +18,8 @@ export function ChangePassword() {
             Mật khẩu hiện tại <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <input 
-              type="password" 
+            <input
+              type="password"
               placeholder="Vui lòng nhập mật khẩu hiện tại của bạn."
               className="w-full px-4 py-3 border border-gray-300 text-[14px] focus:outline-none focus:border-black pr-10"
             />
@@ -27,7 +27,7 @@ export function ChangePassword() {
               <EyeOff size={18} />
             </button>
           </div>
-          <button type="button" className="text-[13px] text-blue-600 bg-transparent border-none p-0 mt-2 hover:underline cursor-pointer">
+          <button type="button" className="text-[13px] text-blue-600 bg-transparent border-none p-0 mt-2  cursor-pointer">
             Quên mật khẩu của bạn?
           </button>
         </div>
@@ -38,8 +38,8 @@ export function ChangePassword() {
             Mật khẩu mới <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <input 
-              type="password" 
+            <input
+              type="password"
               placeholder="Vui lòng nhập mật khẩu mới."
               className="w-full px-4 py-3 border border-gray-300 text-[14px] focus:outline-none focus:border-black pr-10"
             />
@@ -82,8 +82,8 @@ export function ChangePassword() {
       <div className="mt-8 flex items-start gap-2 text-[12px] text-gray-600">
         <Lock size={14} className="mt-0.5 shrink-0" />
         <p className="m-0">
-          Chúng tôi mã hóa tất cả thông tin cá nhân của bạn bằng công nghệ mã hóa TLS (Bảo mật lớp truyền tải). 
-          [<a href="#" className="text-blue-600 hover:underline">TLS (Bảo mật kết nối)</a>]
+          Chúng tôi mã hóa tất cả thông tin cá nhân của bạn bằng công nghệ mã hóa TLS (Bảo mật lớp truyền tải).
+          [<a href="#" className="text-blue-600 ">TLS (Bảo mật kết nối)</a>]
         </p>
       </div>
     </div>

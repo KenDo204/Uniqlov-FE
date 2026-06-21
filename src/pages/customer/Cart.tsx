@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Minus, ArrowRight, ShieldCheck, Ticket, Sparkles, ChevronRight, Heart, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Minus, Ticket, ChevronRight, Heart, Star } from '@/components/ui/icons';
 import { useCartStore } from '../../stores/useCartStore';
-import { mockProducts, type Product } from '../../features/products';
+import { mockProducts } from '../../features/products';
 import { paths } from '../../config/paths';
 import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';
@@ -92,10 +92,10 @@ export function Cart() {
           Chúc mừng! Bạn đã đủ điều kiện nhận MIỄN PHÍ giao hàng.
         </p>
       )}
-      <a 
-        href="#recommendations-section" 
+      <a
+        href="#recommendations-section"
         onClick={scrollToRecommendations}
-        className="text-[#0000EE] hover:underline hover:text-[#0000EE] decoration-solid cursor-pointer inline-block mt-1"
+        className="text-[#0000EE]  hover:text-[#0000EE] decoration-solid cursor-pointer inline-block mt-1"
       >
         Xem những gì được đề xuất cho bạn
       </a>
@@ -105,7 +105,7 @@ export function Cart() {
   return (
     <div className="bg-white min-h-screen pb-20 pt-8 font-sans text-gray-900">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-left">
-        
+
         {/* Tiêu đề & Thông báo vận chuyển (Theo chuẩn Uniqlo) */}
         <h1 className="text-[28px] md:text-[32px] font-medium m-0 mb-4 tracking-tight">Giỏ hàng</h1>
         <FreeShippingText />
@@ -122,14 +122,14 @@ export function Cart() {
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-12 items-start">
-            
+
             {/* ========================================== */}
             {/* CỘT TRÁI: DANH SÁCH SẢN PHẨM               */}
             {/* ========================================== */}
             <div className="flex-1 w-full border-t border-gray-200">
               {items.map((item) => (
                 <div key={item.id} className="py-6 border-b border-gray-200 flex gap-4 md:gap-6">
-                  
+
                   {/* Hình ảnh to, vuông vức */}
                   <div className="w-[120px] h-[150px] md:w-[150px] md:h-[180px] shrink-0 bg-gray-50">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
@@ -145,7 +145,7 @@ export function Cart() {
                         <Heart className="w-5 h-5" strokeWidth={1.5} />
                       </button>
                     </div>
-                    
+
                     {/* Size & Màu (Phân tích chuỗi name nếu bạn nối nó trước đó, hoặc render trực tiếp) */}
                     <div className="text-[13px] text-gray-600 mt-2 space-y-0.5">
                       <div>Màu sắc: Đang cập nhật</div>
@@ -172,14 +172,14 @@ export function Cart() {
                           <Plus className="w-4 h-4" strokeWidth={1.5} />
                         </button>
                       </div>
-                      
+
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="text-[#0000EE] hover:underline text-[13px] border-none bg-transparent cursor-pointer p-0 mt-1"
+                        className="text-[#0000EE]  text-[13px] border-none bg-transparent cursor-pointer p-0 mt-1"
                       >
                         Xóa
                       </button>
-                      
+
                       <div className="text-[14px] mt-2">
                         Tổng: <span className="font-bold">{formatVND(item.price * item.quantity)}</span>
                       </div>
@@ -193,14 +193,14 @@ export function Cart() {
             {/* CỘT PHẢI: KHUNG THANH TOÁN (ORDER SUMMARY) */}
             {/* ========================================== */}
             <div className="w-full lg:w-[380px] shrink-0 sticky top-24">
-              
+
               {/* Khung xám */}
               <div className="bg-[#f4f4f4] p-6">
                 <div className="flex justify-between font-bold text-[16px] mb-5">
                   <span>Tổng đơn hàng</span>
                   <span>{items.length} Sản phẩm</span>
                 </div>
-                
+
                 <div className="space-y-4 text-[14px] mb-6">
                   <div className="flex justify-between">
                     <span>Tạm tính</span>
@@ -227,7 +227,7 @@ export function Cart() {
 
               {/* Accordions */}
               <div className="mt-4 border-t border-gray-200">
-                <button 
+                <button
                   onClick={() => setIsCouponOpen(!isCouponOpen)}
                   className="w-full py-4 flex justify-between items-center text-[14px] font-medium border-b border-gray-200 bg-transparent cursor-pointer hover:bg-gray-50"
                 >
@@ -236,7 +236,7 @@ export function Cart() {
                   </div>
                   <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${isCouponOpen ? 'rotate-90' : ''}`} strokeWidth={1.5} />
                 </button>
-                
+
                 {/* Form nhập mã (ẩn/hiện) */}
                 {isCouponOpen && (
                   <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -260,7 +260,7 @@ export function Cart() {
 
                 <button className="w-full py-4 flex justify-between items-center text-[14px] font-medium border-b border-gray-200 bg-transparent cursor-pointer hover:bg-gray-50">
                   <div className="flex items-center gap-3">
-                     Tùy chọn quà tặng
+                    Tùy chọn quà tặng
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
                 </button>
@@ -294,9 +294,9 @@ export function Cart() {
             <p className="text-[14px] text-gray-600 mb-8 border-b border-gray-200 pb-8">
               Bạn còn {formatVND(remainingForFree)} (bao gồm VAT) nữa là được miễn phí vận chuyển tiêu chuẩn.
             </p>
-            
+
             <h3 className="text-[18px] font-medium mb-6">Sản Phẩm Gợi Ý Theo Giỏ Hàng</h3>
-            
+
             {/* Lưới sản phẩm không viền */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {crossSellItems.map((prod) => (
@@ -304,7 +304,7 @@ export function Cart() {
                   <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden mb-3">
                     <img src={prod.images[0]?.image_url} alt={prod.product_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
-                  
+
                   {/* Swatches màu */}
                   <div className="flex gap-1.5 mb-2">
                     <div className="w-3.5 h-3.5 rounded-full bg-[#3c4146] border border-gray-300" />
@@ -318,7 +318,7 @@ export function Cart() {
                     <h4 className="text-[14px] font-medium text-gray-900 m-0 leading-snug">{prod.product_name}</h4>
                     <div className="text-[16px] font-bold text-gray-900 pt-1">{formatVND(prod.variants[0]?.price || 0)}</div>
                     <div className="text-[11px] text-gray-500">Sản phẩm được làm từ chất liệu tái chế</div>
-                    
+
                     {/* Đánh giá sao */}
                     <div className="flex items-center gap-1 pt-1">
                       <Star className="w-3 h-3 fill-black text-black" />

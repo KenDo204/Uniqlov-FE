@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
+import {  Eye, EyeOff  } from '@/components/ui/icons';
 
 export function Register() {
   const [showPassword, setShowPassword] = useState(false);

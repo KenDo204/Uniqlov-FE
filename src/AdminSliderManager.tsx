@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import { GripVertical } from 'lucide-react'; // Icon tay cầm từ thư viện em đã cài
+import {  GripVertical  } from '@/components/ui/icons'; // Icon tay cầm từ thư viện em đã cài
 
 // Định nghĩa kiểu dữ liệu cho Banner
 interface Slider {

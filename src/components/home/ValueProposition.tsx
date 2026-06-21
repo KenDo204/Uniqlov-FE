@@ -1,4 +1,4 @@
-import { Sparkles, Leaf, ShieldCheck } from 'lucide-react';
+import {  Sparkles, Leaf, ShieldCheck  } from '@/components/ui/icons';
 
 export function ValueProposition() {
   return (

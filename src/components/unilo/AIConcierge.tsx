@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Sparkles, ArrowRight, RefreshCw } from 'lucide-react';
+import {  X, Sparkles, ArrowRight, RefreshCw  } from '@/components/ui/icons';
 import { mockProducts, type Product } from '../../features/products';
 import { useCartStore } from '../../stores/useCartStore';
 import { toast } from 'react-toastify';

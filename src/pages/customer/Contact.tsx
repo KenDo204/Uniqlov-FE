@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import {  Mail, Phone, MapPin, Send  } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
 
 export function Contact() {

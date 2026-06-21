@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, CreditCard, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import {  ShieldCheck, CreditCard, Lock, ArrowRight, CheckCircle2  } from '@/components/ui/icons';
 import { useCartStore } from '../../stores/useCartStore';
 import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';

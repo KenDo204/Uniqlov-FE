@@ -7,15 +7,15 @@ export function Addresses() {
     <div className="animate-fade-in text-left">
       <h2 className="text-[24px] font-medium m-0 mb-4">Sổ địa chỉ</h2>
       <p className="text-[14px] text-gray-700 mb-6">Có thể lưu tối đa 10 địa chỉ.</p>
-      
+
       <hr className="border-t border-gray-200 mb-8" />
 
       <h3 className="text-[18px] font-medium mb-6">Địa chỉ thành viên</h3>
-      
+
       {/* Ví dụ render địa chỉ nếu có, nếu không thì hiển thị trống dựa theo ảnh */}
       <div className="mb-8">
         <div className="flex items-center gap-2 text-[14px] mb-2">
-          <button className="text-blue-600 bg-transparent border-none p-0 hover:underline cursor-pointer">
+          <button className="text-blue-600 bg-transparent border-none p-0  cursor-pointer">
             Chỉnh sửa hồ sơ
           </button>
           <span className="text-gray-300">|</span>
@@ -27,13 +27,13 @@ export function Addresses() {
       <hr className="border-t border-gray-200 mb-8" />
 
       <h3 className="text-[18px] uppercase font-medium mb-4">ĐỊA CHỈ GIAO HÀNG</h3>
-      
+
       {userAddresses.length === 0 ? (
         <p className="text-[14px] text-gray-700 mb-8">Hiện bạn chưa có địa chỉ nào được lưu</p>
       ) : (
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {userAddresses.map((addr) => (
-             <div key={addr.address_id} className="bg-white border border-gray-200 p-5 rounded-2xl relative shadow-sm text-xs">
+            <div key={addr.address_id} className="bg-white border border-gray-200 p-5 rounded-2xl relative shadow-sm text-xs">
               {addr.is_default && (
                 <span className="absolute top-4 right-4 text-[9px] uppercase font-bold text-red-500">Mặc định</span>
               )}
@@ -44,7 +44,7 @@ export function Addresses() {
               </div>
             </div>
           ))}
-         </div>
+        </div>
       )}
 
       {/* Buttons */}

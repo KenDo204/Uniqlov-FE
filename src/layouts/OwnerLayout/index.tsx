@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Store, LogOut, Sun, Moon } from 'lucide-react';
+import {  LayoutDashboard, ShoppingBag, Store, LogOut, Sun, Moon  } from '@/components/ui/icons';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { paths } from '../../config/paths';
 

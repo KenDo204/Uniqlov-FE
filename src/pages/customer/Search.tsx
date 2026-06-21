@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search as SearchIcon, ArrowRight, Star, Heart } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, Star, Heart } from '@/components/ui/icons';
 import { useFetchProducts, type Product } from '../../features/products';
 import { paths } from '../../config/paths';
 import { toast } from 'react-toastify';
@@ -143,7 +143,7 @@ export function Search() {
 
                       <div className="flex items-center justify-between pt-1 border-t border-unilo-border dark:border-gray-800">
                         <span className="font-bold text-sm text-gray-900 dark:text-white">{formatVND(price)}</span>
-                        <span className="text-xs font-bold text-accent group-hover:underline flex items-center gap-1">Chi tiết <ArrowRight className="w-3 h-3" /></span>
+                        <span className="text-xs font-bold text-accent group- flex items-center gap-1">Chi tiết <ArrowRight className="w-3 h-3" /></span>
                       </div>
                     </div>
                   </div>

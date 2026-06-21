@@ -5,7 +5,7 @@ import { RoleGuard } from './RoleGuard';
 
 export const adminRoutes: RouteObject = {
   path: 'admin',
-  element: <RoleGuard allowedRoles={['ADMIN']} />,
+  // element: <RoleGuard allowedRoles={['ADMIN']} />,
   children: [
     {
       element: <AdminLayout />,

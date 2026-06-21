@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from '@/components/ui/icons';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
 import { paths } from '@/config/paths';
@@ -19,7 +19,7 @@ interface NewArrivalsProps {
 export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
   const navigate = useNavigate();
   const [selectedColors, setSelectedColors] = useState<Record<string, string>>({});
-  
+
   // For mock representation, use the popular items as new arrivals as well
   const newArrivals = products.filter((p) => p.in_popular);
 
@@ -31,7 +31,7 @@ export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
         </div>
         <button
           onClick={() => navigate(paths.customer.newArrivals)}
-          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent border-none bg-transparent cursor-pointer hover:underline"
+          className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent border-none bg-transparent cursor-pointer "
         >
           Khám phá tất cả <ArrowRight className="w-3.5 h-3.5" />
         </button>
@@ -87,9 +87,8 @@ export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
                           key={color.colorName}
                           onClick={() => setSelectedColors((prev) => ({ ...prev, [`new-${product.product_id}`]: color.colorName }))}
                           style={{ backgroundColor: color.colorCode }}
-                          className={`w-3.5 h-3.5 rounded-full border cursor-pointer hover:scale-110 transition-transform ${
-                            activeColor === color.colorName ? 'border-primary scale-110 ring-1 ring-primary/40' : 'border-gray-200 dark:border-gray-700'
-                          }`}
+                          className={`w-3.5 h-3.5 rounded-full border cursor-pointer hover:scale-110 transition-transform ${activeColor === color.colorName ? 'border-primary scale-110 ring-1 ring-primary/40' : 'border-gray-200 dark:border-gray-700'
+                            }`}
                           title={color.colorName}
                         />
                       ))}

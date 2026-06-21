@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Star } from '@/components/ui/icons';
 
 // Mock data nội bộ
 const mockReviews = [
@@ -34,13 +34,13 @@ export function Reviews() {
         <div className="space-y-8">
           {mockReviews.map((review) => (
             <div key={review.id} className="border border-gray-200 p-6 flex flex-col sm:flex-row gap-6">
-              
+
               {/* Cột thông tin sản phẩm (Trái) */}
               <div className="flex gap-4 sm:w-1/3 shrink-0 border-b sm:border-b-0 sm:border-r border-gray-100 pb-4 sm:pb-0 sm:pr-6">
                 <div className="w-[60px] h-[80px] bg-gray-100 shrink-0">
-                  <img 
-                    src={review.image} 
-                    alt={review.product_name} 
+                  <img
+                    src={review.image}
+                    alt={review.product_name}
                     className="w-full h-full object-cover mix-blend-multiply"
                   />
                 </div>
@@ -55,10 +55,10 @@ export function Reviews() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <Star 
-                        key={star} 
-                        size={16} 
-                        className={star <= review.rating ? "fill-black text-black" : "text-gray-300"} 
+                      <Star
+                        key={star}
+                        size={16}
+                        className={star <= review.rating ? "fill-black text-black" : "text-gray-300"}
                       />
                     ))}
                   </div>
@@ -67,13 +67,13 @@ export function Reviews() {
                 <p className="text-[14px] text-gray-800 leading-relaxed m-0">
                   {review.content}
                 </p>
-                
+
                 <div className="mt-4 flex gap-3">
-                  <button className="text-[12px] font-medium text-blue-600 bg-transparent border-none p-0 cursor-pointer hover:underline">
+                  <button className="text-[12px] font-medium text-blue-600 bg-transparent border-none p-0 cursor-pointer ">
                     Chỉnh sửa
                   </button>
                   <span className="text-gray-300">|</span>
-                  <button className="text-[12px] font-medium text-red-500 bg-transparent border-none p-0 cursor-pointer hover:underline">
+                  <button className="text-[12px] font-medium text-red-500 bg-transparent border-none p-0 cursor-pointer ">
                     Xóa
                   </button>
                 </div>

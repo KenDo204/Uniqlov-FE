@@ -1,17 +1,9 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState } from './store';
+import { addItem, removeItem, updateQuantity, clearCart } from './cartSlice';
+import type { CartItem } from './cartSlice';
 
-export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  image?: string;
-  color?:string;
-  size?:string;
-  quantity: number;
-}
-
-interface CartState {
+interface CartStore {
   items: CartItem[];
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeItem: (id: string) => void;
@@ -19,36 +11,22 @@ interface CartState {
   clearCart: () => void;
 }
 
-export const useCartStore = create<CartState>()(
-  persist(
-    (set) => ({
-      items: [],
-      addItem: (item, quantity = 1) =>
-        set((state) => {
-          const existing = state.items.find((i) => i.id === item.id);
-          if (existing) {
-            return {
-              items: state.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
-              ),
-            };
-          }
-          return { items: [...state.items, { ...item, quantity }] };
-        }),
-      removeItem: (id) =>
-        set((state) => ({
-          items: state.items.filter((i) => i.id !== id),
-        })),
-      updateQuantity: (id, quantity) =>
-        set((state) => ({
-          items: state.items.map((i) =>
-            i.id === id ? { ...i, quantity: Math.max(1, quantity) } : i
-          ),
-        })),
-      clearCart: () => set({ items: [] }),
-    }),
-    {
-      name: 'cart-storage',
-    }
-  )
-);
+export function useCartStore(): CartStore;
+export function useCartStore<T>(selector: (state: CartStore) => T): T;
+export function useCartStore<T>(selector?: (state: CartStore) => T): T | CartStore {
+  const dispatch = useDispatch();
+  const items = useSelector((state: RootState) => state.cart.items);
+
+  const store: CartStore = {
+    items,
+    addItem: (item, quantity = 1) => dispatch(addItem({ item, quantity })),
+    removeItem: (id) => dispatch(removeItem(id)),
+    updateQuantity: (id, quantity) => dispatch(updateQuantity({ id, quantity })),
+    clearCart: () => dispatch(clearCart()),
+  };
+
+  if (selector) {
+    return selector(store);
+  }
+  return store;
+}

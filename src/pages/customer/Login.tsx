@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, Info } from 'lucide-react';
+import { useState } from 'react';
+import {  Eye, EyeOff, Info  } from '@/components/ui/icons';
 import { Link, useNavigate } from 'react-router-dom';
 
 export function Login() {

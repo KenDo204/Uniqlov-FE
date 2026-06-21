@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Share2, ShoppingCart } from 'lucide-react';
+import {  ArrowLeft, Clock, Share2, ShoppingCart  } from '@/components/ui/icons';
 import { mockBlogEntries } from './Blog';
 import { mockProducts } from '../../features/products';
 import { paths } from '../../config/paths';

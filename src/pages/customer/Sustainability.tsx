@@ -1,4 +1,4 @@
-import { Leaf, Recycle } from 'lucide-react';
+import {  Leaf, Recycle  } from '@/components/ui/icons';
 
 export function Sustainability() {
   return (

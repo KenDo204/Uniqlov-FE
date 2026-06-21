@@ -1,4 +1,4 @@
-import { ArrowRight, Leaf, ShieldCheck, Cpu } from 'lucide-react';
+import {  ArrowRight, Leaf, ShieldCheck, Cpu  } from '@/components/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { paths } from '../../config/paths';
 

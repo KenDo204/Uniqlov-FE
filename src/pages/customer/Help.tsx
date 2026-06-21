@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HelpCircle, BookOpen, AlertCircle, ShoppingBag } from 'lucide-react';
+import {  HelpCircle, BookOpen, AlertCircle, ShoppingBag  } from '@/components/ui/icons';
 
 export function Help() {
   const [searchTerm, setSearchTerm] = useState('');

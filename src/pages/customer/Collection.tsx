@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Filter, Heart, Star, Grid3X3, Grid2X2 } from 'lucide-react';
+import { Filter, Heart, Star, Grid3X3, Grid2X2 } from '@/components/ui/icons';
 import { useFetchProducts, mockProducts, type Product } from '../../features/products';
 import { useCartStore } from '../../stores/useCartStore';
 import { paths } from '../../config/paths';
@@ -141,7 +141,7 @@ export function Collection() {
               <Filter className="w-4 h-4" /> Bộ lọc
             </span>
             {(selectedSizes.length > 0 || selectedColors.length > 0 || selectedCategories.length > 0) && (
-              <button onClick={clearAllFilters} className="text-xs text-accent font-semibold hover:underline bg-transparent border-none cursor-pointer">
+              <button onClick={clearAllFilters} className="text-xs text-accent font-semibold  bg-transparent border-none cursor-pointer">
                 Xóa tất cả
               </button>
             )}
@@ -180,8 +180,8 @@ export function Collection() {
                   key={size}
                   onClick={() => toggleSize(size)}
                   className={`py-2 text-xs font-bold border transition-all rounded-lg cursor-pointer ${selectedSizes.includes(size)
-                      ? 'bg-primary border-primary text-white'
-                      : 'border-unilo-border text-primary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-gray-900'
+                    ? 'bg-primary border-primary text-white'
+                    : 'border-unilo-border text-primary dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 bg-white dark:bg-gray-900'
                     }`}
                 >
                   {size}
