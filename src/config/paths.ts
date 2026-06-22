@@ -9,6 +9,7 @@ export const paths = {
     banners: '/admin/banners',
     brands: '/admin/brands',
     categories: '/admin/categories',
+    products: '/admin/products',
     users: '/admin/users',
   },
   owner: {

@@ -1,10 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import {  LayoutDashboard, Image, Settings, Users, FolderTree, LogOut, Sun, Moon  } from '@/components/ui/icons';
-import { useThemeStore } from '../../stores/useThemeStore';
+import {  LayoutDashboard, Image, Settings, Users, FolderTree, LogOut, Checkroom} from '@/components/ui/icons';
 import { paths } from '../../config/paths';
+import { BRAND } from '@/constants/brand';
+import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
 
 export default function AdminLayout() {
-  const { theme, toggleTheme } = useThemeStore();
   const location = useLocation();
 
   const menuItems = [
@@ -12,16 +12,22 @@ export default function AdminLayout() {
     { label: 'Quản lý Banners', path: paths.admin.banners, icon: Image },
     { label: 'Quản lý Thương hiệu', path: paths.admin.brands, icon: Settings },
     { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree },
+    { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom },
     { label: 'Quản lý Người dùng', path: paths.admin.users, icon: Users },
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-100 w-full text-left">
+    <div className="flex min-h-screen bg-gray-50 text-gray-800 w-full text-left">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-gray-800">
-          <Link to="/" className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-            Unilov Admin
+      <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
+        <div className="h-16 flex items-center px-6 border-b border-gray-200">
+          <Link to="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 hover:text-theme transition-opacity decoration-none">
+            <img
+              src={EasyMall_Logo}
+              alt={`${BRAND.NAME} Logo`}
+              className="w-16 h-16 md:w-20 md:h-20 object-contain"
+            />
+            <span>Admin</span>
           </Link>
         </div>
         
@@ -48,14 +54,7 @@ export default function AdminLayout() {
 
         {/* Footer actions */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 cursor-pointer"
-            title="Đổi giao diện"
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          
+         
           <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg cursor-pointer">
             <LogOut size={16} />
             Đăng xuất
