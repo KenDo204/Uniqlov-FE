@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { axiosClient } from '../../apis/axiosClient';
+import { axiosClient } from '../../services/axiosClient';
 import {
   type Product as ConstProduct,
   type ProductVariant as ConstProductVariant,

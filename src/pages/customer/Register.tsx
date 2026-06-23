@@ -19,7 +19,7 @@ export function Register() {
           
           <div className="flex justify-between items-end mb-6">
             <h2 className="text-[20px] font-medium m-0">Thông tin hồ sơ chi tiết</h2>
-            <span className="text-[13px] text-blue-700">Bắt buộc *</span>
+            <span className="text-[13px] text-theme">Bắt buộc *</span>
           </div>
 
           <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
@@ -27,7 +27,7 @@ export function Register() {
             {/* Email */}
             <div>
               <label className="block text-[13px] font-medium text-gray-800 mb-2">
-                Địa chỉ email <span className="text-blue-700">*</span>
+                Địa chỉ email <span className="text-theme">*</span>
               </label>
               <input 
                 type="email" 
@@ -39,7 +39,7 @@ export function Register() {
             {/* Mật khẩu */}
             <div>
               <label className="block text-[13px] font-medium text-gray-800 mb-2">
-                Mật khẩu <span className="text-blue-700">*</span>
+                Mật khẩu <span className="text-theme">*</span>
               </label>
               <div className="relative mb-4">
                 <input 
@@ -115,7 +115,7 @@ export function Register() {
             <div className="pt-8">
               <button 
                 type="submit"
-                className="w-full h-12 bg-black text-white font-bold text-[14px] rounded-full hover:bg-gray-800 transition-colors border-none cursor-pointer"
+                className="w-full h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer"
               >
                 ĐĂNG KÝ
               </button>

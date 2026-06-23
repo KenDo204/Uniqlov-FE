@@ -1,0 +1,167 @@
+// import React from 'react'
+// import type { AuthUser } from '@/types/authTypes'
+// import {
+//   Avatar, Popper, MenuItem, Fade, Paper, type PopperPlacementType,
+//   ListItemText, MenuList, ListItemIcon, Divider, Box, 
+// } from '@mui/material'
+// import { AccountCircle, Logout, ArrowDropDown } from '@mui/icons-material'
+// import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
+// import { useNavigate } from 'react-router-dom'
+// import { useClerk, useUser } from '@clerk/clerk-react'
+
+// // Lấy vũ khí bí mật từ tầng Abstraction Layer
+// import { useAuth } from '@/hooks/useAuth'
+
+// const navItem = [
+//   {
+//     title: "Hồ sơ của bạn",
+//     icon: <AccountCircle />,
+//     path: "/admin/profile"
+//   },
+// ]
+
+// const AvatarNav = ({ admin }: { admin: AuthUser }) => {
+//   const navigate = useNavigate();
+//   const [open, setOpen] = React.useState(false);
+  
+//   // Chỉ gọi Hook, không dùng Dispatch hay Redux Slice ở đây
+//   const { logout: backendLogout } = useAuth();
+  
+//   const { signOut } = useClerk();
+//   const { isSignedIn } = useUser();
+
+//   const [placement, setPlacement] = React.useState<PopperPlacementType>();
+//   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+
+//   const handleLogout = async () => {
+//     setOpen(false);
+    
+//     try {
+//       // 1. Clear state trên Redux và gọi API logout ở Backend
+//       await backendLogout();
+      
+//       // 2. Xử lý clear session của Clerk (nếu có)
+//       if (isSignedIn) {
+//         await signOut({ redirectUrl: "/login" });
+//       } else {
+//         navigate("/login");
+//       }
+//     } catch (error) {
+//       console.error('Lỗi khi đăng xuất:', error);
+//       // Fallback: Nếu API lỗi, vẫn ép văng ra ngoài để đảm bảo an toàn
+//       navigate("/login");
+//     }
+//   };
+
+//   const handleClick = (newPlacement: PopperPlacementType) => (event: React.MouseEvent<HTMLElement>) => {
+//     setAnchorEl(event.currentTarget);
+//     setOpen((prev) => placement !== newPlacement || !prev);
+//     setPlacement(newPlacement);
+//   };
+
+//   const handleMouseEnter = (event: React.MouseEvent<HTMLElement>) => {
+//     setAnchorEl(event.currentTarget);
+//     setOpen(true);
+//   };
+
+//   const handleMouseLeave = () => {
+//     setOpen(false);
+//   };
+
+//   return (
+//     <Box sx={{ position: 'relative' }}
+//       onMouseEnter={handleMouseEnter}
+//       onMouseLeave={handleMouseLeave}
+//     >
+//       <Box
+//         sx={{
+//           cursor: "pointer",
+//           '&:hover': {
+//             opacity: 0.8,
+//             boxShadow: "0 0 0 2px #00927c",
+//             borderRadius: '50%',
+//             transition: "all 0.3s ease-in-out"
+//           }
+//         }}
+//         className='relative'
+//         onClick={handleClick('bottom-end')}
+//       >
+//         <Avatar src={admin.avatar!} alt={admin.email} />
+//         <ArrowDropDown sx={{ position: "absolute", bottom: -4, right: -4, fontSize: 22, color: "#00927c", bgcolor: 'white', borderRadius: '50%' }} />
+//       </Box>
+
+//       <Popper
+//         sx={{ zIndex: 1300 }}
+//         open={open}
+//         anchorEl={anchorEl}
+//         placement={placement}
+//         transition
+//       >
+//         {({ TransitionProps }) => (
+//           <Fade {...TransitionProps} timeout={350}>
+//             <Paper
+//               sx={{
+//                 width: 280,
+//                 mt: 1.5,
+//                 boxShadow: '0px 10px 30px rgba(0,0,0,0.1)',
+//                 borderRadius: '12px',
+//                 overflow: 'hidden'
+//               }}
+//             >
+//               <MenuList sx={{ p: 0 }}>
+//                 {navItem.map((item, index) => (
+//                   <MenuItem
+//                     key={index}
+//                     onClick={() => { setOpen(false); navigate(item.path); }}
+//                     sx={{ py: 1.5, '&:hover': { bgcolor: '#e6f4f1', color: '#00927c' } }}
+//                   >
+//                     <ListItemIcon sx={{ color: 'inherit' }}>
+//                       {item.icon}
+//                     </ListItemIcon>
+//                     <ListItemText primaryTypographyProps={{ fontWeight: 500 }}>
+//                       {item.title}
+//                     </ListItemText>
+//                   </MenuItem>
+//                 ))}
+
+//                 <Divider />
+
+//                 <MenuItem
+//                   sx={{
+//                     background: 'linear-gradient(to right, #00927c, #00927c)',
+//                     color: 'white',
+//                     borderRadius: 1,
+//                     '&:hover': {
+//                       background: 'linear-gradient(to right, #00927c, #00927c)',
+//                       color: 'white',
+//                     }
+//                   }}
+//                   onClick={() => navigate("/")}
+//                 >
+//                   <ListItemIcon>
+//                     <HomeOutlinedIcon sx={{ color: 'white' }} />
+//                   </ListItemIcon>
+//                   <ListItemText>Trang Chủ</ListItemText>
+//                 </MenuItem>
+
+//                 <MenuItem
+//                   onClick={handleLogout}
+//                   sx={{ py: 1.5, color: '#dc2626', '&:hover': { bgcolor: '#fef2f2' } }}
+//                 >
+//                   <ListItemIcon sx={{ color: 'inherit' }}>
+//                     <Logout />
+//                   </ListItemIcon>
+//                   <ListItemText primaryTypographyProps={{ fontWeight: 500 }}>
+//                     Đăng xuất
+//                   </ListItemText>
+//                 </MenuItem>
+//               </MenuList>
+//             </Paper>
+//           </Fade>
+//         )}
+//       </Popper>
+//     </Box>
+//   )
+// }
+
+// export default AvatarNav

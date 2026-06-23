@@ -25,7 +25,7 @@ export function Login() {
               <p className="m-0 mb-3 flex gap-2">
                 <span className="font-bold">⚠</span>
                 <span>
-                  Không đăng nhập được? Gần đây chúng tôi đã thực hiện một số cập nhật cho trang web, để tiếp tục sử dụng tài khoản của bạn, vui lòng sử dụng đường link "<Link to="/forgot-password" className="text-blue-700 cursor-pointer">Quên mật khẩu của bạn?</Link>" để thiết lập lại mật khẩu.
+                  Không đăng nhập được? Gần đây chúng tôi đã thực hiện một số cập nhật cho trang web, để tiếp tục sử dụng tài khoản của bạn, vui lòng sử dụng đường link "<Link to="/forgot-password" className="text-theme cursor-pointer">Quên mật khẩu của bạn?</Link>" để thiết lập lại mật khẩu.
                 </span>
               </p>
               <p className="m-0 pl-5">
@@ -63,14 +63,14 @@ export function Login() {
               </div>
 
               <div className="pt-2">
-                <Link to="/forgot-password" className="text-blue-700 cursor-pointer text-[13px]">
+                <Link to="/forgot-password" className="text-theme cursor-pointer text-[13px]">
                   Quên mật khẩu của bạn?
                 </Link>
               </div>
 
               <button 
                 type="submit"
-                className="w-[200px] h-12 bg-black text-white font-bold text-[14px] rounded-full hover:bg-gray-800 transition-colors border-none cursor-pointer mt-4"
+                className="w-[200px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer mt-4"
               >
                 ĐĂNG NHẬP
               </button>
@@ -81,7 +81,7 @@ export function Login() {
           <div className="w-full max-w-[500px]">
             <button 
               onClick={() => navigate('/register')}
-              className="w-[240px] h-12 bg-white text-black font-bold text-[14px] rounded-full border border-black hover:bg-gray-50 transition-colors cursor-pointer mb-6"
+              className="w-[240px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors cursor-pointer mb-6"
             >
               TẠO TÀI KHOẢN
             </button>

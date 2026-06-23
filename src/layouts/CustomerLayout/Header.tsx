@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, User, Heart, ShoppingCart, HelpCircle, Moon, Menu, ArrowRight, X } from '@/components/ui/icons';
+import { Search, User, Heart, ShoppingCart, HelpCircle, Menu, ArrowRight, X } from '@/components/ui/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCartStore } from '@/stores/useCartStore';
 import { paths } from '@/config/paths';
@@ -8,9 +8,16 @@ import { HeaderMegaMenu } from './HeaderMegaMenu';
 import { formatVND } from '@/utils/formatters';
 import { BRAND } from '@/constants/brand';
 
+// 1. Import useAuth từ tầng Hook của chúng ta
+import { useAuth } from '@/hooks/useAuth';
+
 export function Header() {
     const navigate = useNavigate();
     const location = useLocation();
+    
+    // 2. Lấy trạng thái đăng nhập từ Hook
+    const { isAuthenticated } = useAuth();
+    
     const { items: cartItems, removeItem, updateQuantity } = useCartStore();
 
     const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
@@ -25,8 +32,6 @@ export function Header() {
         setIsCartOpen(false);
         setIsMobileMenuOpen(false);
     }, [location.pathname]);
-
-
 
     const headerContainerClass = "sticky left-0 top-0 z-50 w-full bg-white dark:bg-gray-950 border-b border-unilo-border shadow-sm pointer-events-auto transition-colors";
 
@@ -65,20 +70,44 @@ export function Header() {
                             </form>
                         </div>
 
-                        {/* Icons áp dụng biến iconClass động */}
-                        {/* <button className={`p-1.5 sm:p-2 rounded-full transition-colors border-none bg-transparent cursor-pointer ${iconClass}`}>
-                        <Moon size={20} strokeWidth={1.5} />
-                    </button> */}
-                        <Link to="/account/wishlists" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
-                            <Heart size={20} strokeWidth={1.5} />
-                        </Link>
-                        <button className={`p-1.5 sm:p-2 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}>
-                            <ShoppingCart size={20} strokeWidth={1.5} />
-                        </button>
-                        <Link to="/account" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
-                            <User size={20} strokeWidth={1.5} />
-                        </Link>
-                        <button className={`lg:hidden p-1.5 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}>
+                        {/* 3. KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP */}
+                        {isAuthenticated ? (
+                            <>
+                                <Link to="/account/wishlists" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
+                                    <Heart size={20} strokeWidth={1.5} />
+                                </Link>
+                                
+                                {/* Đã bổ sung sự kiện mở giỏ hàng và Badge hiển thị số lượng */}
+                                <button 
+                                    onClick={() => setIsCartOpen(true)}
+                                    className={`p-1.5 sm:p-2 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}
+                                >
+                                    <ShoppingCart size={20} strokeWidth={1.5} />
+                                    {totalQuantity > 0 && (
+                                        <span className="absolute 0 top-0 right-0 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                            {totalQuantity}
+                                        </span>
+                                    )}
+                                </button>
+                                
+                                <Link to="/account" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
+                                    <User size={20} strokeWidth={1.5} />
+                                </Link>
+                            </>
+                        ) : (
+                            // Nút Đăng nhập cho người dùng chưa auth
+                            <Link 
+                                to="/login" 
+                                className="px-4 py-2 bg-theme hover:bg-theme-hover text-white text-sm font-bold rounded-full transition-colors decoration-none hidden sm:block"
+                            >
+                                Đăng nhập
+                            </Link>
+                        )}
+
+                        <button 
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className={`lg:hidden p-1.5 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}
+                        >
                             <Menu size={22} strokeWidth={1.5} />
                         </button>
 
@@ -94,6 +123,7 @@ export function Header() {
 
             {/* Mobile Menu Drawer Overlay */}
             {isMobileMenuOpen && (
+                // ... (Phần code Drawer Mobile giữ nguyên không đổi)
                 <div className="fixed inset-0 bg-black/50 z-50 flex justify-end animate-fade-in lg:hidden">
                     <div className="w-64 h-full bg-white dark:bg-gray-900 p-6 space-y-6 flex flex-col justify-between animate-slide-up text-xs font-bold uppercase tracking-wider">
                         <div className="space-y-6">
@@ -117,7 +147,12 @@ export function Header() {
                         </div>
 
                         <div className="border-t border-unilo-border dark:border-gray-800 pt-4 space-y-3">
-                            <Link to={paths.customer.account} className="flex items-center gap-2 hover:text-accent decoration-none"><User className="w-4 h-4" /> Tài khoản cá nhân</Link>
+                            {/* Cập nhật UI Mobile menu tùy trạng thái đăng nhập */}
+                            {isAuthenticated ? (
+                                <Link to={paths.customer.account} className="flex items-center gap-2 hover:text-accent decoration-none"><User className="w-4 h-4" /> Tài khoản cá nhân</Link>
+                            ) : (
+                                <Link to="/login" className="flex items-center gap-2 hover:text-accent decoration-none"><User className="w-4 h-4" /> Đăng nhập</Link>
+                            )}
                             <Link to={paths.customer.help} className="flex items-center gap-2 hover:text-accent decoration-none"><HelpCircle className="w-4 h-4" /> Trung tâm hỗ trợ</Link>
                         </div>
                     </div>
@@ -126,19 +161,23 @@ export function Header() {
 
             {/* Cart Drawer Overlay */}
             {isCartOpen && (
+
                 <div className="fixed inset-0 bg-black/60 z-50 flex justify-end animate-fade-in">
-                    <div className="w-80 md:w-[400px] h-full bg-white dark:bg-gray-900 flex flex-col justify-between animate-slide-up shadow-2xl">
+                     <div className="w-80 md:w-[400px] h-full bg-white dark:bg-gray-900 flex flex-col justify-between animate-slide-up shadow-2xl">
                         {/* Header */}
+
                         <div className="p-4 md:p-6 border-b border-unilo-border dark:border-gray-800 flex justify-between items-center text-xs uppercase font-bold tracking-wider">
                             <span className="font-heading font-black text-sm flex items-center gap-2">
                                 <ShoppingCart className="w-4.5 h-4.5" /> Giỏ hàng ({totalQuantity})
                             </span>
+
                             <button onClick={() => setIsCartOpen(false)} className="p-1 hover:bg-unilo-muted dark:hover:bg-gray-800 rounded-full border-none bg-transparent cursor-pointer text-gray-500">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
 
                         {/* Content items list */}
+
                         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
                             {cartItems.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-center space-y-3 text-xs">
@@ -158,7 +197,6 @@ export function Header() {
                                             <div className="text-gray-400 font-semibold mt-1">
                                                 {formatVND(item.price)}
                                             </div>
-
                                             {/* Quantity modifiers in drawer */}
                                             <div className="flex items-center gap-2 border border-unilo-border dark:border-gray-800 w-fit rounded overflow-hidden bg-unilo-muted dark:bg-gray-855 mt-2 shrink-0">
                                                 <button
@@ -201,7 +239,6 @@ export function Header() {
                                         {formatVND(cartSubtotal)}
                                     </span>
                                 </div>
-
                                 <button
                                     onClick={() => {
                                         setIsCartOpen(false);

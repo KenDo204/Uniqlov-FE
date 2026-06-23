@@ -1,0 +1,1 @@
+export type OtpType = 'ACTIVATION' | 'FORGOT_PASSWORD';

@@ -23,11 +23,11 @@ export function ForgotPassword() {
             Vui lòng nhập địa chỉ email đã đăng ký của bạn.
           </p>
 
-          {/* Link theo đúng yêu cầu: text-blue-700, cursor-pointer, không gạch chân */}
+          {/* Link theo đúng yêu cầu: text-theme, cursor-pointer, không gạch chân */}
           <div className="mb-10">
             <span 
               onClick={() => navigate('/settings')} // Thay đổi đường dẫn cho phù hợp với routing của bạn
-              className="text-[14px] text-blue-700 cursor-pointer transition-colors"
+              className="text-[14px] text-theme cursor-pointer transition-colors"
             >
               Về cài đặt nhận thư
             </span>
@@ -38,14 +38,14 @@ export function ForgotPassword() {
             {/* Chữ Bắt buộc nằm bên phải */}
             <div className="flex justify-end mb-2">
               <span className="text-[13px] text-gray-800">
-                Bắt buộc <span className="text-blue-700">*</span>
+                Bắt buộc <span className="text-theme">*</span>
               </span>
             </div>
 
             {/* Khung nhập Email */}
             <div className="-mt-4">
               <label className="block text-[13px] font-medium text-gray-800 mb-2">
-                Địa chỉ email <span className="text-blue-700">*</span>
+                Địa chỉ email <span className="text-theme">*</span>
               </label>
               <input 
                 type="email" 
@@ -58,14 +58,14 @@ export function ForgotPassword() {
             <div className="flex gap-4 pt-4">
               <button 
                 type="submit"
-                className="flex-1 h-12 bg-black text-white font-bold text-[14px] rounded-full hover:bg-gray-800 transition-colors border-none cursor-pointer"
+                className="flex-1 h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer"
               >
                 GỬI
               </button>
               <button 
                 type="button"
                 onClick={() => navigate('/')} // Nút TRANG CHỦ quay về trang gốc
-                className="flex-1 h-12 bg-white text-black font-bold text-[14px] rounded-full border border-black hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex-1 h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors cursor-pointer"
               >
                 TRANG CHỦ
               </button>
