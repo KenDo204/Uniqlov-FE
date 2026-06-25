@@ -8,10 +8,16 @@ import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';
 import { mockCoupons } from '../../constants/mock-coupons';
 import { mockDataCartCheckout } from '../../constants/mock-data-cart-checkout';
+import { useAppSelector } from '@/stores/hooks';
+import { useCoupon } from '@/hooks/useCoupon';
+import { useCart } from '@/hooks/useCart';
 
 export function Cart() {
   const navigate = useNavigate();
   const { items, removeItem, updateQuantity, addItem } = useCartStore();
+  const { fetchCart } = useCart();
+  const { previewApplyCoupon } = useCoupon();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   const [couponCode, setCouponCode] = useState('');
   const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FIXED_AMOUNT' | null>(null);
@@ -28,9 +34,17 @@ export function Cart() {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  // Fetch cart if authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated, fetchCart]);
+
   // Seed cart with mock items if empty (Giữ nguyên logic của bạn)
   React.useEffect(() => {
-    if (items.length === 0) {
+    if (!isAuthenticated && items.length === 0) {
       const seedItems = mockDataCartCheckout.data?.cart_items || [];
       seedItems.forEach((item) => {
         addItem({
@@ -43,7 +57,7 @@ export function Cart() {
         }, item.quantity);
       });
     }
-  }, [items.length, addItem]);
+  }, [items.length, addItem, isAuthenticated]);
 
   // Financial calculations
   const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -60,19 +74,35 @@ export function Cart() {
   const shippingCost = rawSubtotal >= FREE_SHIPPING_LIMIT || rawSubtotal === 0 ? 0 : 35000;
   const total = subtotal + shippingCost;
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = couponCode.trim().toUpperCase();
-    const coupon = mockCoupons.find((c) => c.code === code);
+    if (!code) return;
 
-    if (coupon) {
-      setDiscountType(coupon.discount_type);
-      setDiscountValue(coupon.discount_value);
-      setCouponSuccess(true);
-      setCouponDescription(coupon.description);
-      toast.success(`Áp dụng mã thành công: ${coupon.description}`);
+    if (isAuthenticated) {
+      try {
+        const result = await previewApplyCoupon({ couponCode: code, orderAmount: rawSubtotal });
+        if (result) {
+          setDiscountType('FIXED_AMOUNT');
+          setDiscountValue(result.discountAmount);
+          setCouponSuccess(true);
+          setCouponDescription(result.description || `Mã giảm giá ${code} đã được áp dụng`);
+          toast.success(`Áp dụng mã thành công: ${result.description || code}`);
+        }
+      } catch (err: any) {
+        toast.error(err || 'Mã giảm giá không hợp lệ cho đơn hàng này.');
+      }
     } else {
-      toast.error('Mã giảm giá không hợp lệ.');
+      const coupon = mockCoupons.find((c) => c.code === code);
+      if (coupon) {
+        setDiscountType(coupon.discount_type);
+        setDiscountValue(coupon.discount_value);
+        setCouponSuccess(true);
+        setCouponDescription(coupon.description);
+        toast.success(`Áp dụng mã thành công: ${coupon.description}`);
+      } else {
+        toast.error('Mã giảm giá không hợp lệ.');
+      }
     }
   };
 

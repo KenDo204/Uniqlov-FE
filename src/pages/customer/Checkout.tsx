@@ -1,16 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {  ShieldCheck, CreditCard, Lock, ArrowRight, CheckCircle2  } from '@/components/ui/icons';
-import { useCartStore } from '../../stores/useCartStore';
 import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';
-import { mockCoupons } from '../../constants/mock-coupons';
 import { mockDataCartCheckout } from '../../constants/mock-data-cart-checkout';
 import { mockCurrentUser } from '../../constants/mock-users';
+import { useAppSelector } from '@/stores/hooks';
+import { useOrder } from '@/hooks/useOrder';
+import { useCoupon } from '@/hooks/useCoupon';
+import { useCart } from '@/hooks/useCart';
 
 export function Checkout() {
   const navigate = useNavigate();
-  const { items, clearCart } = useCartStore();
+  const { items, clearCart } = useCart();
+  const { checkout } = useOrder();
+  const { previewApplyCoupon } = useCoupon();
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   // Pre-fill fields from default address/user mock constants
   const defaultAddress = useMemo(() => {
@@ -39,13 +44,21 @@ export function Checkout() {
   const [discountPercent, setDiscountPercent] = useState(0);
   const [fixedDiscount, setFixedDiscount] = useState(0);
 
+  // Redirect if not logged in
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      toast.info('Vui lòng đăng nhập để thực hiện thanh toán.');
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
   // Redirect if cart is empty
   React.useEffect(() => {
-    if (items.length === 0 && !orderSuccess) {
+    if (isAuthenticated && items.length === 0 && !orderSuccess) {
       toast.info('Giỏ hàng trống. Đang chuyển về trang chủ.');
       navigate('/');
     }
-  }, [items.length, navigate]);
+  }, [items.length, navigate, isAuthenticated]);
 
   // Address suggestions list for Vietnam
   const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
@@ -78,21 +91,19 @@ export function Checkout() {
     }
   };
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async () => {
     const code = coupon.trim().toUpperCase();
-    const matchedCoupon = mockCoupons.find(c => c.code === code);
+    if (!code) return;
 
-    if (matchedCoupon) {
-      if (matchedCoupon.discount_type === 'PERCENTAGE') {
-        setDiscountPercent(matchedCoupon.discount_value / 100);
-        setFixedDiscount(0);
-      } else {
-        setFixedDiscount(matchedCoupon.discount_value);
+    try {
+      const result = await previewApplyCoupon({ couponCode: code, orderAmount: rawSubtotal });
+      if (result) {
+        setFixedDiscount(result.discountAmount);
         setDiscountPercent(0);
+        toast.success(`Áp dụng thành công mã: ${result.description || code}`);
       }
-      toast.success(`Áp dụng thành công mã: ${matchedCoupon.description}`);
-    } else {
-      toast.error('Mã giảm giá không hợp lệ.');
+    } catch (err: any) {
+      toast.error(err || 'Mã giảm giá không hợp lệ cho đơn hàng này.');
     }
   };
 
@@ -112,7 +123,7 @@ export function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !address || !city || !phone) {
       toast.error('Vui lòng điền đầy đủ thông tin giao hàng.');
@@ -120,12 +131,39 @@ export function Checkout() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const cartItemIds = items.map(item => item.cartItemId).filter(Boolean) as number[];
+      if (cartItemIds.length === 0) {
+        toast.error('Không tìm thấy sản phẩm hợp lệ trong giỏ hàng.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const payload = {
+        cartItemIds,
+        addressId: defaultAddress?.address_id || 201,
+        couponCode: coupon.trim() || undefined,
+        paymentMethod: paymentMethod.toUpperCase() as any, // 'COD' | 'VNPAY' | 'MOMO'
+        shippingMethod: 'STANDARD' as const,
+        note: `Tên: ${lastName} ${firstName}. Địa chỉ: ${address}, ${city}`
+      };
+
+      const res = await checkout(payload);
+      if (res) {
+        toast.success('Đặt đơn hàng thành công!');
+        clearCart();
+        
+        if (res.paymentUrl) {
+          window.location.href = res.paymentUrl;
+        } else {
+          setOrderSuccess(true);
+        }
+      }
+    } catch (err: any) {
+      toast.error(err || 'Đặt hàng thất bại.');
+    } finally {
       setIsSubmitting(false);
-      setOrderSuccess(true);
-      clearCart();
-      toast.success('Đặt hàng thành công!');
-    }, 1500);
+    }
   };
 
   return (

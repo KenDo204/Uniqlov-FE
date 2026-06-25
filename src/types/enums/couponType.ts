@@ -1,0 +1,1 @@
+export type CouponType = 'SHOP_VOUCHER' | 'FREE_SHIPPING' | 'PAYMENT_VOUCHER';

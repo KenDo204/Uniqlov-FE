@@ -13,6 +13,8 @@ export const paths = {
     users: '/admin/users',
     roles: '/admin/roles',
     permissions: '/admin/permissions',
+    orders: '/admin/orders',
+    coupons: '/admin/coupons',
   },
   owner: {
     dashboard: '/owner/dashboard',

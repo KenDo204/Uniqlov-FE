@@ -9,6 +9,8 @@ import RoleList from '../pages/admin/Role/RoleList';
 import PermissionList from '../pages/admin/Permission/PermissionList';
 import AdminProductList from '../pages/admin/Product/AdminProductList';
 import AdminSliderManager from '../pages/admin/Slider/AdminSliderManager';
+import CouponList from '../pages/admin/Coupon/CouponList';
+import OrderList from '../pages/admin/Order/OrderList';
 import { RoleGuard } from './RoleGuard';
 import { ROLES } from '@/constants/roles';
 
@@ -35,6 +37,8 @@ export const adminRoutes: RouteObject = {
         { path: 'roles', element: <RoleList /> },
         { path: 'permissions', element: <PermissionList /> },
         { path: 'products', element: <AdminProductList /> },
+        { path: 'orders', element: <OrderList /> },
+        { path: 'coupons', element: <CouponList /> },
       ],
     },
   ],

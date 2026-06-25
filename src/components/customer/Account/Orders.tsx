@@ -1,5 +1,12 @@
-import { mockOrders } from '@/constants/mock-orders';
+import React, { useEffect, useState } from 'react';
+import { useOrder } from '@/hooks/useOrder';
 import { formatVND } from '@/utils/formatters';
+import { 
+  CircularProgress, Dialog, DialogTitle, DialogContent, 
+  DialogActions, Button, TextField, Typography 
+} from '@mui/material';
+import { toast } from 'react-toastify';
+import type { OrderResponse } from '@/types/order/responses';
 
 const getOrderStatusLabel = (status: string) => {
   const statusMap: Record<string, string> = {
@@ -13,83 +20,288 @@ const getOrderStatusLabel = (status: string) => {
 };
 
 export function Orders() {
+  const { 
+    orders, 
+    isFetching, 
+    isSubmitting, 
+    fetchMyOrders, 
+    fetchMyOrderDetail, 
+    cancelMyOrder 
+  } = useOrder();
+
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [orderDetails, setOrderDetails] = useState<Record<number, OrderResponse>>({});
+  const [loadingDetails, setLoadingDetails] = useState<Record<number, boolean>>({});
+
+  // Cancel order modal state
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+
+  useEffect(() => {
+    fetchMyOrders(0, 10).catch(err => {
+      console.error('Error fetching my orders:', err);
+      toast.error('Không thể tải lịch sử mua hàng.');
+    });
+  }, [fetchMyOrders]);
+
+  const handleToggleDetails = async (orderId: number) => {
+    if (expandedOrderId === orderId) {
+      setExpandedOrderId(null);
+      return;
+    }
+
+    setExpandedOrderId(orderId);
+
+    // If detail is not fetched yet, fetch it
+    if (!orderDetails[orderId]) {
+      setLoadingDetails(prev => ({ ...prev, [orderId]: true }));
+      try {
+        const res = await fetchMyOrderDetail(orderId);
+        if (res) {
+          setOrderDetails(prev => ({ ...prev, [orderId]: res }));
+        }
+      } catch (err: any) {
+        toast.error(err || 'Không thể tải chi tiết đơn hàng.');
+      } finally {
+        setLoadingDetails(prev => ({ ...prev, [orderId]: false }));
+      }
+    }
+  };
+
+  const handleOpenCancel = (orderId: number, e: React.MouseEvent) => {
+    e.stopPropagation(); // Avoid expanding/collapsing card
+    setCancelOrderId(orderId);
+    setCancelReason('');
+    setIsCancelModalOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelOrderId || !cancelReason.trim()) {
+      toast.warn('Vui lòng nhập lý do hủy đơn.');
+      return;
+    }
+
+    try {
+      await cancelMyOrder(cancelOrderId, { reason: cancelReason.trim() });
+      toast.success('Hủy đơn hàng thành công!');
+      
+      // Update local state status to CANCELLED
+      if (orderDetails[cancelOrderId]) {
+        setOrderDetails(prev => ({
+          ...prev,
+          [cancelOrderId]: {
+            ...prev[cancelOrderId],
+            orderStatus: 'CANCELLED'
+          }
+        }));
+      }
+      
+      // Reload list
+      fetchMyOrders(0, 10);
+      setIsCancelModalOpen(false);
+      setCancelOrderId(null);
+    } catch (err: any) {
+      toast.error(err || 'Không thể hủy đơn hàng lúc này.');
+    }
+  };
+
   return (
     <div className="animate-fade-in text-left">
       <h2 className="text-[24px] font-medium m-0 mb-6">Lịch sử mua hàng</h2>
       <hr className="border-t border-gray-200 mb-8" />
 
-      {(!mockOrders || mockOrders.length === 0) ? (
+      {isFetching && orders.length === 0 ? (
+        <div className="flex justify-center items-center py-20">
+          <CircularProgress sx={{ color: '#00927c' }} />
+        </div>
+      ) : orders.length === 0 ? (
         <p className="text-[14px] text-gray-500">Bạn chưa có đơn hàng nào.</p>
       ) : (
-        <div className="space-y-12">
-          {mockOrders.map((ord) => (
-            <div key={ord.order_id} className="border border-gray-200 p-0">
-              {/* Header của Đơn hàng */}
-              <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                <div className="text-[14px] text-gray-600 space-x-3">
-                  <span className="font-bold text-black">Đơn hàng #{ord.order_id}</span>
-                  <span>|</span>
-                  <span>Ngày đặt: {ord.order_date}</span>
-                </div>
-                <div className="text-[13px] font-bold uppercase tracking-wider text-black">
-                  Trạng thái: <span className={ord.order_status === 'SHIPPING' ? 'text-blue-600' : 'text-green-600'}>
-                    {getOrderStatusLabel(ord.order_status)}
-                  </span>
-                </div>
-              </div>
+        <div className="space-y-6">
+          {orders.map((ord) => {
+            const isExpanded = expandedOrderId === ord.orderId;
+            const details = orderDetails[ord.orderId];
+            const isLoading = loadingDetails[ord.orderId];
 
-              {/* Danh sách sản phẩm trong đơn */}
-              <div className="p-6 space-y-6">
-                {ord.order_details.map((detail) => (
-                  <div key={detail.order_detail_id} className="flex gap-6">
-                    {/* Cột Ảnh */}
-                    <div className="w-[90px] h-[110px] bg-gray-100 shrink-0">
-                      <img 
-                        src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&q=80" 
-                        alt={detail.product_name} 
-                        className="w-full h-full object-cover mix-blend-multiply" 
-                      />
-                    </div>
-                    
-                    {/* Cột Thông tin */}
-                    <div className="flex-1 text-[14px]">
-                      <h4 className="font-medium text-[15px] m-0 mb-1">{detail.product_name}</h4>
-                      <div className="text-gray-500 space-y-0.5 mt-2 text-[13px]">
-                        <p className="m-0">Màu sắc: {detail.variant_attributes.colorName}</p>
-                        <p className="m-0">Kích cỡ: {detail.variant_attributes.size}</p>
-                        <p className="m-0">Số lượng: {detail.num_of_product}</p>
+            return (
+              <div key={ord.orderId} className="border border-gray-200 p-0 rounded-lg overflow-hidden shadow-sm bg-white">
+                {/* Header của Đơn hàng */}
+                <div 
+                  onClick={() => handleToggleDetails(ord.orderId)}
+                  className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between sm:items-center gap-2 cursor-pointer hover:bg-gray-100/70 transition-colors"
+                >
+                  <div className="text-[14px] text-gray-600 space-x-3">
+                    <span className="font-bold text-black">Đơn hàng #{ord.orderId}</span>
+                    <span>|</span>
+                    <span>Ngày đặt: {new Date(ord.orderDate).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                  <div className="text-[13px] font-bold uppercase tracking-wider flex items-center gap-3">
+                    <span className={ord.orderStatus === 'CANCELLED' ? 'text-red-500' : ord.orderStatus === 'COMPLETED' ? 'text-emerald-600' : 'text-blue-600'}>
+                      {getOrderStatusLabel(ord.orderStatus)}
+                    </span>
+                    {ord.orderStatus === 'PENDING' && (
+                      <button 
+                        onClick={(e) => handleOpenCancel(ord.orderId, e)}
+                        className="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded border-none font-bold text-[11px] cursor-pointer transition-colors"
+                      >
+                        Hủy đơn
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Phần chi tiết (hiển thị khi expand) */}
+                {isExpanded && (
+                  <div className="border-t border-gray-100 p-6 bg-white animate-fade-in">
+                    {isLoading ? (
+                      <div className="flex justify-center py-6">
+                        <CircularProgress size={24} sx={{ color: '#00927c' }} />
                       </div>
-                    </div>
-                    
-                    {/* Cột Giá */}
-                    <div className="text-[14px] font-bold text-right shrink-0">
-                      {formatVND(detail.order_detail_price)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    ) : details ? (
+                      <div className="space-y-6">
+                        {/* Danh sách items */}
+                        <div className="divide-y divide-gray-100">
+                          {details.items.map((item) => (
+                            <div key={item.orderDetailId} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+                              <div className="w-[70px] h-[90px] bg-gray-50 shrink-0 rounded overflow-hidden border border-gray-100">
+                                <img 
+                                  src={(item as any).variantImage || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&q=80'} 
+                                  alt={item.productName} 
+                                  className="w-full h-full object-cover" 
+                                />
+                              </div>
+                              
+                              <div className="flex-1 text-[13px]">
+                                <h4 className="font-semibold text-gray-800 m-0 leading-snug">{item.productName}</h4>
+                                <p className="text-gray-400 text-[11px] mt-0.5 mb-1">SKU: {item.skuCode}</p>
+                                <div className="text-gray-500 flex flex-wrap gap-x-4 mt-2">
+                                  <span>Màu/Size: {typeof item.variantAttributes === 'string' ? item.variantAttributes : JSON.stringify(item.variantAttributes)}</span>
+                                  <span>Số lượng: <span className="font-bold text-gray-800">{item.quantity}</span></span>
+                                </div>
+                              </div>
+                              
+                              <div className="text-[13px] font-bold text-right shrink-0">
+                                {formatVND(item.price)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
 
-              {/* Footer của Đơn hàng (Tổng tiền & Vận đơn) */}
-              <div className="px-6 py-5 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white">
-                <div className="text-[13px] text-gray-500">
-                  {ord.tracking_number && (
-                    <p className="m-0">Mã vận đơn: <span className="font-medium text-black">{ord.tracking_number}</span> (GHN)</p>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
-                  <div className="text-[14px]">
-                    Tổng tiền: <span className="text-[18px] font-bold ml-2">{formatVND(ord.final_payment_money)}</span>
+                        {/* Tổng quan tài chính & Vận đơn */}
+                        <div className="border-t border-gray-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px]">
+                          <div className="text-gray-600 space-y-1">
+                            <p className="m-0">Phương thức: <span className="font-bold text-gray-800">{details.paymentMethod}</span></p>
+                            <p className="m-0">Vận chuyển: <span className="font-bold text-gray-800">{details.shippingMethod}</span></p>
+                            {details.trackingNumber && (
+                              <p className="m-0">Mã vận đơn: <span className="font-bold text-[#00927c]">{details.trackingNumber}</span> (GHN)</p>
+                            )}
+                            <p className="m-0">Địa chỉ giao: <span className="font-medium text-gray-800">{details.address.fullAddress}</span></p>
+                            {details.note && <p className="m-0 italic text-gray-400">Ghi chú: "{details.note}"</p>}
+                          </div>
+                          
+                          <div className="text-right space-y-1.5 font-medium text-gray-500">
+                            <div className="flex justify-between md:justify-end gap-10">
+                              <span>Tiền sản phẩm:</span>
+                              <span className="text-gray-800">{formatVND(details.totalProductMoney)}</span>
+                            </div>
+                            {details.shopDiscountAmount > 0 && (
+                              <div className="flex justify-between md:justify-end gap-10 text-red-500">
+                                <span>Giảm giá coupon:</span>
+                                <span>-{formatVND(details.shopDiscountAmount)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between md:justify-end gap-10">
+                              <span>Phí giao hàng:</span>
+                              <span className="text-gray-800">{details.originalShippingFee === 0 ? 'Miễn phí' : formatVND(details.originalShippingFee)}</span>
+                            </div>
+                            <div className="flex justify-between md:justify-end gap-10 text-[15px] font-bold text-gray-900 border-t border-gray-100 pt-2 mt-2">
+                              <span>Tổng thanh toán:</span>
+                              <span className="text-[#00927c]">{formatVND(details.finalPaymentMoney)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">Không thể tải thông tin đơn hàng.</p>
+                    )}
                   </div>
-                  <button className="px-6 py-2 bg-black text-white text-[12px] font-bold uppercase tracking-wide border-none cursor-pointer hover:bg-gray-800 transition-colors">
-                    Chi tiết
-                  </button>
+                )}
+
+                {/* Footer tóm tắt (Tổng tiền & Bấm xem chi tiết) */}
+                <div 
+                  onClick={() => handleToggleDetails(ord.orderId)}
+                  className="px-6 py-4 border-t border-gray-100 flex flex-row justify-between items-center gap-4 bg-white cursor-pointer hover:bg-gray-50/50"
+                >
+                  <div className="text-[13px] text-gray-400">
+                    {ord.itemCount} Sản phẩm
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-[13px] text-gray-600">
+                      Tổng tiền: <span className="text-[16px] font-bold text-black ml-1">{formatVND(ord.finalPaymentMoney)}</span>
+                    </div>
+                    <button className="px-4 py-1.5 bg-black hover:bg-gray-800 text-white text-[11px] font-bold uppercase tracking-wider rounded border-none cursor-pointer transition-colors">
+                      {isExpanded ? 'Đóng' : 'Chi tiết'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      {/* POPUP HỦY ĐƠN HÀNG */}
+      <Dialog 
+        open={isCancelModalOpen} 
+        onClose={() => { if (!isSubmitting) setIsCancelModalOpen(false); }}
+        fullWidth
+        maxWidth="xs"
+        slotProps={{ paper: { sx: { borderRadius: '16px', p: 1 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', pb: 1 }}>Hủy đơn hàng #{cancelOrderId}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Vui lòng nhập lý do bạn muốn hủy đơn hàng này. Hành động này sẽ hủy đơn hàng ngay lập tức và không thể hoàn tác.
+          </Typography>
+          <TextField
+            autoFocus
+            label="Lý do hủy đơn hàng"
+            placeholder="Ví dụ: Thay đổi địa chỉ, Đổi ý không mua nữa..."
+            fullWidth
+            required
+            variant="outlined"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            disabled={isSubmitting}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button 
+            onClick={() => setIsCancelModalOpen(false)} 
+            disabled={isSubmitting}
+            variant="outlined"
+            sx={{ 
+              color: '#374151', borderColor: '#d1d5db', textTransform: 'none', px: 3, borderRadius: '12px',
+              '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' }
+            }}
+          >
+            Hủy bỏ
+          </Button>
+          <Button 
+            onClick={handleConfirmCancel} 
+            disabled={isSubmitting}
+            variant="contained"
+            sx={{ 
+              backgroundColor: '#ef4444', textTransform: 'none', px: 3, borderRadius: '12px',
+              '&:hover': { backgroundColor: '#dc2626' }
+            }}
+          >
+            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Xác nhận hủy'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
