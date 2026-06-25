@@ -164,7 +164,7 @@ const userSlice = createSlice({
         }
         // Cập nhật cả ở detail view nếu đang xem người đó
         if (state.currentUserDetail?.userId === action.payload?.userId) {
-          state.currentUserDetail = action.payload;
+          state.currentUserDetail = action.payload || null;
         }
       })
       .addCase(updateUserThunk.rejected, (state, action) => {

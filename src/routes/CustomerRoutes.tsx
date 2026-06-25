@@ -24,6 +24,7 @@ import {
   ProfileDetails,
   Addresses,
   ChangePassword,
+  ResetPassword
 } from '../pages/customer';
 
 export const customerRoutes: RouteObject = {
@@ -38,6 +39,7 @@ export const customerRoutes: RouteObject = {
     { path: 'login', element: <Login /> },
     { path: 'register', element: <Register /> },
     { path: 'forgot-password', element: <ForgotPassword /> },
+    { path: 'reset-password', element: <ResetPassword /> },
     // UNILO routes
     { path: 'men', element: <Collection /> },
     { path: 'women', element: <Collection /> },
@@ -52,7 +54,7 @@ export const customerRoutes: RouteObject = {
       path: 'account', 
       element: <Account />,
       children: [
-        { index: true, element: <Navigate to="orders" replace /> }, // Mặc định vào trang orders
+        { index: true, element: <Navigate to="orders" replace /> }, 
         { path: 'orders', element: <Orders /> },
         { path: 'wishlists', element: <Wishlists /> },
         { path: 'reviews', element: <Reviews /> },

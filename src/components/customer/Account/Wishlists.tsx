@@ -1,7 +1,6 @@
 import {  X  } from '@/components/ui/icons';
 import { formatVND } from '@/utils/formatters';
 
-// Mock data nội bộ (bạn có thể thay thế bằng API thực tế)
 const mockWishlists = [
   {
     id: 'W01',

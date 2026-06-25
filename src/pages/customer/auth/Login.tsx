@@ -1,26 +1,54 @@
 import { useState } from 'react';
-import {  Eye, EyeOff, Info  } from '@/components/ui/icons';
+import { Eye, EyeOff, Info } from '@/components/ui/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'react-toastify';
+
+// Định nghĩa Schema Validation với Zod
+const loginSchema = z.object({
+  email: z.string().min(1, 'Vui lòng nhập email').email('Định dạng email không hợp lệ'),
+  password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function Login() {
-  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login, loading, resetAuth, fetchProfile } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Khởi tạo React Hook Form
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' }
+  });
+
+  const onSubmit = async (data: LoginFormValues) => {
+    resetAuth(); 
+    try {
+      await login(data);
+      await fetchProfile();
+      toast.success('Đăng nhập thành công!', { position: 'top-right' });
+      navigate('/'); 
+    } catch (err: any) {
+      toast.error(err || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!', { position: 'top-right' });
+    }
+  };
 
   return (
     <div className="w-full bg-white min-h-screen text-gray-900 font-sans pb-24">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
         
-        {/* Header có icon info góc phải */}
         <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-10">
           <h1 className="text-[28px] md:text-[32px] font-medium m-0">Đăng nhập</h1>
           <Info className="w-5 h-5 text-gray-500 cursor-pointer" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-start">
-          
-          {/* CỘT TRÁI: FORM ĐĂNG NHẬP */}
           <div className="w-full max-w-[500px]">
-            {/* Box cảnh báo */}
             <div className="border border-gray-300 bg-[#f8f8f8] p-5 mb-8 text-[13px] text-gray-800 leading-relaxed">
               <p className="m-0 mb-3 flex gap-2">
                 <span className="font-bold">⚠</span>
@@ -33,15 +61,16 @@ export function Login() {
               </p>
             </div>
 
-            {/* Form */}
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <div>
                 <label className="block text-[13px] font-medium text-gray-800 mb-2">Địa chỉ email</label>
                 <input 
                   type="email" 
+                  {...register('email')}
                   placeholder="example@email.com"
-                  className="w-full border border-gray-400 rounded-none px-4 py-3 outline-none focus:border-black text-[14px] transition-colors"
+                  className={`w-full border rounded-none px-4 py-3 outline-none text-[14px] transition-colors ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-400 focus:border-black'}`}
                 />
+                {errors.email && <span className="text-red-500 text-[12px] mt-1 block">{errors.email.message}</span>}
               </div>
 
               <div>
@@ -49,8 +78,9 @@ export function Login() {
                 <div className="relative">
                   <input 
                     type={showPassword ? "text" : "password"} 
+                    {...register('password')}
                     placeholder="Vui lòng nhập mật khẩu."
-                    className="w-full border border-gray-400 rounded-none px-4 py-3 outline-none focus:border-black text-[14px] transition-colors"
+                    className={`w-full border rounded-none px-4 py-3 outline-none text-[14px] transition-colors pr-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-400 focus:border-black'}`}
                   />
                   <button 
                     type="button"
@@ -60,6 +90,7 @@ export function Login() {
                     {showPassword ? <Eye className="w-5 h-5" strokeWidth={1.5} /> : <EyeOff className="w-5 h-5" strokeWidth={1.5} />}
                   </button>
                 </div>
+                {errors.password && <span className="text-red-500 text-[12px] mt-1 block">{errors.password.message}</span>}
               </div>
 
               <div className="pt-2">
@@ -70,18 +101,18 @@ export function Login() {
 
               <button 
                 type="submit"
-                className="w-[200px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer mt-4"
+                disabled={loading}
+                className="w-[200px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                ĐĂNG NHẬP
+                {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
               </button>
             </form>
           </div>
 
-          {/* CỘT PHẢI: TẠO TÀI KHOẢN MỚI */}
           <div className="w-full max-w-[500px]">
             <button 
               onClick={() => navigate('/register')}
-              className="w-[240px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors cursor-pointer mb-6"
+              className="w-[240px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer mb-6"
             >
               TẠO TÀI KHOẢN
             </button>
@@ -89,7 +120,6 @@ export function Login() {
               Nếu bạn tạo tài khoản, bạn có thể nhận được các dịch vụ cá nhân hóa như kiểm tra lịch sử mua hàng và nhận phiếu giảm giá khi đăng ký thành viên mới. Đăng ký miễn phí ngay hôm nay! Tạo tài khoản và nhận phiếu giảm giá chào mừng thành viên mới.
             </p>
           </div>
-
         </div>
       </div>
     </div>

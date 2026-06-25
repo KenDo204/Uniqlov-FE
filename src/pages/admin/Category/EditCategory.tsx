@@ -1,312 +1,338 @@
-// import React, { useEffect, useState } from 'react';
-// import {
-//   TextField, MenuItem, FormControl, InputLabel,
-//   Select, Button, CircularProgress, Box, Switch, FormControlLabel
-// } from '@mui/material';
-// import { useNavigate, useParams } from 'react-router-dom';
-// import { ArrowBack, KeyboardArrowRight, Save } from '@mui/icons-material';
-// import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
-// import { fetchCategories, updateCategorySlice } from '@/redux/slices/categorySlice';
-// import type { CategoryResponse } from '@/types/categoryTypes';
-// import { toast } from 'react-toastify';
-// import ParentCategoryPicker from '@/components/admin/Category/ParentCategoryPicker';
-// import { hasBadWords } from '@/util/profanity';
+import React, { useEffect, useState } from 'react';
+import {
+  TextField, Button, CircularProgress, Box, MenuItem, FormControlLabel, Switch
+} from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowBack, KeyboardArrowRight, Save } from '@mui/icons-material';
+import { useCategory } from '@/hooks/useCategory';
+import { toast } from 'react-toastify';
+import type { CategoryResponse } from '@/types/category';
 
-// interface FlatCategory extends CategoryResponse {
-//   displayLevel: number;
-// }
+const EditCategory: React.FC = () => {
+  const navigate = useNavigate();
+  const { categoryId } = useParams<{ categoryId: string }>();
+  const { categories, isSubmitting, isFetching, fetchAdminCategories, updateCategory } = useCategory();
 
-// const EditCategory = () => {
-//   const navigate = useNavigate();
-//   const dispatch = useAppDispatch();
-//   const { categoryId } = useParams<{ categoryId: string }>();
+  const [categoryName, setCategoryName] = useState('');
+  const [parentPathText, setParentPathText] = useState<string>('Đang tải...');
+  
+  const [iconUrl, setIconUrl] = useState('');
+  const [categoryType, setCategoryType] = useState('');
+  const [targetDemographic, setTargetDemographic] = useState<number>(0);
+  const [displayOrder, setDisplayOrder] = useState<number>(0);
+  const [categoryStatus, setCategoryStatus] = useState<number>(1);
 
-//   const { categoryTree } = useAppSelector((state) => state.categoryReducer);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
-//   const [name, setName] = useState('');
-//   const [parentId, setParentId] = useState<number | null>(null);
-//   const [parentPathText, setParentPathText] = useState<string>('Đang tải...');
-//   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  useEffect(() => {
+    if (!categories || categories.length === 0) {
+      fetchAdminCategories().catch(err => {
+        console.error('Error fetching categories:', err);
+      });
+    }
+  }, [categories, fetchAdminCategories]);
 
-//   const [isTryOnSupported, setIsTryOnSupported] = useState(false);
-//   const [isSubmitting, setIsSubmitting] = useState(false);
-//   const [isPageLoading, setIsPageLoading] = useState(true);
+  useEffect(() => {
+    if (categories && categories.length > 0 && categoryId) {
+      let found = false;
 
-//   useEffect(() => {
-//     if (categoryTree.length === 0) {
-//       dispatch(fetchCategories());
-//     }
-//   }, [dispatch, categoryTree.length]);
+      const findParentPath = (nodes: CategoryResponse[], targetId: number, currentPath = ""): string | null => {
+        for (const node of nodes) {
+          if (node.categoryId === targetId) {
+            return currentPath ? `${currentPath} > ${node.categoryName}` : node.categoryName;
+          }
+          if (node.children && node.children.length > 0) {
+            const foundChild = findParentPath(node.children, targetId, currentPath ? `${currentPath} > ${node.categoryName}` : node.categoryName);
+            if (foundChild) return foundChild;
+          }
+        }
+        return null;
+      };
 
-//   useEffect(() => {
-//     if (categoryTree.length > 0 && categoryId) {
-//       let found = false;
+      const findCategoryData = (nodes: CategoryResponse[], currentParentId: number | null = null) => {
+        for (const node of nodes) {
+          if (node.categoryId.toString() === categoryId) {
+            setCategoryName(node.categoryName);
 
-//       // Hàm tìm đường dẫn chuỗi (VD: Thời trang > Áo nam) của một ID
-//       const findParentPath = (nodes: CategoryResponse[], targetId: string, currentPath = ""): string | null => {
-//         for (const node of nodes) {
-//           if (node.categoryId.toString() === targetId) {
-//             return currentPath ? `${currentPath} > ${node.name}` : node.name;
-//           }
-//           if (node.children && node.children.length > 0) {
-//             const foundChild = findParentPath(node.children, targetId, currentPath ? `${currentPath} > ${node.name}` : node.name);
-//             if (foundChild) return foundChild;
-//           }
-//         }
-//         return null;
-//       };
+            if (currentParentId) {
+              const pathString = findParentPath(categories, currentParentId);
+              setParentPathText(pathString || 'Không xác định');
+            } else {
+              setParentPathText('Không có (Làm danh mục gốc)');
+            }
 
-//       const findCategoryData = (nodes: CategoryResponse[], currentParentId: string | null = null) => {
-//         for (const node of nodes) {
-//           if (node.categoryId.toString() === categoryId) {
-//             setName(node.name);
-//             setParentId(currentParentId ? Number(currentParentId) : null);
+            setIconUrl(node.iconUrl || '');
+            setCategoryType(node.categoryType || '');
+            setTargetDemographic(node.targetDemographic || 0);
+            setDisplayOrder(node.displayOrder || 0);
+            setCategoryStatus(node.categoryStatus);
+            found = true;
+            return;
+          }
+          if (node.children && node.children.length > 0) {
+            findCategoryData(node.children, node.categoryId);
+            if (found) return;
+          }
+        }
+      };
 
-//             // Lấy chuỗi hiển thị của danh mục cha
-//             if (currentParentId) {
-//               const pathString = findParentPath(categoryTree, currentParentId);
-//               setParentPathText(pathString || 'Không xác định');
-//             } else {
-//               setParentPathText('Không có (Làm danh mục gốc)');
-//             }
+      findCategoryData(categories);
 
-//             setIsTryOnSupported(node.isTryOnSupported);
-//             found = true;
-//             return;
-//           }
-//           if (node.children && node.children.length > 0) {
-//             findCategoryData(node.children, node.categoryId.toString());
-//             if (found) return;
-//           }
-//         }
-//       };
+      if (!found) {
+        toast.error("Không tìm thấy danh mục này!");
+        navigate('/admin/categories');
+      } else {
+        setIsPageLoading(false);
+      }
+    }
+  }, [categories, categoryId, navigate]);
 
-//       findCategoryData(categoryTree);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-//       if (!found) {
-//         toast.error("Không tìm thấy danh mục này!");
-//         navigate('/admin/categories');
-//       } else {
-//         setIsPageLoading(false);
-//       }
-//     }
-//   }, [categoryTree, categoryId, navigate]);
+    if (!categoryName.trim()) {
+      toast.error('Vui lòng nhập tên danh mục');
+      return;
+    }
 
-//   const getCategoryLevel = (categories: any[], id: number | null, currentLevel = 0): number => {
-//     if (id === null) return 0;
-//     for (const cat of categories) {
-//       if (cat.categoryId === id) return currentLevel;
-//       if (cat.children && cat.children.length > 0) {
-//         const childLevel = getCategoryLevel(cat.children, id, currentLevel + 1);
-//         if (childLevel !== -1) return childLevel;
-//       }
-//     }
-//     return -1;
-//   };
+    try {
+      await updateCategory(Number(categoryId), {
+        categoryName: categoryName.trim(),
+        categoryStatus: categoryStatus,
+        iconUrl: iconUrl.trim() || undefined,
+        targetDemographic: targetDemographic || undefined,
+        categoryType: categoryType.trim() || undefined,
+        displayOrder: displayOrder || undefined,
+      });
 
-//   // Tính toán cấp độ hiện tại để quyết định có hiện nút Switch "Hỗ trợ thử đồ" không
-//   const myLevel = parentId === null ? 0 : getCategoryLevel(categoryTree, parentId) + 1;
-//   const isLevel3 = myLevel === 2;
+      toast.success('Cập nhật danh mục thành công!');
+      fetchAdminCategories();
+      navigate('/admin/categories');
+    } catch (error: any) {
+      toast.error(error || 'Cập nhật danh mục thất bại');
+    }
+  };
 
-//   const handleConfirmParent = (selectedId: number | null, pathText: string) => {
-//     // Chặn không cho danh mục làm cha của chính nó
-//     if (selectedId === Number(categoryId)) {
-//       toast.error('Danh mục không thể làm cha của chính nó!');
-//       return;
-//     }
-//     setParentId(selectedId);
-//     setParentPathText(pathText);
+  if (isPageLoading || isFetching) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <CircularProgress sx={{ color: '#00927c' }} />
+        <p className="mt-2 text-gray-500 font-medium">Đang tải thông tin danh mục...</p>
+      </div>
+    );
+  }
 
-//     // Tự động tắt Try-On nếu danh mục cha mới không làm cho danh mục này thành Cấp 3 nữa
-//     const futureLevel = selectedId === null ? 0 : getCategoryLevel(categoryTree, selectedId) + 1;
-//     if (futureLevel !== 2) setIsTryOnSupported(false);
-//   };
+  return (
+    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
+      <div className="max-w-3xl mx-auto text-left">
+        <div className="flex items-center gap-4 mb-8">
+          <button 
+            onClick={() => navigate('/admin/categories')} 
+            className="p-2.5 rounded-xl flex items-center justify-center bg-white shadow-sm border border-gray-100 hover:bg-gray-100 cursor-pointer transition-colors"
+          >
+            <ArrowBack fontSize="small" className="text-gray-600" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 m-0">Chỉnh sửa danh mục</h1>
+            <p className="text-sm text-gray-500 mt-1 m-0">Cập nhật thông tin chi tiết cho danh mục</p>
+          </div>
+        </div>
 
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Box>
+              <TextField
+                fullWidth
+                label="Tên danh mục"
+                variant="outlined"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                required
+                sx={{
+                  backgroundColor: 'white',
+                  borderRadius: '0.75rem',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '0.75rem',
+                    transition: 'all 0.3s ease',
+                    '&:hover fieldset': { borderColor: '#00927c' },
+                    '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                  },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                }}
+              />
+            </Box>
 
-//     if (!name.trim()) {
-//       toast.error('Vui lòng nhập tên danh mục');
-//       return;
-//     }
+            <Box className="opacity-70">
+              <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Danh mục cha (Không thể thay đổi vị trí tại đây)</label>
+              <div className="w-full flex items-center justify-between p-4 border border-gray-300 rounded-xl bg-gray-50 cursor-not-allowed box-border">
+                <span className="text-gray-600 font-medium">
+                  {parentPathText}
+                </span>
+                <KeyboardArrowRight className="text-gray-400" />
+              </div>
+            </Box>
 
-//     if (hasBadWords(name)) {
-//       toast.error('Tên danh mục chứa từ ngữ không phù hợp');
-//       return;
-//     }
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Loại danh mục (Type)"
+                  variant="outlined"
+                  value={categoryType}
+                  onChange={(e) => setCategoryType(e.target.value)}
+                  placeholder="VD: PHYSICAL, DIGITAL..."
+                  sx={{
+                    backgroundColor: 'white',
+                    borderRadius: '0.75rem',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0.75rem',
+                      transition: 'all 0.3s ease',
+                      '&:hover fieldset': { borderColor: '#00927c' },
+                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                  }}
+                />
+              </Box>
 
-//     setIsSubmitting(true);
-//     try {
-//       await dispatch(updateCategorySlice({
-//         id: Number(categoryId),
-//         data: {
-//           name: name.trim(),
-//           parentId: parentId,
-//           isTryOnSupported: isLevel3 ? isTryOnSupported : false,
-//         }
-//       })).unwrap();
+              <Box>
+                <TextField
+                  fullWidth
+                  select
+                  label="Nhóm khách hàng (Demographic)"
+                  value={targetDemographic}
+                  onChange={(e) => setTargetDemographic(Number(e.target.value))}
+                  sx={{
+                    backgroundColor: 'white',
+                    borderRadius: '0.75rem',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0.75rem',
+                      transition: 'all 0.3s ease',
+                      '&:hover fieldset': { borderColor: '#00927c' },
+                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                  }}
+                >
+                  <MenuItem value={0}>Tất cả</MenuItem>
+                  <MenuItem value={1}>Nam</MenuItem>
+                  <MenuItem value={2}>Nữ</MenuItem>
+                  <MenuItem value={3}>Trẻ em</MenuItem>
+                </TextField>
+              </Box>
+            </div>
 
-//       dispatch(fetchCategories());
-//       navigate('/admin/categories');
-//     } catch (error) {
-//       // Lỗi đã được xử lý bằng toast trong Thunk
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Thứ tự hiển thị"
+                  type="number"
+                  variant="outlined"
+                  value={displayOrder || ''}
+                  onChange={(e) => setDisplayOrder(Number(e.target.value))}
+                  placeholder="VD: 1, 2, 3..."
+                  sx={{
+                    backgroundColor: 'white',
+                    borderRadius: '0.75rem',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0.75rem',
+                      transition: 'all 0.3s ease',
+                      '&:hover fieldset': { borderColor: '#00927c' },
+                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                  }}
+                />
+              </Box>
 
-//   if (isPageLoading) {
-//     return (
-//       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-//         <CircularProgress sx={{ color: '#00927c' }} />
-//       </div>
-//     );
-//   }
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Đường dẫn Icon (URL)"
+                  variant="outlined"
+                  value={iconUrl}
+                  onChange={(e) => setIconUrl(e.target.value)}
+                  placeholder="VD: https://example.com/icon.png"
+                  sx={{
+                    backgroundColor: 'white',
+                    borderRadius: '0.75rem',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0.75rem',
+                      transition: 'all 0.3s ease',
+                      '&:hover fieldset': { borderColor: '#00927c' },
+                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                  }}
+                />
+              </Box>
+            </div>
 
-//   return (
-//     <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
-//       <div className="max-w-3xl mx-auto">
+            <Box className="ml-1">
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={categoryStatus === 1}
+                    onChange={(e) => setCategoryStatus(e.target.checked ? 1 : 0)}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': { color: '#00927c' },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#00927c' },
+                    }}
+                  />
+                }
+                label={
+                  <div>
+                    <span className="text-gray-800 font-medium">Hoạt động</span>
+                    <p className="text-xs text-gray-500 m-0">Kích hoạt danh mục này hiển thị công khai trên giao diện cửa hàng</p>
+                  </div>
+                }
+              />
+            </Box>
 
-//         <div className="flex items-center gap-4 mb-8">
-//           <IconButton onClick={() => navigate('/admin/categories')} className="bg-white shadow-sm border border-gray-100 hover:bg-gray-100">
-//             <ArrowBack fontSize="small" className="text-gray-600" />
-//           </IconButton>
-//           <div>
-//             <h1 className="text-2xl font-bold text-gray-800">Chỉnh sửa danh mục</h1>
-//             <p className="text-sm text-gray-500 mt-1">Cập nhật thông tin cho danh mục</p>
-//           </div>
-//         </div>
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-100">
+              <Button
+                variant="outlined"
+                onClick={() => navigate('/admin/categories')}
+                sx={{
+                  color: '#374151',
+                  borderColor: '#d1d5db',
+                  borderRadius: '0.75rem',
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' }
+                }}
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isSubmitting}
+                startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
+                sx={{
+                  bgcolor: '#00927c',
+                  borderRadius: '0.75rem',
+                  textTransform: 'none',
+                  px: 4,
+                  py: 1,
+                  boxShadow: 'none',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
+                }}
+              >
+                {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-//         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-//           <form onSubmit={handleSubmit} className="space-y-6">
-//             <Box>
-//               <TextField
-//                 fullWidth
-//                 label="Tên danh mục"
-//                 variant="outlined"
-//                 value={name}
-//                 onChange={(e) => setName(e.target.value)}
-//                 required
-//                 sx={{
-//                   backgroundColor: 'white',
-//                   borderRadius: '0.75rem',
-//                   '& .MuiOutlinedInput-root': {
-//                     borderRadius: '0.75rem',
-//                     transition: 'all 0.3s ease',
-//                     cursor: 'pointer',
-
-//                     '&:hover fieldset': {
-//                       borderColor: '#00927c',
-//                     },
-
-//                     '&.Mui-focused fieldset': {
-//                       borderColor: '#00927c',
-//                       borderWidth: '2px',
-//                     },
-//                   },
-//                   '& .MuiInputLabel-root.Mui-focused': {
-//                     color: '#00927c',
-//                   },
-//                 }}
-//               />
-//             </Box>
-
-//             <Box
-//               className="opacity-70"
-//             >
-//               <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Danh mục cha (Không thể thay đổi)</label>
-//               <div
-//                 onClick={() => setIsPickerOpen(false)}
-//                 className="w-full flex items-center justify-between p-4 border border-gray-300 rounded-xl cursor-not-allowed transition-colors bg-white"
-//               >
-//                 <span className={parentId === null ? 'text-gray-800 font-medium' : 'text-[#00927c] font-medium'}>
-//                   {parentPathText}
-//                 </span>
-//                 <KeyboardArrowRight className="text-gray-400" />
-//               </div>
-//               <p className="text-xs text-gray-400 mt-2 ml-1">Chỉ cho phép đổi tên.</p>
-//             </Box>
-
-//             {isLevel3 && (
-//               <Box className="ml-1">
-//                 <FormControlLabel
-//                   control={
-//                     <Switch
-//                       checked={isTryOnSupported}
-//                       onChange={(e) => setIsTryOnSupported(e.target.checked)}
-//                       color="primary"
-//                       sx={{
-//                         '& .MuiSwitch-switchBase.Mui-checked': {
-//                           color: '#00927c',
-//                         },
-//                         '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-//                           backgroundColor: '#00927c',
-//                         },
-//                       }}
-//                     />
-//                   }
-//                   label={
-//                     <div>
-//                       <span className="text-gray-800 font-medium">Hỗ trợ thử đồ</span>
-//                       <p className="text-xs text-gray-500 m-0">Kích hoạt tính năng ướm thử sản phẩm cho danh mục này</p>
-//                     </div>
-//                   }
-//                 />
-//               </Box>
-//             )}
-
-//             <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-//               <Button
-//                 variant="outlined"
-//                 onClick={() => navigate('/admin/categories')}
-//                 sx={{
-//                   color: '#FFFFFF', borderRadius: '0.75rem',
-//                   borderColor: '#d1d5db', textTransform: 'none', px: 3,
-//                   backgroundColor: '#ef4444',
-//                   fontWeight: 'bold', fontSize: '14px',
-//                   '&:hover': { backgroundColor: '#dc2626' }
-//                 }}
-//               >
-//                 Hủy bỏ
-//               </Button>
-//               <Button
-//                 type="submit"
-//                 variant="contained"
-//                 disabled={isSubmitting}
-//                 startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
-//                 sx={{
-//                   bgcolor: '#00927c', borderRadius: '0.75rem',
-//                   textTransform: 'none', px: 4, boxShadow: 'none',
-//                   fontWeight: 'bold', fontSize: '14px',
-//                   '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
-//                 }}
-//               >
-//                 {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
-//               </Button>
-//             </div>
-//           </form>
-//         </div>
-//       </div>
-
-//       <ParentCategoryPicker
-//         open={isPickerOpen}
-//         onClose={() => setIsPickerOpen(false)}
-//         categoryTree={categoryTree}
-//         onConfirm={handleConfirmParent}
-//       />
-
-//     </div>
-//   );
-// };
-
-// const IconButton = ({ children, onClick, className }: { children: React.ReactNode, onClick: () => void, className?: string }) => (
-//   <button
-//     type="button"
-//     onClick={onClick}
-//     className={`p-2.5 rounded-xl flex items-center justify-center transition-colors ${className}`}
-//   >
-//     {children}
-//   </button>
-// );
-
-// export default EditCategory;
+export default EditCategory;

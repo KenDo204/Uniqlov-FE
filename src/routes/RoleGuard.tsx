@@ -1,33 +1,34 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
-import { ROLES, type RoleType } from '../constants/roles';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { type RoleType } from '@/constants/roles';
+import { Box, CircularProgress } from '@mui/material';
 
 interface RoleGuardProps {
   allowedRoles: RoleType[];
 }
 
 export function RoleGuard({ allowedRoles }: RoleGuardProps) {
-  const { isLoaded, isSignedIn, user } = useUser();
+  const { user, isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
-  if (!isLoaded) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-        <LoadingSpinner />
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#f3f4f6' }}>
+        <CircularProgress sx={{ color: '#00927c' }} />
+      </Box>
     );
   }
 
-  if (!isSignedIn) {
-    return <Navigate to="/auth/login" replace />;
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Get user role from Clerk publicMetadata or default to CUSTOMER
-  const userRole = (user?.publicMetadata?.role as RoleType) || ROLES.CUSTOMER;
+  const userRole = user.roleName;
 
-  if (!allowedRoles.includes(userRole)) {
-    // If user's role is not authorized, redirect them to customer home
-    return <Navigate to="/" replace />;
+  const hasRequiredRole = userRole && allowedRoles.includes(userRole as RoleType);
+
+  if (!hasRequiredRole) {
+    return <Navigate to="/" replace />; 
   }
 
   return <Outlet />;

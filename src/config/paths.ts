@@ -11,6 +11,8 @@ export const paths = {
     categories: '/admin/categories',
     products: '/admin/products',
     users: '/admin/users',
+    roles: '/admin/roles',
+    permissions: '/admin/permissions',
   },
   owner: {
     dashboard: '/owner/dashboard',
@@ -22,7 +24,7 @@ export const paths = {
     login: '/login',
     register: '/register',
     forgotPassword: '/forgot-password',
-    // homeOld: '/customer/home',
+    resetPassword: '/reset-password',
     men: '/men',
     women: '/women',
     newArrivals: '/new-arrivals',

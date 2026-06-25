@@ -1,9 +1,24 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'react-toastify';
 
 export function Account() {
-  // Hàm helper để render class cho NavLink dựa trên trạng thái active
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Đã đăng xuất thành công!', { position: 'top-right' });
+      navigate('/login'); // Chuyển hướng người dùng về trang đăng nhập
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi đăng xuất.', { position: 'top-right' });
+      console.error("Lỗi đăng xuất:", error);
+    }
+  };
+
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `bg-transparent border-none p-0 cursor-pointer text-left w-full  block ${isActive ? 'font-bold text-black' : 'text-gray-600'
+    `bg-transparent border-none p-0 cursor-pointer text-left w-full block ${isActive ? 'font-bold text-theme' : 'text-gray-600'
     }`;
 
   return (
@@ -54,13 +69,16 @@ export function Account() {
                     Sổ địa chỉ
                   </NavLink>
                 </li>
-                <li>
+                {/* <li>
                   <NavLink to="/account/password" className={navLinkClass}>
                     Thay đổi mật khẩu
                   </NavLink>
-                </li>
+                </li> */}
                 <li>
-                  <button className="bg-transparent border-none p-0 cursor-pointer text-left w-full text-gray-600  block mt-4">
+                  <button
+                    onClick={handleLogout}
+                    className="bg-transparent border-none p-0 cursor-pointer text-left w-full text-gray-600 block mt-4"
+                  >
                     Đăng xuất
                   </button>
                 </li>

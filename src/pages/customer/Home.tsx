@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   HeroBanner,
 
-} from '@/components/home';
+} from '@/components/customer/Home';
 import { mockCategories } from '@/constants/mock-categories';
 import { mockDataHome } from '@/constants/mock-data-home';
 import { BRAND } from '@/constants/brand';

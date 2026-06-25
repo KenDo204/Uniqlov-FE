@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '@/services/authService';
 import type {
   LoginRequest,
@@ -8,7 +8,8 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   LogoutRequest,
-  UserResponse
+  UserResponse,
+  IntrospectRequest
 } from '@/types/auth';
 
 interface AuthState {
@@ -56,7 +57,7 @@ export const getCurrentUserThunk = createAsyncThunk(
 
 export const logoutThunk = createAsyncThunk(
   'auth/logout',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
       const accessToken = localStorage.getItem('accessToken') || '';
       const refreshToken = localStorage.getItem('refreshToken') || '';
@@ -95,6 +96,18 @@ export const resetPasswordThunk = createAsyncThunk('auth/resetPassword', async (
   try { return await authService.resetPassword(payload); } 
   catch (error: any) { return rejectWithValue(error.response?.data?.message || 'Đặt lại mật khẩu thất bại'); }
 });
+
+export const introspectThunk = createAsyncThunk(
+  'auth/introspect',
+  async (payload: IntrospectRequest, { rejectWithValue }) => {
+    try {
+      const response = await authService.introspect(payload);
+      return response.result ? response.result.valid : false; // Giả định Backend trả về { result: { valid: true } }
+    } catch (error: any) {
+      return rejectWithValue(false); 
+    }
+  }
+);
 
 // --- SLICE CONFIGURATION ---
 

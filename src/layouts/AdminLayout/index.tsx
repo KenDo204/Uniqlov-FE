@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import {  LayoutDashboard, Image, Settings, Users, FolderTree, LogOut, Checkroom} from '@/components/ui/icons';
-import { paths } from '../../config/paths';
+import {  LayoutDashboard, Image, Settings, Users, FolderTree, LogOut, Checkroom, ShieldCheck, Lock} from '@/components/ui/icons';
+import { paths } from '@/config/paths';
 import { BRAND } from '@/constants/brand';
 import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
 
@@ -14,6 +14,8 @@ export default function AdminLayout() {
     { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree },
     { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom },
     { label: 'Quản lý Người dùng', path: paths.admin.users, icon: Users },
+    { label: 'Quản lý Vai trò', path: paths.admin.roles, icon: ShieldCheck },
+    { label: 'Quản lý Quyền', path: paths.admin.permissions, icon: Lock },
   ];
 
   return (
@@ -33,7 +35,7 @@ export default function AdminLayout() {
         
         <nav className="flex-1 p-4 space-y-1">
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || (item.path !== paths.admin.dashboard && location.pathname.startsWith(item.path));
             const Icon = item.icon;
             return (
               <Link

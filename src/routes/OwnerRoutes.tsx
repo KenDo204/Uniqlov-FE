@@ -5,7 +5,7 @@ import { RoleGuard } from './RoleGuard';
 
 export const ownerRoutes: RouteObject = {
   path: 'owner',
-  element: <RoleGuard allowedRoles={['OWNER']} />,
+  element: <RoleGuard allowedRoles={['OWNER'] as any} />,
   children: [
     {
       element: <OwnerLayout />,
