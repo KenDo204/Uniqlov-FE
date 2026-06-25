@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   IconButton, CircularProgress, Tooltip,
   Dialog, DialogTitle, Switch, DialogContent, DialogActions, 
@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCategory } from '@/hooks/useCategory';
 import type { CategoryResponse } from '@/types/category';
 import { toast } from 'react-toastify';
+import CustomPagination from '@/components/general/Pagination';
 
 const CategoryList: React.FC = () => {
   const navigate = useNavigate();
@@ -28,12 +29,19 @@ const CategoryList: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
     fetchAdminCategories().catch((err) => {
       console.error('Lỗi fetch danh mục:', err);
       toast.error('Không thể tải danh sách danh mục');
     });
   }, [fetchAdminCategories]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categories]);
 
   const handleToggleExpand = (categoryId: number) => {
     setExpandedIds((prev) => 
@@ -53,6 +61,11 @@ const CategoryList: React.FC = () => {
   };
 
   const sortedCategoryTree = sortCategoryTree(categories || []);
+
+  const paginatedCategories = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedCategoryTree.slice(start, start + itemsPerPage);
+  }, [sortedCategoryTree, currentPage]);
 
   const CategoryRow = ({ 
     category, 
@@ -257,9 +270,14 @@ const CategoryList: React.FC = () => {
                       <p className="mt-2 text-gray-500 m-0">Đang tải dữ liệu...</p>
                     </td>
                   </tr>
-                ) : sortedCategoryTree.length > 0 ? (
-                  sortedCategoryTree.map((cat, index) => (
-                    <CategoryRow key={cat.categoryId} category={cat} level={0} index={index} />
+                ) : paginatedCategories.length > 0 ? (
+                  paginatedCategories.map((cat, index) => (
+                    <CategoryRow 
+                      key={cat.categoryId} 
+                      category={cat} 
+                      level={0} 
+                      index={(currentPage - 1) * itemsPerPage + index} 
+                    />
                   ))
                 ) : (
                   <tr>
@@ -275,6 +293,13 @@ const CategoryList: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(sortedCategoryTree.length / itemsPerPage)}
+            totalItems={sortedCategoryTree.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         </div>
       </div>
 

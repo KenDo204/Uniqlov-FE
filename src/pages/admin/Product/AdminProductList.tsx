@@ -11,6 +11,7 @@ import { useProduct } from '@/hooks/useProduct';
 import { useCategory } from '@/hooks/useCategory';
 import { toast } from 'react-toastify';
 import type { ProductResponse } from '@/types/product';
+import CustomPagination from '@/components/general/Pagination';
 
 const AdminProductList: React.FC = () => {
   const { 
@@ -34,6 +35,14 @@ const AdminProductList: React.FC = () => {
   // Delete confirm modal state
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter, genderFilter]);
 
   useEffect(() => {
     fetchAdminProducts().catch(err => {
@@ -122,6 +131,11 @@ const AdminProductList: React.FC = () => {
       return matchesSearch && matchesCategory && matchesGender;
     });
   }, [products, searchTerm, categoryFilter, genderFilter]);
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(start, start + itemsPerPage);
+  }, [filteredProducts, currentPage]);
 
   // Flattened category tree for dropdown selection
   const flatCategoriesList = useMemo(() => {
@@ -218,8 +232,8 @@ const AdminProductList: React.FC = () => {
                       <p className="mt-2 text-gray-500 m-0">Đang tải danh sách sản phẩm...</p>
                     </td>
                   </tr>
-                ) : filteredProducts.length > 0 ? (
-                  filteredProducts.map((prod) => {
+                ) : paginatedProducts.length > 0 ? (
+                  paginatedProducts.map((prod) => {
                     const thumbImg = prod.images?.find(img => img.isThumbnail) || prod.images?.[0];
                     const totalStock = getTotalStock(prod);
                     return (
@@ -314,6 +328,13 @@ const AdminProductList: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredProducts.length / itemsPerPage)}
+            totalItems={filteredProducts.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         </div>
       </div>
 

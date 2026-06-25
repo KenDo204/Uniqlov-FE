@@ -1,19 +1,11 @@
 import React from 'react'
 import { Avatar, Popper, Fade, Paper, type PopperPlacementType, ListItemText, MenuList, ListItemIcon, Divider, Box, Badge, Typography, MenuItem } from '@mui/material'
-import { Storefront, NoteAlt, FavoriteBorder, Logout, AccountCircle, ShoppingCart, ArrowDropDown, ShoppingCartOutlined } from '@mui/icons-material'
+import { NoteAlt, FavoriteBorder, Logout, AccountCircle, ShoppingCart, ArrowDropDown, ShoppingCartOutlined } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '@/stores/hooks'
-import { logoutThunk, clearAuth } from '@/stores/slices/authSlice'
-import { useClerk, useUser } from '@clerk/clerk-react'
+import { useAppSelector } from '@/stores/hooks'
+import { useAuth } from '@/hooks/useAuth'
+import { type UserResponse } from '@/types/auth'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
-
-interface AuthUser {
-  userId?: number;
-  email: string;
-  fullName: string;
-  avatar?: string;
-  role?: string;
-}
 
 const navItem = [
   {
@@ -34,35 +26,27 @@ const navItem = [
   {
     title: "Danh sách yêu thích",
     icon: <FavoriteBorder />,
-    path: "/wishlist"
+    path: "/account/wishlists"
   },
 ]
 
-const AvatarNav = ({ user }: { user: AuthUser }) => {
-  const dispatch = useAppDispatch();
+const AvatarNav = ({ user }: { user: UserResponse }) => {
   const navigate = useNavigate();
   const { items } = useAppSelector(state => state.cart);
   const [open, setOpen] = React.useState(false);
-  const { signOut } = useClerk();
-  const { isSignedIn } = useUser();
+  const { logout } = useAuth();
   const [placement, setPlacement] = React.useState<PopperPlacementType>();
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
   const handleLogout = async () => {
     setOpen(false);
-    if (isSignedIn) {
-      await signOut({ redirectUrl: "/" });
+    try {
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error("Lỗi đăng xuất:", error);
+      navigate("/");
     }
-    await dispatch(logoutThunk());
-    dispatch(clearAuth());
-    navigate("/");
-  }
-
-  const becomeSellerClick = () => {
-    setOpen(false);
-    if (user.role === "ROLE_SELLER" || user.role === "ROLE_SUPER_SELLER") {
-      navigate("/seller")
-    } else navigate("/become-seller")
   }
 
   const handleClick =
@@ -91,9 +75,11 @@ const AvatarNav = ({ user }: { user: AuthUser }) => {
         <Box sx={{ cursor: "pointer", '&:hover': { opacity: 0.8, boxShadow: "0 0 0 1px #00927c", borderRadius: '50%', transition: "all 0.3s ease-in-out" } }}
           className='relative' onClick={handleClick('bottom-start')}>
           <Avatar
-            src={user.avatar!}
-            alt={user.email}
-          />
+            src=""
+            alt={user.fullName || user.email}
+          >
+            {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
+          </Avatar>
           <ArrowDropDown sx={{ position: "absolute", bottom: -4, right: -4, fontSize: 22, color: "#00927c" }} />
         </Box>
 
@@ -138,7 +124,7 @@ const AvatarNav = ({ user }: { user: AuthUser }) => {
                     );
                   })}
                   <Divider />
-                  {["ROLE_ADMIN", "ROLE_SUPER_ADMIN"].includes(user?.role || "") ? (
+                  {["ROLE_ADMIN", "ROLE_OWNER"].includes(user?.roleName || "") ? (
                     <MenuItem
                       sx={{
                         background: 'linear-gradient(to right, #00927c, #00927c)',
@@ -158,57 +144,13 @@ const AvatarNav = ({ user }: { user: AuthUser }) => {
                           }}
                         />
                       </ListItemIcon>
-                      <ListItemText>Trang Quản Trị Viên</ListItemText>
+                      <ListItemText>
+                        <Typography sx={{ fontWeight: 500 }}>
+                          Trang Quản Trị Viên
+                        </Typography>
+                      </ListItemText>
                     </MenuItem>
-                  ) : 
-                  (user?.role === "ROLE_SELLER" || user?.role === "ROLE_SUPER_SELLER") ? (
-                    <MenuItem
-                      sx={{
-                        background: 'linear-gradient(to right, #00927c, #00927c)',
-                        color: 'white',
-                        borderRadius: 1,
-                        '&:hover': {
-                          background: 'linear-gradient(to right, #00927c, #00927c)',
-                          color: 'white',
-                        }
-                      }
-                      }
-                      onClick={() => navigate("/seller")}>
-                      <ListItemIcon>
-                        <Storefront
-                          sx={{
-                            color: 'white',
-                          }}
-                        />
-                      </ListItemIcon>
-                      <ListItemText>Kênh người bán</ListItemText>
-                    </MenuItem>
-                  ) : (
-                    (user?.role === "ROLE_ADMIN" || user?.role === "ROLE_SUPER_ADMIN" || user?.role === "ROLE_SUPER_SELLER") ? (
-                      ''
-                    ) : (
-                        <MenuItem
-                        sx={{
-                          background: 'linear-gradient(to right, #00927c, #00927c)',
-                          color: 'white',
-                          borderRadius: 1,
-                          '&:hover': {
-                            background: 'linear-gradient(to right, #00927c, #00927c)',
-                            color: 'white',
-                          }
-                        }
-                        }
-                        onClick={becomeSellerClick}>
-                        <ListItemIcon>
-                          <Storefront sx={{
-                            color: 'white',
-                          }}
-                          />
-                        </ListItemIcon>
-                        <ListItemText>Trở thành người bán</ListItemText>
-                      </MenuItem>
-                      )
-                    )
+                  ) : ""
                   }
                   <MenuItem 
                     onClick={handleLogout}

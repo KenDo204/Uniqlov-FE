@@ -1,10 +1,7 @@
-import { useNavigate } from 'react-router-dom';
-import {  AlertCircle, ArrowRight  } from '@/components/ui/icons';
-import { paths } from '../../config/paths';
+import {  AlertCircle  } from '@/components/ui/icons';
 import BackHome from '@/components/general/BackHomeButton';
 
 export function NotFound() {
-  const navigate = useNavigate();
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 space-y-6 text-xs md:text-sm">

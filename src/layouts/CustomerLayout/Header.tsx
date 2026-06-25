@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, User, Heart, ShoppingCart, HelpCircle, Menu, ArrowRight, X } from '@/components/ui/icons';
+import { Search, Heart, ShoppingCart, Menu, ArrowRight, X } from '@/components/ui/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCartStore } from '@/stores/useCartStore';
 import { paths } from '@/config/paths';
@@ -10,13 +10,15 @@ import { BRAND } from '@/constants/brand';
 
 // 1. Import useAuth từ tầng Hook của chúng ta
 import { useAuth } from '@/hooks/useAuth';
+import AvatarNav from '@/components/customer/Navbar/AvatarNav';
+import MobileNav from '@/components/customer/Navbar/MobileNav';
 
 export function Header() {
     const navigate = useNavigate();
     const location = useLocation();
     
     // 2. Lấy trạng thái đăng nhập từ Hook
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     
     const { items: cartItems, removeItem, updateQuantity } = useCartStore();
 
@@ -90,9 +92,7 @@ export function Header() {
                                     )}
                                 </button>
                                 
-                                <Link to="/account" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
-                                    <User size={20} strokeWidth={1.5} />
-                                </Link>
+                                <AvatarNav user={user!} />
                             </>
                         ) : (
                             // Nút Đăng nhập cho người dùng chưa auth
@@ -117,47 +117,11 @@ export function Header() {
                     <div className="order-3 lg:order-2 w-full basis-full lg:basis-auto lg:flex-1 lg:px-8 overflow-x-auto scrollbar-hide border-white/20 lg:border-none pt-2 lg:pt-0">
                         <HeaderMegaMenu />
                     </div>
-
                 </div>
             </header>
 
             {/* Mobile Menu Drawer Overlay */}
-            {isMobileMenuOpen && (
-                // ... (Phần code Drawer Mobile giữ nguyên không đổi)
-                <div className="fixed inset-0 bg-black/50 z-50 flex justify-end animate-fade-in lg:hidden">
-                    <div className="w-64 h-full bg-white dark:bg-gray-900 p-6 space-y-6 flex flex-col justify-between animate-slide-up text-xs font-bold uppercase tracking-wider">
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center border-b border-unilo-border dark:border-gray-800 pb-4">
-                                <span className="font-heading font-black text-sm text-primary dark:text-white">{BRAND.NAME} Điều hướng</span>
-                                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 hover:bg-unilo-muted rounded-full border-none bg-transparent cursor-pointer">
-                                    <X className="w-5 h-5 text-gray-500" />
-                                </button>
-                            </div>
-
-                            <nav className="flex flex-col gap-4 text-left">
-                                <Link to={paths.customer.men} className="hover:text-accent decoration-none">Nam</Link>
-                                <Link to={paths.customer.women} className="hover:text-accent decoration-none">Nữ</Link>
-                                <Link to={paths.customer.newArrivals} className="hover:text-accent decoration-none">Sản phẩm mới</Link>
-                                <Link to={paths.customer.bestSellers} className="hover:text-accent decoration-none">Bán chạy nhất</Link>
-                                <Link to={paths.customer.seasonalEssentials} className="hover:text-accent decoration-none">Trang phục theo mùa</Link>
-                                <Link to={paths.customer.about} className="hover:text-accent decoration-none">Về thương hiệu</Link>
-                                <Link to={paths.customer.sustainability} className="hover:text-accent decoration-none">Thời trang bền vững</Link>
-                                <Link to={paths.customer.blog} className="hover:text-accent decoration-none">Bản tin Journal</Link>
-                            </nav>
-                        </div>
-
-                        <div className="border-t border-unilo-border dark:border-gray-800 pt-4 space-y-3">
-                            {/* Cập nhật UI Mobile menu tùy trạng thái đăng nhập */}
-                            {isAuthenticated ? (
-                                <Link to={paths.customer.account} className="flex items-center gap-2 hover:text-accent decoration-none"><User className="w-4 h-4" /> Tài khoản cá nhân</Link>
-                            ) : (
-                                <Link to="/login" className="flex items-center gap-2 hover:text-accent decoration-none"><User className="w-4 h-4" /> Đăng nhập</Link>
-                            )}
-                            <Link to={paths.customer.help} className="flex items-center gap-2 hover:text-accent decoration-none"><HelpCircle className="w-4 h-4" /> Trung tâm hỗ trợ</Link>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <MobileNav isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
 
             {/* Cart Drawer Overlay */}
             {isCartOpen && (
@@ -251,7 +215,7 @@ export function Header() {
                                 <Link
                                     to={paths.customer.cart}
                                     onClick={() => setIsCartOpen(false)}
-                                    className="block text-center text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-accent  decoration-none"
+                                    className="block text-center text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-theme decoration-none"
                                 >
                                     Xem giỏ hàng chi tiết
                                 </Link>

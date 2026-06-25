@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   CircularProgress, Tooltip, Dialog, DialogTitle, 
   DialogContent, DialogActions, Button, TextField, IconButton
@@ -10,6 +10,7 @@ import ConfirmModal from '@/components/general/ConfirmModal';
 import { usePermission } from '@/hooks/usePermission';
 import { toast } from 'react-toastify';
 import type { PermissionResponse } from '@/types/permission';
+import CustomPagination from '@/components/general/Pagination';
 
 const PermissionList: React.FC = () => {
   const { 
@@ -37,6 +38,20 @@ const PermissionList: React.FC = () => {
 
   // Delete state
   const [permissionToDelete, setPermissionToDelete] = useState<number | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const paginatedPermissions = useMemo(() => {
+    if (!permissions) return [];
+    const start = (currentPage - 1) * itemsPerPage;
+    return permissions.slice(start, start + itemsPerPage);
+  }, [permissions, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [permissions]);
 
   useEffect(() => {
     fetchAllPermissions().catch(err => {
@@ -128,7 +143,7 @@ const PermissionList: React.FC = () => {
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý quyền hạn (Permissions)</h1>
+            <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý quyền hạn</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Định nghĩa các quyền thao tác trong hệ thống bảo mật cấp cơ sở dữ liệu</p>
           </div>
           <button
@@ -162,8 +177,8 @@ const PermissionList: React.FC = () => {
                       <p className="mt-2 text-gray-500 m-0">Đang tải danh sách quyền...</p>
                     </td>
                   </tr>
-                ) : permissions && permissions.length > 0 ? (
-                  permissions.map((perm) => (
+                ) : paginatedPermissions.length > 0 ? (
+                  paginatedPermissions.map((perm) => (
                     <tr key={perm.permissionId} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 text-center font-bold text-gray-500">{perm.permissionId}</td>
                       <td className="px-6 py-4">
@@ -216,6 +231,13 @@ const PermissionList: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={Math.ceil((permissions?.length || 0) / itemsPerPage)}
+            totalItems={permissions?.length || 0}
+            itemsPerPage={itemsPerPage}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         </div>
       </div>
 

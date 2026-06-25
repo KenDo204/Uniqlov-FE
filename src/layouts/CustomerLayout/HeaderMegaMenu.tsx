@@ -1,15 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import {  Search, X  } from '@/components/ui/icons';
-import { mockCategories } from '@/constants/mock-categories';
+import { Search, X } from '@/components/ui/icons';
 import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
+import { useCategory } from '@/hooks/useCategory';
 
 export function HeaderMegaMenu() {
-  const [activeCategory, setActiveCategory] = useState<typeof mockCategories[0] | null>(null);
+  const { categories, isFetching, fetchPublicCategories } = useCategory();
+  const [activeCategory, setActiveCategory] = useState<any>(null);
+
+  useEffect(() => {
+    fetchPublicCategories().catch((err) => {
+      console.error('Error fetching public categories for mega menu:', err);
+    });
+  }, [fetchPublicCategories]);
+
+  // Filter out active categories at Level 0 (root level where parentId is null or level is 1)
+  const activeCategoriesList = useMemo(() => {
+    return (categories || []).filter((c: any) => c.categoryStatus === 1 && (c.parentId === null || c.level === 1));
+  }, [categories]);
 
   const closeMenu = () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     setActiveCategory(null);
+  };
+
+  const getTargetUrl = (parent: any, _child: any) => {
+    const pName = parent.categoryName.toLowerCase();
+    if (pName.includes('nữ') || pName.includes('women')) {
+      return `/women`;
+    }
+    if (pName.includes('nam') || pName.includes('men')) {
+      return `/men`;
+    }
+    return `/search`;
   };
 
   return (
@@ -19,27 +42,31 @@ export function HeaderMegaMenu() {
     >
       {/* 1. THANH MENU TÊN DANH MỤC */}
       <div className="flex w-full justify-between lg:justify-start lg:space-x-2 h-full items-center">
-        {mockCategories.map((category) => (
+        {activeCategoriesList.map((category) => (
           <div
-            key={category.category_id}
+            key={category.categoryId}
             className="h-full flex items-center"
             onMouseEnter={() => setActiveCategory(category)}
           >
             <button 
               className={`relative flex items-center justify-center h-10 lg:h-17 px-0 md:px-3 lg:px-4 text-[14px] md:text-[16px] font-bold md:font-light uppercase tracking-wide bg-transparent rounded-none border-b-2 transition-all cursor-pointer border-transparent text-gray-700 hover:text-theme ${
-                activeCategory?.category_id === category.category_id ? 'font-bold' : ''
+                activeCategory?.categoryId === category.categoryId ? 'font-bold' : ''
               }`}
             >
-              {category.category_name}
+              {category.categoryName}
             </button>
           </div>
         ))}
+        {isFetching && (
+          <div className="flex items-center pl-4">
+            <div className="w-4 h-4 border-2 border-[#00927c] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
 
       {/* 2. OVERLAY MEGA MENU KHI HOVER */}
       {activeCategory && (
         <div 
-          // CẬP NHẬT: Thêm flex flex-col và thiết lập max-height để xử lý tràn viền
           className="fixed top-0 left-0 w-screen h-[100dvh] lg:h-[85dvh] bg-white z-[9999] shadow-2xl transition-all duration-200 ease-out animate-in fade-in slide-in-from-top-4 flex flex-col"
           onMouseEnter={() => setActiveCategory(activeCategory)}
         >
@@ -60,17 +87,17 @@ export function HeaderMegaMenu() {
 
                 {/* Danh mục (Đóng vai trò Tab ảo hiển thị trạng thái) */}
                 <div className="hidden md:flex gap-6 lg:gap-8 text-[14px] uppercase tracking-wide mt-2">
-                  {mockCategories.map((c) => (
+                  {activeCategoriesList.map((c) => (
                     <span 
-                      key={c.category_id} 
+                      key={c.categoryId} 
                       onMouseEnter={() => setActiveCategory(c)}
                       className={`cursor-pointer transition-all pb-1 ${
-                        c.category_id === activeCategory.category_id 
-                          ? `font-bold text-theme text-[16px]` 
-                          : `text-gray-700 font-light hover:text-theme`
+                        c.categoryId === activeCategory.categoryId 
+                          ? `font-bold text-[#00927c] text-[16px]` 
+                          : `text-gray-700 font-light hover:text-[#00927c]`
                       }`}
                     >
-                      {c.category_name}
+                      {c.categoryName}
                     </span>
                   ))}
                 </div>
@@ -80,9 +107,9 @@ export function HeaderMegaMenu() {
               <div className="flex items-center gap-6">
                 <button 
                   onClick={closeMenu} 
-                  className={`p-2 cursor-pointer hover:text-theme rounded-full transition-colors border-none bg-transparent flex items-center justify-center`}
+                  className={`p-2 cursor-pointer hover:text-[#00927c] rounded-full transition-colors border-none bg-transparent flex items-center justify-center`}
                 >
-                  <X className="w-7 h-7 text-gray-700 hover:text-theme" strokeWidth={1.5} />
+                  <X className="w-7 h-7 text-gray-700 hover:text-[#00927c]" strokeWidth={1.5} />
                 </button>
               </div>
             </div>
@@ -101,32 +128,35 @@ export function HeaderMegaMenu() {
           </div>
 
           {/* --- VÙNG GRID SẢN PHẨM (Cho phép cuộn dọc) --- */}
-          {/* CẬP NHẬT: Thêm flex-1, overflow-y-auto và tinh chỉnh scrollbar */}
           <div className="flex-1 overflow-y-auto pb-16 pt-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent hover:scrollbar-thumb-gray-300">
             <div className="max-w-[1200px] mx-auto px-4 lg:px-8">
-              {/* Giảm gap-y-12 xuống gap-y-8 để tối ưu không gian hiển thị */}
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-8 text-center">
-                {activeCategory.items.map((item, itemIdx) => (
+                {activeCategory.children && activeCategory.children.filter((c: any) => c.categoryStatus === 1).map((item: any, itemIdx: number) => (
                   <Link 
                     key={itemIdx} 
-                    to={item.target_url} 
+                    to={getTargetUrl(activeCategory, item)} 
                     onClick={closeMenu}
                     className="flex flex-col items-center group decoration-none cursor-pointer"
                   >
                     {/* Ảnh sản phẩm */}
                     <div className="w-24 h-24 md:w-28 md:h-28 lg:w-[130px] lg:h-[130px] mb-3 flex items-center justify-center transition-transform duration-300 group-hover:-translate-y-1">
                       <img
-                        src={item.icon_url}
-                        alt={item.category_name}
+                        src={item.iconUrl || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=80'}
+                        alt={item.categoryName}
                         className="w-full h-full object-contain mix-blend-multiply drop-shadow-sm"
                       />
                     </div>
                     {/* Tên danh mục con */}
-                    <span className="text-[12px] md:text-[13px] font-normal uppercase text-gray-800 leading-snug px-2 max-w-[160px] group-hover:text-theme transition-colors">
-                      {item.category_name}
+                    <span className="text-[12px] md:text-[13px] font-normal uppercase text-gray-800 leading-snug px-2 max-w-[160px] group-hover:text-[#00927c] transition-colors">
+                      {item.categoryName}
                     </span>
                   </Link>
                 ))}
+                {(!activeCategory.children || activeCategory.children.filter((c: any) => c.categoryStatus === 1).length === 0) && (
+                  <div className="col-span-full py-12 text-center text-gray-400 text-sm">
+                    Không có danh mục con nào.
+                  </div>
+                )}
               </div>
             </div>
           </div>

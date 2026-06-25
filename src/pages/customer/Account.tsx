@@ -60,7 +60,7 @@ export function Account() {
               <h3 className="text-[16px] font-medium mb-4">Cài đặt hồ sơ</h3>
               <ul className="list-none p-0 m-0 space-y-4 text-[14px]">
                 <li>
-                  <NavLink to="/account/details" className={navLinkClass}>
+                  <NavLink to="/account/profile" className={navLinkClass}>
                     Hồ sơ
                   </NavLink>
                 </li>

@@ -1,20 +1,24 @@
+import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import {  LayoutDashboard, Image, Settings, Users, FolderTree, LogOut, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket} from '@/components/ui/icons';
+import { Menu, LayoutDashboard, Users, FolderTree, LogOut, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket} from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 import { BRAND } from '@/constants/brand';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
 import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
+import AvatarNav from '@/components/admin/Navbar/AvatarNav';
+import MobileNav from '@/components/admin/Navbar/MobileNav';
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
     { label: 'Tổng quan', path: paths.admin.dashboard, icon: LayoutDashboard },
-    { label: 'Quản lý Banners', path: paths.admin.banners, icon: Image },
-    { label: 'Quản lý Thương hiệu', path: paths.admin.brands, icon: Settings },
+    // { label: 'Quản lý Banners', path: paths.admin.banners, icon: Image },
+    // { label: 'Quản lý Thương hiệu', path: paths.admin.brands, icon: Settings },
     { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree },
     { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom },
     { label: 'Quản lý Đơn hàng', path: paths.admin.orders, icon: ShoppingBag },
@@ -28,7 +32,7 @@ export default function AdminLayout() {
     try {
       await logout();
       toast.success('Đã đăng xuất thành công!', { position: 'top-right' });
-      navigate('/login'); // Chuyển hướng người dùng về trang đăng nhập
+      navigate('/login');
     } catch (error) {
       toast.error('Có lỗi xảy ra khi đăng xuất.', { position: 'top-right' });
       console.error("Lỗi đăng xuất:", error);
@@ -38,7 +42,7 @@ export default function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-gray-50 text-gray-800 w-full text-left">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
+      <aside className="hidden lg:flex w-64 border-r border-gray-200 bg-white flex-col shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
           <Link to="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 hover:text-theme transition-opacity decoration-none">
             <img
@@ -84,15 +88,21 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        <header className="h-16 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 backdrop-blur flex items-center justify-between px-8">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 m-0">
-            {menuItems.find((item) => item.path === location.pathname)?.label || 'Bảng điều khiển'}
-          </h2>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 backdrop-blur flex items-center justify-between px-4 sm:px-8">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 bg-transparent cursor-pointer flex items-center justify-center text-gray-600"
+            >
+              <Menu size={20} />
+            </button>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 m-0">
+              {menuItems.find((item) => item.path === location.pathname)?.label || 'Bảng điều khiển'}
+            </h2>
+          </div>
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-sm">
-              A
-            </div>
+            {user && <AvatarNav admin={user} />}
           </div>
         </header>
 
@@ -100,6 +110,9 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Menu Drawer Overlay */}
+      <MobileNav isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
     </div>
   );
 }

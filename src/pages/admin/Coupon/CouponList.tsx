@@ -6,6 +6,7 @@ import {
 import {
   Edit, Block, Add, CheckCircle
 } from '@mui/icons-material';
+import CustomPagination from '@/components/general/Pagination';
 import { Ticket } from '@/components/ui/icons';
 import ConfirmModal from '@/components/general/ConfirmModal';
 import { useCoupon } from '@/hooks/useCoupon';
@@ -392,33 +393,13 @@ const CouponList: React.FC = () => {
           </div>
 
           {/* PAGINATION UI */}
-          {totalPages > 1 && (
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-sm text-gray-500">
-                Hiển thị trang <span className="font-medium text-gray-800">{page + 1}</span> / <span className="font-medium text-gray-800">{totalPages}</span>
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setPage(prev => Math.max(0, prev - 1))}
-                  disabled={page === 0}
-                  variant="outlined"
-                  size="small"
-                  sx={{ textTransform: 'none', borderRadius: '8px' }}
-                >
-                  Trang trước
-                </Button>
-                <Button
-                  onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
-                  disabled={page === totalPages - 1}
-                  variant="outlined"
-                  size="small"
-                  sx={{ textTransform: 'none', borderRadius: '8px' }}
-                >
-                  Trang sau
-                </Button>
-              </div>
-            </div>
-          )}
+          <CustomPagination
+            currentPage={page + 1}
+            totalPages={totalPages}
+            totalItems={pagination?.totalElements ?? 0}
+            itemsPerPage={size}
+            onPageChange={(newPage) => setPage(newPage - 1)}
+          />
         </div>
       </div>
 

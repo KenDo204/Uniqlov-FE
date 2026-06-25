@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
-import {  GripVertical  } from '@/components/ui/icons'; // Icon tay cầm từ thư viện em đã cài
+import { GripVertical } from '@/components/ui/icons';
+import CustomPagination from '@/components/general/Pagination';
 
-// Định nghĩa kiểu dữ liệu cho Banner
+// Definition for Banner
 interface Slider {
   slider_id: string;
   image_url: string;
   display_order: number;
 }
 
-// Dữ liệu mẫu (Giả lập lấy từ API về)
+// Sample data (mocked from API)
 const initialSliders: Slider[] = [
   { slider_id: '1', image_url: 'Banner Mùa Hè', display_order: 1 },
   { slider_id: '2', image_url: 'Banner Black Friday', display_order: 2 },
@@ -19,29 +20,34 @@ const initialSliders: Slider[] = [
 
 export default function AdminSliderManager() {
   const [sliders, setSliders] = useState<Slider[]>(initialSliders);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  // Lõi thuật toán: Chạy khi người dùng thả chuột
+  // Pagination slicing
+  const paginatedSliders = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sliders.slice(start, start + itemsPerPage);
+  }, [sliders, currentPage]);
+
+  // Drag and drop handler
   const handleDragEnd = (result: DropResult) => {
-    // 1. Nếu thả ra ngoài danh sách thì bỏ qua
     if (!result.destination) return;
 
-    // 2. Tạo bản sao của mảng hiện tại
     const items = Array.from(sliders);
     
-    // 3. Cắt phần tử ở vị trí cũ ra (source.index)
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    
-    // 4. Nhét phần tử đó vào vị trí mới (destination.index)
-    items.splice(result.destination.index, 0, reorderedItem);
+    // Calculate global indexes based on current page
+    const startOffset = (currentPage - 1) * itemsPerPage;
+    const sourceIndex = startOffset + result.source.index;
+    const destIndex = startOffset + result.destination.index;
 
-    // 5. Cập nhật lại giao diện ngay lập tức
+    const [reorderedItem] = items.splice(sourceIndex, 1);
+    items.splice(destIndex, 0, reorderedItem);
+
     setSliders(items);
 
-    // 6. GỌI API XUỐNG SPRING BOOT Ở ĐÂY
-    // Tạo một mảng chỉ chứa các ID theo thứ tự mới: ["2", "1", "3"]
+    // Call API (simulated)
     const newOrderIds = items.map(item => item.slider_id);
     console.log("Dữ liệu mảng ID gửi xuống Backend:", newOrderIds);
-    // axios.put('/api/v1/sliders/reorder', newOrderIds);
   };
 
   return (
@@ -54,9 +60,9 @@ export default function AdminSliderManager() {
             <ul
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className="space-y-3"
+                className="space-y-3 p-0 m-0 mb-4 list-none"
             >
-                {sliders.map((slider, index) => (
+                {paginatedSliders.map((slider, index) => (
                 <Draggable key={slider.slider_id} draggableId={slider.slider_id} index={index}>
                     {(provided, snapshot) => (
                     <li
@@ -66,17 +72,16 @@ export default function AdminSliderManager() {
                         ${snapshot.isDragging ? 'bg-blue-100 border-blue-400 shadow-lg' : ''}
                         `}
                     >
-                        {/* Các comment ở bên TRONG thẻ li này thì hoàn toàn hợp lệ, không bị lỗi */}
                         <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing mr-4 text-gray-500">
-                        <GripVertical size={24} />
+                          <GripVertical size={24} />
                         </div>
                         
-                        <div className="flex-1 font-medium">
-                        {slider.image_url}
+                        <div className="flex-1 font-medium text-left">
+                          {slider.image_url}
                         </div>
 
                         <div className="text-sm text-gray-400">
-                        Thứ tự: {index + 1}
+                          Thứ tự: {(currentPage - 1) * itemsPerPage + index + 1}
                         </div>
                     </li>
                     )}
@@ -86,7 +91,15 @@ export default function AdminSliderManager() {
             </ul>
             )}
         </Droppable>
-        </DragDropContext>
+      </DragDropContext>
+
+      <CustomPagination
+        currentPage={currentPage}
+        totalPages={Math.ceil(sliders.length / itemsPerPage)}
+        totalItems={sliders.length}
+        itemsPerPage={itemsPerPage}
+        onPageChange={(page) => setCurrentPage(page)}
+      />
     </div>
   );
 }

@@ -1,23 +1,49 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {  Star, Heart, ChevronRight  } from '@/components/ui/icons';
-import { useFetchProducts, mockProducts } from '../../features/products';
 import { useCartStore } from '../../stores/useCartStore';
 import { toast } from 'react-toastify';
-// Nhớ đảm bảo bạn có hàm formatVND
 import { formatVND } from '../../utils/formatters';
+import { useProduct } from '@/hooks/useProduct';
+import { mapProductResponseToProduct } from '@/utils/mappers';
+import { ProductCard } from '@/components/shared/ProductCard';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
-  const { data: products } = useFetchProducts();
 
-  // Find product by slug or ID
+  const {
+    products: rawProducts,
+    productDetail,
+    isFetching,
+    error,
+    fetchPublicProducts,
+    fetchProductBySlug
+  } = useProduct();
+
+  // Fetch product detail and public products (for bundle items)
+  useEffect(() => {
+    if (id) {
+      const cleanId = id.replace(/^"|"$/g, '');
+      fetchProductBySlug(cleanId).catch((err) => {
+        console.error('Error fetching product by slug:', err);
+      });
+    }
+  }, [id, fetchProductBySlug]);
+
+  useEffect(() => {
+    if (!rawProducts || rawProducts.length === 0) {
+      fetchPublicProducts().catch((err) => {
+        console.error('Error fetching all products:', err);
+      });
+    }
+  }, [rawProducts, fetchPublicProducts]);
+
   const product = useMemo(() => {
-    const raw = products || mockProducts;
-    return raw.find((p) => p.product_slug === id || p.product_id.toString() === id) || raw[0];
-  }, [products, id]);
+    if (!productDetail) return null;
+    return mapProductResponseToProduct(productDetail);
+  }, [productDetail]);
 
   // States
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -25,7 +51,7 @@ export function ProductDetail() {
   const [quantity, setQuantity] = useState<number>(1);
 
   // Sync selected color if product changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (product) {
       const defaultColor = product.options_config.colors[0]?.colorName || '';
       setSelectedColor(defaultColor);
@@ -36,6 +62,7 @@ export function ProductDetail() {
 
   // Get active variant price and details
   const activeVariant = useMemo(() => {
+    if (!product) return null;
     if (selectedColor && selectedSize) {
       return product.variants.find(
         (v) => v.variant_attributes.colorName === selectedColor && v.variant_attributes.size === selectedSize
@@ -49,6 +76,7 @@ export function ProductDetail() {
 
   // Resolve sizes with stock for the selected color
   const sizeOptions = useMemo(() => {
+    if (!product) return [];
     return product.options_config.sizes.map((sz) => {
       const variant = product.variants.find(
         (v) => v.variant_attributes.colorName === selectedColor && v.variant_attributes.size === sz
@@ -61,10 +89,12 @@ export function ProductDetail() {
   }, [product, selectedColor]);
 
   const galleryImages = useMemo(() => {
+    if (!product) return [];
     return product.images.map((img) => img.image_url);
   }, [product]);
 
   const handleAddToCart = () => {
+    if (!product) return;
     if (!selectedSize) {
       toast.error('Vui lòng chọn kích cỡ.');
       return;
@@ -81,17 +111,80 @@ export function ProductDetail() {
     toast.success(`Đã thêm vào giỏ hàng.`);
   };
 
+  const handleAddRelatedToCart = (prod: any, e: React.MouseEvent, selectedCol?: string) => {
+    e.stopPropagation();
+    const activeColor = selectedCol || prod.options_config.colors[0]?.colorName || 'Default';
+    const activeVar = prod.variants.find((v: any) => v.variant_attributes.colorName === activeColor) || prod.variants[0];
+    const size = activeVar?.variant_attributes.size || 'M';
+    const price = activeVar?.price || prod.variants[0]?.price || 0;
+    const image = activeVar?.variant_image || prod.images[0]?.image_url || '';
+
+    addItem({
+      id: `${prod.product_id}-${activeColor}-${size}`,
+      name: `${prod.product_name} (${activeColor} / ${size})`,
+      price: price,
+      image: image
+    }, 1);
+
+    toast.success(`Đã thêm ${prod.product_name} vào giỏ hàng.`);
+  };
+
   const averageRating = useMemo(() => {
-    if (!product.reviews || product.reviews.length === 0) return 5.0;
+    if (!product || !product.reviews || product.reviews.length === 0) return 5.0;
     const sum = product.reviews.reduce((acc, rev) => acc + rev.rating, 0);
     return parseFloat((sum / product.reviews.length).toFixed(1));
-  }, [product.reviews]);
+  }, [product]);
+
+  const allProductsMapped = useMemo(() => {
+    return (rawProducts || []).map(mapProductResponseToProduct);
+  }, [rawProducts]);
 
   // Bundle Items cho mục Sản phẩm mua kèm
   const bundleItems = useMemo(() => {
-    const raw = products || mockProducts;
-    return raw.filter((p) => p.category_id === product.category_id && p.product_id !== product.product_id).slice(0, 4);
-  }, [products, product]);
+    if (!product) return [];
+    return allProductsMapped.filter((p) => p.category_id === product.category_id && p.product_id !== product.product_id).slice(0, 4);
+  }, [allProductsMapped, product]);
+
+  if (isFetching && !product) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 bg-white">
+        <div className="w-12 h-12 border-4 border-[#00927c] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-500 font-medium">Đang tải thông tin sản phẩm...</p>
+      </div>
+    );
+  }
+
+  if (error && !product) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 bg-white text-center px-4">
+        <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-2xl font-bold font-sans">!</div>
+        <h3 className="text-lg font-bold text-gray-800">Không tìm thấy sản phẩm</h3>
+        <p className="text-sm text-gray-500 max-w-md">{error}</p>
+        <button 
+          onClick={() => navigate('/')}
+          className="px-6 py-2.5 bg-black text-white font-bold rounded-full hover:bg-gray-900 border-none cursor-pointer"
+        >
+          Quay lại Trang chủ
+        </button>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 bg-white">
+        <img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" alt="Empty" className="w-20 h-20 opacity-50" />
+        <h3 className="text-lg font-bold text-gray-800">Sản phẩm không tồn tại</h3>
+        <p className="text-sm text-gray-500">Chúng tôi không tìm thấy thông tin sản phẩm bạn yêu cầu.</p>
+        <button 
+          onClick={() => navigate('/')}
+          className="px-6 py-2.5 bg-black text-white font-bold rounded-full hover:bg-gray-900 border-none cursor-pointer"
+        >
+          Quay lại Trang chủ
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white min-h-screen pb-20 font-sans text-gray-900">
@@ -386,34 +479,11 @@ export function ProductDetail() {
               </button>
 
               {bundleItems.map((prod) => (
-                <div key={prod.product_id} className="group cursor-pointer">
-                  <div className="relative aspect-[3/4] bg-gray-100 overflow-hidden mb-3">
-                    <img src={prod.images[0]?.image_url} alt={prod.product_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                  </div>
-                  
-                  {/* Swatches màu */}
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex gap-1.5">
-                      <div className="w-3.5 h-3.5 rounded-full bg-[#1b344c] border border-gray-300" />
-                      <div className="w-3.5 h-3.5 rounded-full bg-[#f4f4f4] border border-gray-300" />
-                    </div>
-                    <Heart className="w-4 h-4 text-gray-400 hover:text-black" />
-                  </div>
-
-                  {/* Chi tiết */}
-                  <div className="space-y-1">
-                    <div className="text-[11px] text-gray-500 uppercase tracking-wide">Unisex, XS-XXL</div>
-                    <h4 className="text-[14px] font-medium text-gray-900 m-0 leading-snug">{prod.product_name}</h4>
-                    <div className="text-[16px] font-bold text-gray-900 pt-1">{formatVND(prod.variants[0]?.price || 0)}</div>
-                    
-                    {/* Đánh giá sao */}
-                    <div className="flex items-center gap-1 pt-1">
-                      <Star className="w-3 h-3 fill-black text-black" />
-                      <span className="text-[12px] font-bold">4.8</span>
-                      <span className="text-[11px] text-gray-400">(41)</span>
-                    </div>
-                  </div>
-                </div>
+                <ProductCard
+                  key={prod.product_id}
+                  product={prod}
+                  onAddToCart={handleAddRelatedToCart}
+                />
               ))}
             </div>
           </section>

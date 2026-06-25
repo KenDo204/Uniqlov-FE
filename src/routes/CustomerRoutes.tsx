@@ -58,7 +58,7 @@ export const customerRoutes: RouteObject = {
         { path: 'orders', element: <Orders /> },
         { path: 'wishlists', element: <Wishlists /> },
         { path: 'reviews', element: <Reviews /> },
-        { path: 'details', element: <ProfileDetails /> },
+        { path: 'profile', element: <ProfileDetails /> },
         { path: 'addresses', element: <Addresses /> },
         { path: 'password', element: <ChangePassword /> },
       ]
