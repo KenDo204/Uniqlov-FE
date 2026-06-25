@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
+import { CustomPrevArrow } from '@/components/general/CustomPrevArrow';
+import { CustomNextArrow } from '@/components/general/CustomNextArrow';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -22,6 +25,8 @@ const mockRecommended: RecommendationProduct[] = [
 ];
 
 export function AIRecommendations() {
+  const [swiper, setSwiper] = useState<any>(null);
+
   return (
     <div className="py-6 w-full text-left">
       <div className="flex flex-col mb-4">
@@ -31,41 +36,45 @@ export function AIRecommendations() {
         <p className="text-xs text-gray-500 m-0 mt-1">Phân tích dựa trên lịch sử mua sắm và sở thích âm nhạc</p>
       </div>
       
-      <Swiper
-        modules={[Navigation, Pagination]}
-        spaceBetween={20}
-        slidesPerView={1}
-        navigation
-        pagination={{ clickable: true }}
-        breakpoints={{
-          640: { slidesPerView: 2 },
-          1024: { slidesPerView: 3 },
-        }}
-        className="w-full pb-8"
-      >
-        {mockRecommended.map((product) => (
-          <SwiperSlide key={product.id}>
-            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative">
-              <div className="absolute top-2 right-2 bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
-                Match {product.matchScore}%
+      <div className="relative">
+        <Swiper
+          onSwiper={setSwiper}
+          modules={[Navigation, Pagination]}
+          spaceBetween={20}
+          slidesPerView={1}
+          pagination={{ clickable: true }}
+          breakpoints={{
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
+          }}
+          className="w-full pb-8"
+        >
+          {mockRecommended.map((product) => (
+            <SwiperSlide key={product.id}>
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow relative">
+                <div className="absolute top-2 right-2 bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+                  Match {product.matchScore}%
+                </div>
+                <div className="h-48 bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4 space-y-2">
+                  <h4 className="font-semibold text-sm line-clamp-1 text-gray-900 dark:text-gray-100 m-0">{product.name}</h4>
+                  <p className="text-purple-600 dark:text-purple-400 font-bold text-sm m-0">
+                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
+                  </p>
+                </div>
               </div>
-              <div className="h-48 bg-gray-100 dark:bg-gray-800 overflow-hidden flex items-center justify-center">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-4 space-y-2">
-                <h4 className="font-semibold text-sm line-clamp-1 text-gray-900 dark:text-gray-100 m-0">{product.name}</h4>
-                <p className="text-purple-600 dark:text-purple-400 font-bold text-sm m-0">
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.price)}
-                </p>
-              </div>
-            </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+        <CustomPrevArrow onClick={() => swiper?.slidePrev()} />
+        <CustomNextArrow onClick={() => swiper?.slideNext()} />
+      </div>
     </div>
   );
 }

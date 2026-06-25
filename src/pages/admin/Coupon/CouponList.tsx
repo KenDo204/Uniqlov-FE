@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   CircularProgress, Tooltip, Dialog, DialogTitle,
-  DialogContent, DialogActions, Button, TextField, IconButton, Typography, MenuItem, InputAdornment
+  DialogContent, DialogActions, Button, TextField, IconButton, MenuItem, InputAdornment
 } from '@mui/material';
 import {
-  Edit, Block, Add, CheckCircle, WarningAmber
+  Edit, Block, Add, CheckCircle
 } from '@mui/icons-material';
 import { Ticket } from '@/components/ui/icons';
+import ConfirmModal from '@/components/general/ConfirmModal';
 import { useCoupon } from '@/hooks/useCoupon';
 import { toast } from 'react-toastify';
 import type { CouponResponse } from '@/types/coupon/responses';
@@ -818,51 +819,15 @@ const CouponList: React.FC = () => {
       </Dialog>
 
       {/* CONFIRM DEACTIVATE MODAL */}
-      <Dialog
+      <ConfirmModal
         open={isDeactivateConfirmOpen}
-        onClose={() => { if (!actionLoading) setIsDeactivateConfirmOpen(false); }}
-        fullWidth
-        maxWidth="xs"
-        slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
-      >
-        <DialogTitle sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pb: 1 }}>
-          <WarningAmber sx={{ fontSize: 48, color: '#ef4444' }} />
-          <Typography variant="h6" color="text.primary" className="m-0" sx={{ fontWeight: 'bold' }}>
-            Xác nhận vô hiệu hóa
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-            Bạn có chắc chắn muốn ngừng kích hoạt mã giảm giá này? Mã sẽ không thể sử dụng cho các đơn hàng mới nữa.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
-          <Button
-            onClick={() => setIsDeactivateConfirmOpen(false)}
-            variant="outlined"
-            disabled={actionLoading}
-            sx={{
-              color: '#374151', borderColor: '#d1d5db', textTransform: 'none', px: 3,
-              fontWeight: 'bold', fontSize: '13px', borderRadius: '12px',
-              '&:hover': { borderColor: '#9ca3af', bgcolor: '#f9fafb' }
-            }}
-          >
-            Hủy
-          </Button>
-          <Button
-            onClick={handleExecuteDeactivate}
-            variant="contained"
-            disabled={actionLoading}
-            sx={{
-              backgroundColor: '#ef4444', textTransform: 'none', px: 3,
-              fontWeight: 'bold', fontSize: '13px', borderRadius: '12px',
-              '&:hover': { backgroundColor: '#dc2626' }
-            }}
-          >
-            {actionLoading ? <CircularProgress size={20} color="inherit" /> : "Vô hiệu hóa"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        setOpen={setIsDeactivateConfirmOpen}
+        title="Xác nhận vô hiệu hóa"
+        content="Bạn có chắc chắn muốn ngừng kích hoạt mã giảm giá này? Mã sẽ không thể sử dụng cho các đơn hàng mới nữa."
+        onConfirm={handleExecuteDeactivate}
+        confirmText="Vô hiệu hóa"
+        cancelText="Hủy"
+      />
     </div>
   );
 };

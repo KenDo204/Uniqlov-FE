@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import {  AlertCircle, ArrowRight  } from '@/components/ui/icons';
 import { paths } from '../../config/paths';
+import BackHome from '@/components/general/BackHomeButton';
 
 export function NotFound() {
   const navigate = useNavigate();
@@ -16,19 +17,14 @@ export function NotFound() {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 pt-2">
-        <button
-          onClick={() => navigate('/')}
-          className="btn-primary border-none cursor-pointer text-xs"
-        >
-          Go Back Home
-        </button>
-        <button
+      <div className="flex flex-col sm:flex-row gap-3 pt-2 items-center">
+        <BackHome />
+        {/* <button
           onClick={() => navigate(paths.customer.men)}
           className="btn-secondary border-none cursor-pointer text-xs"
         >
           Shop Collection <ArrowRight className="w-3.5 h-3.5 text-primary" />
-        </button>
+        </button> */}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { mockDataCartCheckout } from '../../constants/mock-data-cart-checkout';
 import { useAppSelector } from '@/stores/hooks';
 import { useCoupon } from '@/hooks/useCoupon';
 import { useCart } from '@/hooks/useCart';
+import BackHome from '@/components/general/BackHomeButton';
 
 export function Cart() {
   const navigate = useNavigate();
@@ -143,12 +144,9 @@ export function Cart() {
         {items.length === 0 ? (
           <div className="py-20 text-center space-y-4 border-t border-gray-200">
             <p className="text-gray-500 font-normal text-base">Giỏ hàng của bạn đang trống.</p>
-            <button
-              onClick={() => navigate('/collections/men')}
-              className="bg-black text-white px-8 py-3 rounded-full font-bold uppercase text-sm hover:bg-gray-800 transition-colors border-none cursor-pointer"
-            >
-              Tiếp tục mua sắm
-            </button>
+            <div className="flex justify-center">
+              <BackHome className="px-8 py-3 !rounded-full text-sm uppercase" />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-10 lg:gap-12 items-start">

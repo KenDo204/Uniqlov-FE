@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {  ShieldCheck, CreditCard, Lock, ArrowRight, CheckCircle2  } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
+import BackHome from '@/components/general/BackHomeButton';
 import { formatVND } from '../../utils/formatters';
 import { mockDataCartCheckout } from '../../constants/mock-data-cart-checkout';
 import { mockCurrentUser } from '../../constants/mock-users';
@@ -175,9 +176,7 @@ export function Checkout() {
           <Lock className="w-3.5 h-3.5" />
           <span>SSL Encryption Active</span>
         </div>
-      </div>
-
-      {orderSuccess ? (
+      </div>      {orderSuccess ? (
         <div className="max-w-md mx-auto bg-white dark:bg-gray-900 border border-unilo-border dark:border-gray-800 p-8 rounded-2xl text-center space-y-6 shadow-md animate-fade-in">
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto animate-bounce" />
           <div className="space-y-2">
@@ -186,12 +185,9 @@ export function Checkout() {
               Xác nhận đơn hàng đã được gửi tới địa chỉ email của bạn. Thời gian giao hàng dự kiến từ 2-4 ngày làm việc.
             </p>
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="w-full btn-primary border-none cursor-pointer"
-          >
-            Tiếp tục mua sắm
-          </button>
+          <div className="flex justify-center w-full">
+            <BackHome className="w-full justify-center !py-3 !rounded-full" />
+          </div>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

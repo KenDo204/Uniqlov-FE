@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   CircularProgress, Tooltip, Dialog, DialogTitle, 
-  DialogContent, DialogActions, Button, TextField, IconButton, Typography
+  DialogContent, DialogActions, Button, TextField, IconButton
 } from '@mui/material';
 import { 
-  Edit, Delete, Add, Lock, HelpOutlined
+  Edit, Delete, Add, Lock
 } from '@mui/icons-material';
+import ConfirmModal from '@/components/general/ConfirmModal';
 import { usePermission } from '@/hooks/usePermission';
 import { toast } from 'react-toastify';
 import type { PermissionResponse } from '@/types/permission';
@@ -344,51 +345,15 @@ const PermissionList: React.FC = () => {
       </Dialog>
 
       {/* CONFIRM DELETE MODAL */}
-      <Dialog 
-        open={isDeleteConfirmOpen} 
-        onClose={() => { if (!actionLoading) setIsDeleteConfirmOpen(false); }} 
-        fullWidth 
-        maxWidth="xs"
-        slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
-      >
-        <DialogTitle sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pb: 1 }}>
-          <HelpOutlined sx={{ fontSize: 48, color: '#ef4444' }} />
-          <Typography variant="h6" color="text.primary" className="m-0" sx={{ fontWeight: 'bold' }}>
-            Xác nhận xóa quyền hạn
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-            Bạn có chắc chắn muốn xóa quyền hạn này không? Xóa quyền sẽ gỡ bỏ quyền khỏi tất cả các vai trò hiện tại. Hành động không thể khôi phục.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
-          <Button 
-            onClick={() => setIsDeleteConfirmOpen(false)} 
-            variant="outlined"
-            disabled={actionLoading}
-            sx={{ 
-              color: '#374151', borderColor: '#d1d5db', textTransform: 'none', px: 3,
-              fontWeight: 'bold', fontSize: '13px', borderRadius: '12px',
-              '&:hover': { borderColor: '#9ca3af', bgcolor: '#f9fafb' }
-            }}
-          >
-            Hủy
-          </Button>
-          <Button 
-            onClick={handleExecuteDelete} 
-            variant="contained" 
-            disabled={actionLoading}
-            sx={{ 
-              backgroundColor: '#ef4444', textTransform: 'none', px: 3,
-              fontWeight: 'bold', fontSize: '13px', borderRadius: '12px',
-              '&:hover': { backgroundColor: '#dc2626' }
-            }}
-          >
-            {actionLoading ? <CircularProgress size={20} color="inherit" /> : "Xóa ngay"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmModal
+        open={isDeleteConfirmOpen}
+        setOpen={setIsDeleteConfirmOpen}
+        title="Xác nhận xóa quyền hạn"
+        content="Bạn có chắc chắn muốn xóa quyền hạn này không? Xóa quyền sẽ gỡ bỏ quyền khỏi tất cả các vai trò hiện tại. Hành động không thể khôi phục."
+        onConfirm={handleExecuteDelete}
+        confirmText="Xóa ngay"
+        cancelText="Hủy"
+      />
     </div>
   );
 };

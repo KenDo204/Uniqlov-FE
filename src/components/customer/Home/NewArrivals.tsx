@@ -6,6 +6,8 @@ import { Navigation, Pagination } from 'swiper/modules';
 import { paths } from '@/config/paths';
 import { formatVND } from '@/utils/formatters';
 import type { Product } from '@/features/products';
+import { CustomPrevArrow } from '@/components/general/CustomPrevArrow';
+import { CustomNextArrow } from '@/components/general/CustomNextArrow';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -19,6 +21,7 @@ interface NewArrivalsProps {
 export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
   const navigate = useNavigate();
   const [selectedColors, setSelectedColors] = useState<Record<string, string>>({});
+  const [swiper, setSwiper] = useState<any>(null);
 
   // For mock representation, use the popular items as new arrivals as well
   const newArrivals = products.filter((p) => p.in_popular);
@@ -37,18 +40,19 @@ export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
         </button>
       </div>
 
-      <Swiper
-        modules={[Navigation, Pagination]}
-        spaceBetween={24}
-        slidesPerView={1}
-        navigation
-        pagination={{ clickable: true }}
-        breakpoints={{
-          640: { slidesPerView: 2 },
-          1024: { slidesPerView: 4 },
-        }}
-        className="pb-12"
-      >
+      <div className="relative">
+        <Swiper
+          onSwiper={setSwiper}
+          modules={[Navigation, Pagination]}
+          spaceBetween={24}
+          slidesPerView={1}
+          pagination={{ clickable: true }}
+          breakpoints={{
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 4 },
+          }}
+          className="pb-12"
+        >
         {newArrivals.map((product) => {
           const activeColor = selectedColors[`new-${product.product_id}`] || product.options_config.colors[0]?.colorName || '';
           const activeVariant = product.variants.find((v) => v.variant_attributes.colorName === activeColor) || product.variants[0];
@@ -111,7 +115,10 @@ export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
             </SwiperSlide>
           );
         })}
-      </Swiper>
+        </Swiper>
+        <CustomPrevArrow onClick={() => swiper?.slidePrev()} />
+        <CustomNextArrow onClick={() => swiper?.slideNext()} />
+      </div>
     </section>
   );
 }

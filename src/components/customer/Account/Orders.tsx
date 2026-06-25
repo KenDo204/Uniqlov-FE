@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useOrder } from '@/hooks/useOrder';
 import { formatVND } from '@/utils/formatters';
-import { 
-  CircularProgress, Dialog, DialogTitle, DialogContent, 
-  DialogActions, Button, TextField, Typography 
-} from '@mui/material';
+import { CircularProgress } from '@mui/material';
+import ConfirmCancelOrderModal from '@/components/general/ConfirmCancelOrderModal';
 import { toast } from 'react-toastify';
 import type { OrderResponse } from '@/types/order/responses';
 
@@ -23,7 +21,6 @@ export function Orders() {
   const { 
     orders, 
     isFetching, 
-    isSubmitting, 
     fetchMyOrders, 
     fetchMyOrderDetail, 
     cancelMyOrder 
@@ -36,7 +33,6 @@ export function Orders() {
   // Cancel order modal state
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
     fetchMyOrders(0, 10).catch(err => {
@@ -72,18 +68,17 @@ export function Orders() {
   const handleOpenCancel = (orderId: number, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid expanding/collapsing card
     setCancelOrderId(orderId);
-    setCancelReason('');
     setIsCancelModalOpen(true);
   };
 
-  const handleConfirmCancel = async () => {
-    if (!cancelOrderId || !cancelReason.trim()) {
+  const handleConfirmCancel = async (reason: string) => {
+    if (!cancelOrderId || !reason.trim()) {
       toast.warn('Vui lòng nhập lý do hủy đơn.');
       return;
     }
 
     try {
-      await cancelMyOrder(cancelOrderId, { reason: cancelReason.trim() });
+      await cancelMyOrder(cancelOrderId, { reason: reason.trim() });
       toast.success('Hủy đơn hàng thành công!');
       
       // Update local state status to CANCELLED
@@ -252,56 +247,13 @@ export function Orders() {
       )}
 
       {/* POPUP HỦY ĐƠN HÀNG */}
-      <Dialog 
-        open={isCancelModalOpen} 
-        onClose={() => { if (!isSubmitting) setIsCancelModalOpen(false); }}
-        fullWidth
-        maxWidth="xs"
-        slotProps={{ paper: { sx: { borderRadius: '16px', p: 1 } } }}
-      >
-        <DialogTitle sx={{ fontWeight: 'bold', pb: 1 }}>Hủy đơn hàng #{cancelOrderId}</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Vui lòng nhập lý do bạn muốn hủy đơn hàng này. Hành động này sẽ hủy đơn hàng ngay lập tức và không thể hoàn tác.
-          </Typography>
-          <TextField
-            autoFocus
-            label="Lý do hủy đơn hàng"
-            placeholder="Ví dụ: Thay đổi địa chỉ, Đổi ý không mua nữa..."
-            fullWidth
-            required
-            variant="outlined"
-            value={cancelReason}
-            onChange={(e) => setCancelReason(e.target.value)}
-            disabled={isSubmitting}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-          <Button 
-            onClick={() => setIsCancelModalOpen(false)} 
-            disabled={isSubmitting}
-            variant="outlined"
-            sx={{ 
-              color: '#374151', borderColor: '#d1d5db', textTransform: 'none', px: 3, borderRadius: '12px',
-              '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' }
-            }}
-          >
-            Hủy bỏ
-          </Button>
-          <Button 
-            onClick={handleConfirmCancel} 
-            disabled={isSubmitting}
-            variant="contained"
-            sx={{ 
-              backgroundColor: '#ef4444', textTransform: 'none', px: 3, borderRadius: '12px',
-              '&:hover': { backgroundColor: '#dc2626' }
-            }}
-          >
-            {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Xác nhận hủy'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmCancelOrderModal
+        open={isCancelModalOpen}
+        setOpen={setIsCancelModalOpen}
+        title={`Hủy đơn hàng #${cancelOrderId}`}
+        content="Vui lòng nhập lý do bạn muốn hủy đơn hàng này. Hành động này sẽ hủy đơn hàng ngay lập tức và không thể hoàn tác."
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 }

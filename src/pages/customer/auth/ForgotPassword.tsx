@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
+import BackHome from '@/components/general/BackHomeButton';
 
 const forgotSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email').email('Định dạng email không hợp lệ'),
@@ -79,7 +80,7 @@ export function ForgotPassword() {
                {errors.email && <span className="text-red-500 text-[12px] mt-1 block">{errors.email.message}</span>}
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex gap-4 pt-4 items-center">
               <button 
                 type="submit"
                 disabled={loading}
@@ -87,13 +88,7 @@ export function ForgotPassword() {
               >
                 {loading ? 'ĐANG GỬI...' : 'GỬI'}
               </button>
-              <button 
-                type="button"
-                onClick={() => navigate('/')}
-                className="flex-1 h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer"
-              >
-                TRANG CHỦ
-              </button>
+              <BackHome className="flex-1 h-12 !rounded-full justify-center" />
             </div>
 
           </form>
