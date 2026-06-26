@@ -2,7 +2,7 @@ export interface CartItemResponse {
     cartItemId: number;
     variantId: number;
     productName: string;
-    variantAttributes: string;
+    variantAttributes: Record<string, string>;
     variantImage: string;
     price: number;
     quantity: number;

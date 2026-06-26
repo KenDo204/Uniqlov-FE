@@ -7,12 +7,11 @@ import { router } from './routes';
 import { useAuth } from './hooks/useAuth';
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
-  const { resetAuth, fetchProfile, introspectToken } = useAuth();
+  const { fetchProfile } = useAuth();
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     const verifySession = async () => {
-
       const token = localStorage.getItem('accessToken'); 
       
       if (!token) {
@@ -21,26 +20,19 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
       }
 
       try {
-
-        const isValid = await introspectToken(token);
-
-        if (isValid) {
-          await fetchProfile();
-        } else {
-          resetAuth();
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-        }
+        // Thay vì kiểm định accessToken tĩnh qua introspect (gây logout ngay khi access token hết hạn),
+        // ta trực tiếp gọi fetchProfile(). Nếu accessToken hết hạn, Axios Interceptor sẽ tự động
+        // gọi /auth/refresh để lấy token mới và retry request thành công.
+        await fetchProfile();
       } catch (error) {
-        console.error("Lỗi khi kiểm định token:", error);
-        resetAuth();
+        console.error("Lỗi khi nạp thông tin phiên đăng nhập:", error);
       } finally {
         setIsInitializing(false);
       }
     };
 
     verifySession();
-  }, [fetchProfile, resetAuth, introspectToken]);
+  }, [fetchProfile]);
 
   if (isInitializing) {
     return (

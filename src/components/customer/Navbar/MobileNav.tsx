@@ -4,6 +4,7 @@ import { FavoriteBorder, Home, Logout, Search } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "react-toastify";
 
 export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
     const { user, logout } = useAuth();
@@ -12,6 +13,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
     const handleLogout = async () => {
         try {
             await logout();
+            toast.success("Đăng xuất thành công");
             navigate("/");
         } catch (error) {
             console.error("Lỗi đăng xuất:", error);

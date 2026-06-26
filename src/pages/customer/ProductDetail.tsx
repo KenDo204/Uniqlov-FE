@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {  Star, Heart, ChevronRight  } from '@/components/ui/icons';
-import { useCartStore } from '../../stores/useCartStore';
+import { useCart } from '@/hooks/useCart';
 import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';
 import { useProduct } from '@/hooks/useProduct';
@@ -11,7 +11,7 @@ import { ProductCard } from '@/components/shared/ProductCard';
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const addItem = useCartStore((state) => state.addItem);
+  const { addItem: addCartItem } = useCart();
 
   const {
     products: rawProducts,
@@ -93,25 +93,40 @@ export function ProductDetail() {
     return product.images.map((img) => img.image_url);
   }, [product]);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!product) return;
     if (!selectedSize) {
       toast.error('Vui lòng chọn kích cỡ.');
       return;
     }
-    const itemPrice = activeVariant?.price || product.variants[0]?.price;
-    const itemImage = activeVariant?.variant_image || galleryImages[0] || '';
+    if (!activeVariant) {
+      toast.error('Biến thể sản phẩm không khả dụng.');
+      return;
+    }
+    const itemPrice = activeVariant.price || product.variants[0]?.price;
+    const itemImage = activeVariant.variant_image || galleryImages[0] || '';
 
-    addItem({
-      id: `${product.product_id}-${selectedColor}-${selectedSize}`,
-      name: `${product.product_name} (${selectedColor} / ${selectedSize})`,
-      price: itemPrice,
-      image: itemImage,
-    }, quantity);
-    toast.success(`Đã thêm vào giỏ hàng.`);
+    try {
+      await addCartItem({
+        id: `${activeVariant.variant_id}`,
+        variantId: activeVariant.variant_id,
+        name: product.product_name,
+        price: itemPrice,
+        image: itemImage,
+        color: selectedColor,
+        size: selectedSize,
+        variantAttributes: {
+          'Màu sắc': selectedColor,
+          'Kích cỡ': selectedSize
+        }
+      }, quantity);
+      toast.success(`Đã thêm vào giỏ hàng.`);
+    } catch (err: any) {
+      toast.error(err || 'Không thể thêm sản phẩm vào giỏ hàng.');
+    }
   };
 
-  const handleAddRelatedToCart = (prod: any, e: React.MouseEvent, selectedCol?: string) => {
+  const handleAddRelatedToCart = async (prod: any, e: React.MouseEvent, selectedCol?: string) => {
     e.stopPropagation();
     const activeColor = selectedCol || prod.options_config.colors[0]?.colorName || 'Default';
     const activeVar = prod.variants.find((v: any) => v.variant_attributes.colorName === activeColor) || prod.variants[0];
@@ -119,14 +134,29 @@ export function ProductDetail() {
     const price = activeVar?.price || prod.variants[0]?.price || 0;
     const image = activeVar?.variant_image || prod.images[0]?.image_url || '';
 
-    addItem({
-      id: `${prod.product_id}-${activeColor}-${size}`,
-      name: `${prod.product_name} (${activeColor} / ${size})`,
-      price: price,
-      image: image
-    }, 1);
+    if (!activeVar) {
+      toast.error('Biến thể sản phẩm không khả dụng.');
+      return;
+    }
 
-    toast.success(`Đã thêm ${prod.product_name} vào giỏ hàng.`);
+    try {
+      await addCartItem({
+        id: `${activeVar.variant_id}`,
+        variantId: activeVar.variant_id,
+        name: prod.product_name,
+        price: price,
+        image: image,
+        color: activeColor,
+        size: size,
+        variantAttributes: {
+          'Màu sắc': activeColor,
+          'Kích cỡ': size
+        }
+      }, 1);
+      toast.success(`Đã thêm ${prod.product_name} vào giỏ hàng.`);
+    } catch (err: any) {
+      toast.error(err || `Không thể thêm ${prod.product_name} vào giỏ hàng.`);
+    }
   };
 
   const averageRating = useMemo(() => {

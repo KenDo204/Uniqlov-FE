@@ -18,6 +18,7 @@ export interface CartItem {
   note?: string;
   available?: boolean;
   unavailableReason?: string | null;
+  variantAttributes?: Record<string, string>;
 }
 
 interface CartState {
@@ -28,19 +29,21 @@ interface CartState {
 }
 
 // Helpers to parse backend variantAttributes to color and size
-const parseAttributes = (variantAttributes: string) => {
+const parseAttributes = (variantAttributes: Record<string, string>) => {
   let color = undefined;
   let size = undefined;
-  try {
-    const attrs = JSON.parse(variantAttributes);
-    color = attrs.color || attrs.colorName || attrs.màu_sắc || attrs.màu;
-    size = attrs.size || attrs.kích_cỡ || attrs.kích_thước;
-  } catch (e) {
-    // Fallback regex parsing if attributes is plain string like "Màu sắc: Đỏ, Kích cỡ: M"
-    const colorMatch = variantAttributes.match(/(?:Màu sắc|Màu|Color):\s*([^,;]+)/i);
-    const sizeMatch = variantAttributes.match(/(?:Kích cỡ|Kích thước|Size):\s*([^,;]+)/i);
-    if (colorMatch) color = colorMatch[1].trim();
-    if (sizeMatch) size = sizeMatch[1].trim();
+  if (variantAttributes && typeof variantAttributes === 'object') {
+    color = variantAttributes.color || 
+            variantAttributes.colorName || 
+            variantAttributes.màu_sắc || 
+            variantAttributes.màu || 
+            variantAttributes.Color || 
+            variantAttributes['Màu sắc'];
+    size = variantAttributes.size || 
+           variantAttributes.kích_cỡ || 
+           variantAttributes.kích_thước || 
+           variantAttributes.Size || 
+           variantAttributes['Kích cỡ'];
   }
   return { color, size };
 };
@@ -60,7 +63,8 @@ const mapDbItemToLocal = (dbItem: CartItemResponse): CartItem => {
     totalMoney: dbItem.totalMoney,
     note: dbItem.note,
     available: dbItem.available,
-    unavailableReason: dbItem.unavailableReason
+    unavailableReason: dbItem.unavailableReason,
+    variantAttributes: dbItem.variantAttributes
   };
 };
 

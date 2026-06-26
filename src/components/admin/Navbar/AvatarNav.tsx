@@ -7,6 +7,7 @@ import { AccountCircle, Logout, ArrowDropDown } from '@mui/icons-material'
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { toast } from 'react-toastify';
 
 interface AuthUser {
   userId?: number;
@@ -39,6 +40,7 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
     
     try {
       await backendLogout();
+      toast.success("Đăng xuất thành công");
       navigate("/login");
     } catch (error) {
       console.error('Lỗi khi đăng xuất:', error);

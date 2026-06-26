@@ -1,16 +1,8 @@
-/* eslint-disable react-refresh/only-export-components */
-import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import AuthLayout from '../layouts/AuthLayout';
-import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { adminRoutes } from './AdminRoutes';
 import { ownerRoutes } from './OwnerRoutes';
 import { customerRoutes } from './CustomerRoutes';
 import BackHome from '../components/general/BackHomeButton';
-
-// Lazy load auth pages
-const LoginPage = lazy(() => import('../pages/auth').then((m) => ({ default: m.LoginPage })));
-const RegisterPage = lazy(() => import('../pages/auth').then((m) => ({ default: m.RegisterPage })));
 
 export const router = createBrowserRouter([
   // Customer routes
@@ -21,26 +13,6 @@ export const router = createBrowserRouter([
 
   // Owner routes
   ownerRoutes,
-
-  // Auth routes
-  {
-    path: 'auth',
-    element: (
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
-            <LoadingSpinner />
-          </div>
-        }
-      >
-        <AuthLayout />
-      </Suspense>
-    ),
-    children: [
-      { path: 'login', element: <LoginPage /> },
-      { path: 'register', element: <RegisterPage /> },
-    ],
-  },
 
   // Fallback 404
   {

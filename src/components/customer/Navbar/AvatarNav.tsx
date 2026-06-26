@@ -2,10 +2,11 @@ import React from 'react'
 import { Avatar, Popper, Fade, Paper, type PopperPlacementType, ListItemText, MenuList, ListItemIcon, Divider, Box, Badge, Typography, MenuItem } from '@mui/material'
 import { NoteAlt, FavoriteBorder, Logout, AccountCircle, ShoppingCart, ArrowDropDown, ShoppingCartOutlined } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
-import { useAppSelector } from '@/stores/hooks'
 import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/hooks/useCart'
 import { type UserResponse } from '@/types/auth'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
+import { toast } from 'react-toastify';
 
 const navItem = [
   {
@@ -30,18 +31,27 @@ const navItem = [
   },
 ]
 
-const AvatarNav = ({ user }: { user: UserResponse }) => {
+const AvatarNav = ({ user }: { user: UserResponse | null }) => {
   const navigate = useNavigate();
-  const { items } = useAppSelector(state => state.cart);
+  const { items, fetchCart } = useCart();
   const [open, setOpen] = React.useState(false);
   const { logout } = useAuth();
   const [placement, setPlacement] = React.useState<PopperPlacementType>();
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
+  React.useEffect(() => {
+    fetchCart();
+  }, [fetchCart, user]);
+
+  const totalQuantity = React.useMemo(() => {
+    return items.reduce((sum, item) => sum + item.quantity, 0);
+  }, [items]);
+
   const handleLogout = async () => {
     setOpen(false);
     try {
       await logout();
+      toast.success("Đăng xuất thành công");
       navigate("/");
     } catch (error) {
       console.error("Lỗi đăng xuất:", error);
@@ -76,9 +86,9 @@ const AvatarNav = ({ user }: { user: UserResponse }) => {
           className='relative' onClick={handleClick('bottom-start')}>
           <Avatar
             src=""
-            alt={user.fullName || user.email}
+            alt={user?.fullName || user?.email || 'User'}
           >
-            {user.fullName ? user.fullName[0].toUpperCase() : 'U'}
+            {user?.fullName ? user.fullName[0].toUpperCase() : (user?.email ? user.email[0].toUpperCase() : 'U')}
           </Avatar>
           <ArrowDropDown sx={{ position: "absolute", bottom: -4, right: -4, fontSize: 22, color: "#00927c" }} />
         </Box>
@@ -98,7 +108,6 @@ const AvatarNav = ({ user }: { user: UserResponse }) => {
                 <MenuList>
                   {navItem.map((item) => {
                     const isCart = item.path === "/cart";
-                    const hasItems = items && items.length > 0;
 
                     return (
                       <MenuItem
@@ -108,8 +117,8 @@ const AvatarNav = ({ user }: { user: UserResponse }) => {
                       >
                         <ListItemIcon>
                           {isCart ? (
-                            <Badge badgeContent={hasItems ? items.length : 0} color="error">
-                              {hasItems ? <ShoppingCart /> : <ShoppingCartOutlined />}
+                            <Badge badgeContent={totalQuantity} color="error" max={99}>
+                              {totalQuantity > 0 ? <ShoppingCart /> : <ShoppingCartOutlined />}
                             </Badge>
                           ) : (
                             item.icon

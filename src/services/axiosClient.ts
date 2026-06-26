@@ -1,6 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { store } from '@/stores/store'; // Import store để dispatch action nếu cần
-import { clearAuth } from '@/stores/slices/authSlice';
+import { clearAuth, updateTokens } from '@/stores/slices/authSlice';
 
 export const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -57,17 +57,25 @@ axiosClient.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // Tránh lặp vô hạn nếu API refresh cũng trả về 401
+        case 403:
+          // Tránh lặp vô hạn nếu API refresh cũng trả về 401 hoặc 403
           if (originalRequest.url === '/auth/refresh') {
             store.dispatch(clearAuth());
             return Promise.reject(error);
           }
 
-          if (!originalRequest._retry) {
+          // Đối với 403, loại trừ trường hợp Fraud Detection
+          if (status === 403 && (data?.reason === 'FRAUD_DETECTION' || data?.message?.toLowerCase().includes('fraud'))) {
+            console.error('Suspicious behavior detected. Transaction blocked by Fraud Prevention engine.');
+            return Promise.reject(error);
+          }
+
+          // Chỉ cố gắng refresh token nếu chưa từng retry và request ban đầu có gửi Authorization header
+          if (!originalRequest._retry && originalRequest.headers?.Authorization) {
             originalRequest._retry = true;
 
             if (isRefreshing) {
-              // Nếu đang refresh dở, các request 401 khác phải xếp hàng chờ
+              // Nếu đang refresh dở, các request khác phải xếp hàng chờ
               return new Promise(function (resolve, reject) {
                 failedQueue.push({ resolve, reject });
               })
@@ -95,8 +103,8 @@ axiosClient.interceptors.response.use(
               const newAccessToken = rs.data.result.accessToken;
               const newRefreshToken = rs.data.result.refreshToken;
 
-              localStorage.setItem('accessToken', newAccessToken);
-              localStorage.setItem('refreshToken', newRefreshToken);
+              // Cập nhật Redux store và LocalStorage thông qua action updateTokens
+              store.dispatch(updateTokens({ accessToken: newAccessToken, refreshToken: newRefreshToken }));
 
               axiosClient.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
               originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -113,12 +121,9 @@ axiosClient.interceptors.response.use(
               isRefreshing = false;
             }
           }
-          break;
 
-        case 403:
-          if (data?.reason === 'FRAUD_DETECTION' || data?.message?.toLowerCase().includes('fraud')) {
-            console.error('Suspicious behavior detected. Transaction blocked by Fraud Prevention engine.');
-          } else {
+          // Nếu đã retry rồi hoặc không có Authorization header (thực sự không có quyền)
+          if (status === 403) {
             console.error('Forbidden: Access denied.');
           }
           break;

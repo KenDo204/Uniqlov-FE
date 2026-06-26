@@ -60,3 +60,8 @@ export interface OrderSummaryResponse {
   finalPaymentMoney: number;
   itemCount: number;
 }
+
+export interface FraudResponse {
+  risk_score: number;
+  top_risk_factors: string[];
+}

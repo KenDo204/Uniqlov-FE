@@ -6,8 +6,6 @@ import { mockProducts } from '../../features/products';
 import { paths } from '../../config/paths';
 import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';
-import { mockCoupons } from '../../constants/mock-coupons';
-import { mockDataCartCheckout } from '../../constants/mock-data-cart-checkout';
 import { useAppSelector } from '@/stores/hooks';
 import { useCoupon } from '@/hooks/useCoupon';
 import { useCart } from '@/hooks/useCart';
@@ -15,7 +13,7 @@ import BackHome from '@/components/general/BackHomeButton';
 
 export function Cart() {
   const navigate = useNavigate();
-  const { items, removeItem, updateQuantity, addItem } = useCartStore();
+  const { items, removeItem, updateQuantity } = useCartStore();
   const { fetchCart } = useCart();
   const { previewApplyCoupon } = useCoupon();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
@@ -43,22 +41,6 @@ export function Cart() {
     }
   }, [isAuthenticated, fetchCart]);
 
-  // Seed cart with mock items if empty (Giữ nguyên logic của bạn)
-  React.useEffect(() => {
-    if (!isAuthenticated && items.length === 0) {
-      const seedItems = mockDataCartCheckout.data?.cart_items || [];
-      seedItems.forEach((item) => {
-        addItem({
-          id: `${item.cart_item_id}-${item.variant_attributes.color}-${item.variant_attributes.size}`,
-          name: item.product_name, // Tách tên gốc ra để hiển thị giống Uniqlo
-          color: item.variant_attributes.color, // Giả sử ta lấy được màu
-          size: item.variant_attributes.size,   // Giả sử ta lấy được size
-          price: item.unit_price,
-          image: item.thumbnail_url
-        }, item.quantity);
-      });
-    }
-  }, [items.length, addItem, isAuthenticated]);
 
   // Financial calculations
   const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -71,7 +53,7 @@ export function Cart() {
 
   const subtotal = Math.max(0, rawSubtotal - discountAmount);
   const FREE_SHIPPING_LIMIT = 1500000;
-  const remainingForFree = Math.max(0, FREE_SHIPPING_LIMIT - rawSubtotal);
+  // const remainingForFree = Math.max(0, FREE_SHIPPING_LIMIT - rawSubtotal);
   const shippingCost = rawSubtotal >= FREE_SHIPPING_LIMIT || rawSubtotal === 0 ? 0 : 35000;
   const total = subtotal + shippingCost;
 
@@ -94,16 +76,7 @@ export function Cart() {
         toast.error(err || 'Mã giảm giá không hợp lệ cho đơn hàng này.');
       }
     } else {
-      const coupon = mockCoupons.find((c) => c.code === code);
-      if (coupon) {
-        setDiscountType(coupon.discount_type);
-        setDiscountValue(coupon.discount_value);
-        setCouponSuccess(true);
-        setCouponDescription(coupon.description);
-        toast.success(`Áp dụng mã thành công: ${coupon.description}`);
-      } else {
-        toast.error('Mã giảm giá không hợp lệ.');
-      }
+      toast.info('Vui lòng đăng nhập để sử dụng mã giảm giá.');
     }
   };
 
@@ -114,7 +87,7 @@ export function Cart() {
 
   const FreeShippingText = () => (
     <div className="text-[14px] mb-8 text-gray-800 leading-relaxed">
-      {remainingForFree > 0 ? (
+      {/* {remainingForFree > 0 ? (
         <p className="m-0 mb-1">
           Bạn còn <span className="font-bold">{formatVND(remainingForFree)}</span> (bao gồm VAT) nữa là được miễn phí vận chuyển tiêu chuẩn.
         </p>
@@ -122,11 +95,11 @@ export function Cart() {
         <p className="m-0 mb-1 text-green-600 font-bold">
           Chúc mừng! Bạn đã đủ điều kiện nhận MIỄN PHÍ giao hàng.
         </p>
-      )}
+      )} */}
       <a
         href="#recommendations-section"
         onClick={scrollToRecommendations}
-        className="text-[#0000EE]  hover:text-[#0000EE] decoration-solid cursor-pointer inline-block mt-1"
+        className="text-theme decoration-solid cursor-pointer inline-block mt-1"
       >
         Xem những gì được đề xuất cho bạn
       </a>
@@ -174,13 +147,34 @@ export function Cart() {
                       </button>
                     </div>
 
-                    {/* Size & Màu (Phân tích chuỗi name nếu bạn nối nó trước đó, hoặc render trực tiếp) */}
-                    <div className="text-[13px] text-gray-600 mt-2 space-y-0.5">
-                      <div>Màu sắc: Đang cập nhật</div>
-                      <div>Kích cỡ: Đang cập nhật</div>
-                    </div>
+                    {/* Size & Màu / Thuộc tính sản phẩm */}
+                    {item.variantAttributes && Object.keys(item.variantAttributes).length > 0 ? (
+                      <div className="text-[13px] text-gray-600 mt-2 space-y-1">
+                        {Object.entries(item.variantAttributes).map(([key, value]) => (
+                          <div key={key} className="flex gap-1">
+                            <span className="text-gray-500">{key}:</span>
+                            <span className="text-gray-900 font-medium">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[13px] text-gray-600 mt-2 space-y-1">
+                        {item.color && (
+                          <div className="flex gap-1">
+                            <span className="text-gray-500">Màu sắc:</span>
+                            <span className="text-gray-900 font-medium">{item.color}</span>
+                          </div>
+                        )}
+                        {item.size && (
+                          <div className="flex gap-1">
+                            <span className="text-gray-500">Kích cỡ:</span>
+                            <span className="text-gray-900 font-medium">{item.size}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                    <div className="text-[16px] font-bold mt-3">{formatVND(item.price)}</div>
+                    <div className="text-[16px] font-bold mt-3 text-theme">{formatVND(item.price)}</div>
                     <div className="text-[12px] text-gray-500 mt-1">Sản phẩm được làm từ chất liệu tái chế</div>
 
                     {/* Bộ tăng giảm số lượng & Xóa */}
@@ -209,7 +203,7 @@ export function Cart() {
                       </button>
 
                       <div className="text-[14px] mt-2">
-                        Tổng: <span className="font-bold">{formatVND(item.price * item.quantity)}</span>
+                        Tổng: <span className="font-bold text-theme">{formatVND(item.price * item.quantity)}</span>
                       </div>
                     </div>
                   </div>
@@ -248,7 +242,7 @@ export function Cart() {
 
                 <div className="border-t-2 border-gray-300 pt-4 mb-2 flex justify-between font-bold text-[16px]">
                   <span>Tổng đơn đặt hàng</span>
-                  <span>{formatVND(total)}</span>
+                  <span className='text-theme'>{formatVND(total)}</span>
                 </div>
                 <div className="text-[12px] text-gray-600">Đã bao gồm thuế giá trị gia tăng</div>
               </div>
@@ -286,26 +280,26 @@ export function Cart() {
                   </div>
                 )}
 
-                <button className="w-full py-4 flex justify-between items-center text-[14px] font-medium border-b border-gray-200 bg-transparent cursor-pointer hover:bg-gray-50">
+                {/* <button className="w-full py-4 flex justify-between items-center text-[14px] font-medium border-b border-gray-200 bg-transparent cursor-pointer hover:bg-gray-50">
                   <div className="flex items-center gap-3">
                     Tùy chọn quà tặng
                   </div>
                   <ChevronRight className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
-                </button>
+                </button> */}
               </div>
 
               {/* Nhắc lại dòng chữ giao hàng dưới accordion */}
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <FreeShippingText />
                 <p className="text-[14px] text-gray-800 mt-4 mb-6">
                   Các sản phẩm bạn chọn sẽ được đặt trước trong vòng 30 phút sau khi nhấn nút "Thanh toán".
                 </p>
-              </div>
+              </div> */}
 
               {/* Nút thanh toán bo tròn hình viên thuốc đặc trưng */}
               <button
                 onClick={() => navigate(paths.customer.checkout)}
-                className="w-full bg-black text-white py-4 rounded-full font-bold text-[14px] tracking-wide hover:bg-gray-800 transition-colors border-none cursor-pointer"
+                className="w-full bg-theme text-white py-4 rounded-full font-bold text-[14px] tracking-wide hover:bg-theme-hover transition-colors border-none cursor-pointer"
               >
                 THANH TOÁN
               </button>
@@ -318,10 +312,10 @@ export function Cart() {
         {/* ========================================== */}
         {crossSellItems.length > 0 && items.length > 0 && (
           <div id="recommendations-section" className="mt-24 pt-12 border-t border-gray-200 scroll-mt-24">
-            <h2 className="text-[20px] font-medium mb-2">Có thể bạn sẽ thích</h2>
+            {/* <h2 className="text-[20px] font-medium mb-2">Có thể bạn sẽ thích</h2>
             <p className="text-[14px] text-gray-600 mb-8 border-b border-gray-200 pb-8">
               Bạn còn {formatVND(remainingForFree)} (bao gồm VAT) nữa là được miễn phí vận chuyển tiêu chuẩn.
-            </p>
+            </p> */}
 
             <h3 className="text-[18px] font-medium mb-6">Sản Phẩm Gợi Ý Theo Giỏ Hàng</h3>
 

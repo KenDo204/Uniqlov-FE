@@ -1,5 +1,6 @@
 export type OrderStatus = 
   | 'PENDING' 
+  | 'PENDING_REVIEW' 
   | 'PENDING_PAYMENT' 
   | 'AWAITING_SHIPMENT' 
   | 'SHIPPING' 

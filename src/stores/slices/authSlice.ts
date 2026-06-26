@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { authService } from '@/services/authService';
 import type {
   LoginRequest,
@@ -124,6 +124,16 @@ const authSlice = createSlice({
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
     },
+    // Cập nhật token sau khi refresh thành công
+    updateTokens: (state, action: PayloadAction<{ accessToken: string; refreshToken?: string }>) => {
+      state.accessToken = action.payload.accessToken;
+      state.isAuthenticated = true;
+      state.error = null;
+      localStorage.setItem('accessToken', action.payload.accessToken);
+      if (action.payload.refreshToken) {
+        localStorage.setItem('refreshToken', action.payload.refreshToken);
+      }
+    },
   },
   extraReducers: (builder) => {
     // Xử lý Login
@@ -191,5 +201,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearAuth } = authSlice.actions;
+export const { clearAuth, updateTokens } = authSlice.actions;
 export default authSlice.reducer;
