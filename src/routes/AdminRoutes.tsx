@@ -8,6 +8,8 @@ import UserList from '../pages/admin/User/UserList';
 import RoleList from '../pages/admin/Role/RoleList';
 import PermissionList from '../pages/admin/Permission/PermissionList';
 import AdminProductList from '../pages/admin/Product/AdminProductList';
+import AddProduct from '../pages/admin/Product/AddProduct';
+import EditProduct from '../pages/admin/Product/EditProduct';
 import AdminSliderManager from '../pages/admin/Slider/AdminSliderManager';
 import CouponList from '../pages/admin/Coupon/CouponList';
 import OrderList from '../pages/admin/Order/OrderList';
@@ -36,7 +38,14 @@ export const adminRoutes: RouteObject = {
         { path: 'users', element: <UserList /> },
         { path: 'roles', element: <RoleList /> },
         { path: 'permissions', element: <PermissionList /> },
-        { path: 'products', element: <AdminProductList /> },
+        {
+          path: 'products',
+          children: [
+            { path: '', element: <AdminProductList /> },
+            { path: 'add', element: <AddProduct /> },
+            { path: 'edit/:productId', element: <EditProduct /> },
+          ],
+        },
         { path: 'orders', element: <OrderList /> },
         { path: 'coupons', element: <CouponList /> },
       ],

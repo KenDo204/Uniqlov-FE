@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, CreditCard, Lock, ArrowRight, CheckCircle2 } from '@/components/ui/icons';
+import { CreditCard, ArrowRight, CheckCircle2 } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
 import BackHome from '@/components/general/BackHomeButton';
 import { formatVND } from '../../utils/formatters';

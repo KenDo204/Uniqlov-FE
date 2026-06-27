@@ -222,8 +222,8 @@ export function ProductDetail() {
         
         {/* Breadcrumbs */}
         <div className="text-[12px] text-gray-500 mb-6 flex gap-1 uppercase tracking-wide">
-          <span className="text-blue-700 cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span> /
-          <span className="text-blue-700 cursor-pointer" onClick={() => navigate('/collections/men')}>Bộ sưu tập</span> /
+          <span className="text-theme cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span> /
+          <span className="text-theme cursor-pointer" onClick={() => navigate('/collections/men')}>Bộ sưu tập</span> /
           <span className="text-gray-800">{product.product_name}</span>
         </div>
 
@@ -292,7 +292,7 @@ export function ProductDetail() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[24px] font-medium m-0">Đánh giá</h2>
               <button className="text-[14px] bg-transparent border-none flex items-center gap-1.5 cursor-pointer">
-                <span className="text-lg">✎</span> <p className='text-blue-700'>Viết bài đánh giá</p>
+                <span className="text-lg">✎</span> <p className='text-theme'>Viết bài đánh giá</p>
               </button>
             </div>
 
@@ -307,7 +307,7 @@ export function ProductDetail() {
                   ))}
                 </div>
                 <span className="text-[16px] font-bold">{averageRating}</span>
-                <span className="text-[14px] text-blue-700">({product.reviews?.length || 0})</span>
+                <span className="text-[14px] text-theme">({product.reviews?.length || 0})</span>
               </div>
               
               {/* Thanh biểu thị độ vừa vặn (Fit Slider) */}
@@ -406,8 +406,8 @@ export function ProductDetail() {
                     style={{ backgroundColor: color.colorCode }}
                     className={`w-10 h-10 rounded-full cursor-pointer relative transition-all ${
                       selectedColor === color.colorName 
-                        ? 'ring-1 ring-offset-2 ring-black outline-none border border-gray-200' 
-                        : 'border border-gray-300 hover:border-gray-500'
+                        ? 'ring-1 ring-offset-2 ring-theme outline-none border border-black' 
+                        : 'border border-theme-hover hover:border-theme-hover'
                     }`}
                     title={color.colorName}
                   />
@@ -432,8 +432,8 @@ export function ProductDetail() {
                         ${isOutOfStock
                           ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50 bg-[url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'100%\'><line x1=\'0\' y1=\'100%\' x2=\'100%\' y2=\'0\' stroke=\'%23d1d5db\' stroke-width=\'1\'/></svg>")]'
                           : selectedSize === s.size
-                            ? 'border-black border-[2px] text-black font-bold'
-                            : 'border-gray-300 text-gray-800 hover:border-gray-500'
+                            ? 'border-theme border-[2px] text-black font-bold'
+                            : 'border-theme-hover text-gray-800 hover:border-gray-500'
                         }`}
                     >
                       {s.size}
@@ -455,7 +455,7 @@ export function ProductDetail() {
                   ))}
                 </div>
                 <span className="text-[13px] font-bold ml-1">{averageRating}</span>
-                <span className="text-[13px] text-blue-700 cursor-pointer">({product.reviews?.length || 0})</span>
+                <span className="text-[13px] text-theme cursor-pointer">({product.reviews?.length || 0})</span>
               </div>
             </div>
 
@@ -475,7 +475,7 @@ export function ProductDetail() {
               {/* Nút Thêm vào giỏ hàng đen tuyền */}
               <button
                 onClick={handleAddToCart}
-                className="flex-1 min-w-[200px] h-12 bg-black text-white font-bold text-[14px] rounded-full hover:bg-gray-900 transition-colors border-none cursor-pointer"
+                className="flex-1 min-w-[200px] h-12 bg-theme text-white font-bold text-[14px] rounded-full hover:bg-gray-900 transition-colors border-none cursor-pointer"
               >
                 THÊM VÀO GIỎ HÀNG
               </button>

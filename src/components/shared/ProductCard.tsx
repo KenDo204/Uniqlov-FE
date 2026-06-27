@@ -106,12 +106,12 @@ export function ProductCard({
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
           {isNewArrival && (
-            <span className="px-2.5 py-1 bg-primary text-white text-[9px] font-black uppercase tracking-wider rounded-md">
+            <span className="px-2.5 py-1 bg-theme text-white text-[9px] font-black uppercase tracking-wider rounded-md">
               Mới
             </span>
           )}
           {isSale && (
-            <span className="px-2.5 py-1 bg-accent text-white text-[9px] font-black uppercase tracking-wider rounded-md">
+            <span className="px-2.5 py-1 bg-cancel text-white text-[9px] font-black uppercase tracking-wider rounded-md">
               Giảm {discountPercent}%
             </span>
           )}
@@ -212,8 +212,8 @@ export function ProductCard({
               className={cn(
                 "flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors border-none",
                 isOutOfStock
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-black text-white hover:bg-gray-800 cursor-pointer"
+                  ? "bg-theme text-white cursor-not-allowed"
+                  : "bg-theme text-white hover:bg-theme-hover cursor-pointer"
               )}
             >
               {isOutOfStock ? "Hết hàng" : "+ Mua nhanh"}

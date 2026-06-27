@@ -3,7 +3,7 @@ import { Box, Button, Drawer, Divider, List, ListItem, ListItemButton, ListItemI
 import { Logout } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Image, Settings, Users, FolderTree, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket } from '@/components/ui/icons';
+import { LayoutDashboard, Users, FolderTree, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 
 export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
@@ -24,8 +24,8 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
 
     const menuItems = [
       { label: 'Tổng quan', path: paths.admin.dashboard, icon: LayoutDashboard },
-      { label: 'Quản lý Banners', path: paths.admin.banners, icon: Image },
-      { label: 'Quản lý Thương hiệu', path: paths.admin.brands, icon: Settings },
+    //   { label: 'Quản lý Banners', path: paths.admin.banners, icon: Image },
+    //   { label: 'Quản lý Thương hiệu', path: paths.admin.brands, icon: Settings },
       { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree },
       { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom },
       { label: 'Quản lý Đơn hàng', path: paths.admin.orders, icon: ShoppingBag },

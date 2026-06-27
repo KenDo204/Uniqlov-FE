@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   CircularProgress, Tooltip, Dialog, DialogTitle, 
   DialogContent, DialogActions, Button, IconButton
 } from '@mui/material';
 import { 
-  Search, Delete, Visibility, CheckCircle, ErrorOutlined
+  Search, Delete, Visibility, CheckCircle, ErrorOutlined, Edit
 } from '@mui/icons-material';
 import ConfirmModal from '@/components/general/ConfirmModal';
 import { useProduct } from '@/hooks/useProduct';
@@ -14,6 +15,7 @@ import type { ProductResponse } from '@/types/product';
 import CustomPagination from '@/components/general/Pagination';
 
 const AdminProductList: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     products, 
     isFetching: loading, 
@@ -165,6 +167,17 @@ const AdminProductList: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý sản phẩm</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Xem toàn bộ danh mục sản phẩm của hệ thống, kiểm soát kho hàng và các cửa hàng</p>
           </div>
+          <Button 
+            onClick={() => navigate('/admin/products/add')}
+            variant="contained"
+            sx={{
+              bgcolor: '#00927c', textTransform: 'none', px: 3, py: 1.2,
+              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+              '&:hover': { bgcolor: '#007c69', boxShadow: 'none' }
+            }}
+          >
+            + Thêm sản phẩm
+          </Button>
         </div>
 
         {/* FILTERS */}
@@ -298,6 +311,15 @@ const AdminProductList: React.FC = () => {
                                 sx={{ color: '#00927c', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                               >
                                 <Visibility fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Chỉnh sửa sản phẩm" arrow>
+                              <IconButton 
+                                onClick={() => navigate(`/admin/products/edit/${prod.productId}`)}
+                                size="small"
+                                sx={{ color: '#3b82f6', bgcolor: '#eff6ff', '&:hover': { bgcolor: '#dbeafe' } }}
+                              >
+                                <Edit fontSize="small" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Xóa/Khóa sản phẩm" arrow>

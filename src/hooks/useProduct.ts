@@ -4,9 +4,11 @@ import {
   fetchPublicProductsThunk,
   fetchPublicProductBySlugThunk,
   fetchAdminProductsThunk,
+  fetchAdminProductByIdThunk,
   createProductThunk,
   updateProductThunk,
-  deleteProductThunk
+  deleteProductThunk,
+  clearCurrentProductDetail
 } from '@/stores/slices/productSlice';
 import type { ProductCreateRequest, ProductUpdateRequest } from '@/types/product';
 
@@ -40,6 +42,14 @@ export const useProduct = () => {
     return await dispatch(deleteProductThunk(id)).unwrap();
   }, [dispatch]);
 
+  const fetchAdminProductById = useCallback(async (id: number) => {
+    return await dispatch(fetchAdminProductByIdThunk(id)).unwrap();
+  }, [dispatch]);
+
+  const clearDetail = useCallback(() => {
+    dispatch(clearCurrentProductDetail());
+  }, [dispatch]);
+
   return useMemo(() => ({
     products: productsList,
     productDetail: currentProductDetail,
@@ -51,6 +61,8 @@ export const useProduct = () => {
     fetchAdminProducts,
     createProduct,
     updateProduct,
-    deleteProduct
-  }), [productsList, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchAdminProducts, createProduct, updateProduct, deleteProduct]);
+    deleteProduct,
+    fetchAdminProductById,
+    clearDetail
+  }), [productsList, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
 };

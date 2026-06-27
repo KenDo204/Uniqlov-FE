@@ -59,11 +59,11 @@ const ConfirmModal = ({
                     onClick={handleClose} 
                     color="inherit"
                     sx={{ 
-                        bgcolor: '#ee4d2d', 
+                        bgcolor: '#d32f2f', 
                         font: '14pt',
                         fontWeight: 'bold',
                         textTransform: 'uppercase',
-                        '&:hover': { bgcolor: '#d73211' }
+                        '&:hover': { bgcolor: '#b71c1c' }
                     }}
                 >
                     {cancelText}
