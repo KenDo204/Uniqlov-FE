@@ -1,3 +1,5 @@
+import { Gender } from '@/types/enums/genderType';
+
 export interface CreateUserRequest {
   /**
    * Họ và tên
@@ -32,7 +34,7 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   fullName?: string;
   phone?: string;
-  gender?: number;
+  gender?: Gender;
   dob?: string;
   roleId?: number;
   isActive?: boolean;

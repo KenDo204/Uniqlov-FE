@@ -1,5 +1,8 @@
-export type InventoryTransactionType = 
-  | 'IMPORT'     // Nhập kho từ nhà cung cấp / phiếu nhập thủ công
-  | 'ORDER'      // Xuất kho do đơn hàng
-  | 'RETURN'     // Hoàn trả hàng từ khách
-  | 'ADJUSTMENT';
+export const InventoryTransactionType = {
+  IMPORT: 'IMPORT',
+  ORDER: 'ORDER',
+  RETURN: 'RETURN',
+  ADJUSTMENT: 'ADJUSTMENT',
+} as const;
+
+export type InventoryTransactionType = typeof InventoryTransactionType[keyof typeof InventoryTransactionType];

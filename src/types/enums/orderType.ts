@@ -1,11 +1,14 @@
-export type OrderStatus = 
-  | 'PENDING' 
-  | 'PENDING_REVIEW' 
-  | 'PENDING_PAYMENT' 
-  | 'AWAITING_SHIPMENT' 
-  | 'SHIPPING' 
-  | 'DELIVERED' 
-  | 'COMPLETED' 
-  | 'CANCELLED' 
-  | 'RETURNED' 
-  | 'REFUND_FAILED';
+export const OrderStatus = {
+  PENDING: 'PENDING',
+  PENDING_REVIEW: 'PENDING_REVIEW',
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  AWAITING_SHIPMENT: 'AWAITING_SHIPMENT',
+  SHIPPING: 'SHIPPING',
+  DELIVERED: 'DELIVERED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  RETURNED: 'RETURNED',
+  REFUND_FAILED: 'REFUND_FAILED',
+} as const;
+
+export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];

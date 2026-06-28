@@ -7,3 +7,7 @@ export * from './NewArrivals';
 export * from './LifestyleStory';
 export * from './CustomerReviews';
 export * from './Newsletter';
+export * from './CategorySection';
+export * from './CampaignSection';
+export * from './AccessorySection';
+export * from './AboutSection';

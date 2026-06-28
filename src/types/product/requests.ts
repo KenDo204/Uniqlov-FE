@@ -1,3 +1,5 @@
+import { Gender } from '@/types/enums/genderType';
+
 export interface ProductImageRequest {
   /**
    * Đường dẫn ảnh
@@ -50,11 +52,9 @@ export interface ProductCreateRequest {
   inPopular?: boolean;
 
   /**
-   * Giới tính mục tiêu: 0=Nữ, 1=Nam, 2=Unisex
-   * @minimum 0
-   * @maximum 2
+   * Giới tính mục tiêu
    */
-  targetGender?: number;
+  targetGender?: Gender;
 
   /** @minimum 0 */
   maxOrderQuantity?: number;
@@ -98,8 +98,8 @@ export interface ProductUpdateRequest {
   inPopular?: boolean;
   inStock?: boolean;
 
-  /** @minimum 0 | @maximum 2 */
-  targetGender?: number;
+  /** Giới tính mục tiêu */
+  targetGender?: Gender;
 
   /** @minimum 0 */
   maxOrderQuantity?: number;

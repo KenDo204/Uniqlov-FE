@@ -1,3 +1,5 @@
+import { Gender } from '@/types/enums/genderType';
+
 export interface ProductImageResponse {
   imageId: number;
   imageUrl: string;
@@ -31,8 +33,8 @@ export interface ProductResponse {
   inPopular: boolean;
   inStock: boolean;
 
-  /** 0=Nữ, 1=Nam, 2=Unisex */
-  targetGender: number;
+  /** Giới tính mục tiêu */
+  targetGender: Gender;
   maxOrderQuantity: number;
 
   /**

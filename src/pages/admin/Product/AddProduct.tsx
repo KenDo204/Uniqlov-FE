@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { useProduct } from '@/hooks/useProduct';
 import { useCategory } from '@/hooks/useCategory';
 import ConfirmModal from '@/components/general/ConfirmModal';
+import { Gender } from '@/types/enums/genderType';
 
 interface TempOption {
   name: string; // e.g. "colorName" or "size"
@@ -47,7 +48,7 @@ export default function AddProduct() {
   const [productSlug, setProductSlug] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
-  const [targetGender, setTargetGender] = useState<number>(2); // 2 = Unisex default
+  const [targetGender, setTargetGender] = useState<Gender>(Gender.OTHER); // Unisex default
   const [maxOrderQuantity, setMaxOrderQuantity] = useState<number>(5);
   const [inPopular, setInPopular] = useState(false);
   const [tagsInput, setTagsInput] = useState('');
@@ -580,11 +581,11 @@ export default function AddProduct() {
                       labelId="gender-select-label"
                       value={targetGender}
                       label="Giới tính mục tiêu *"
-                      onChange={(e) => { setTargetGender(Number(e.target.value)); setIsDirty(true); }}
+                      onChange={(e) => { setTargetGender(e.target.value as Gender); setIsDirty(true); }}
                     >
-                      <MenuItem value={1}>Nam</MenuItem>
-                      <MenuItem value={0}>Nữ</MenuItem>
-                      <MenuItem value={2}>Unisex (Cả hai)</MenuItem>
+                      <MenuItem value={Gender.MALE}>Nam</MenuItem>
+                      <MenuItem value={Gender.FEMALE}>Nữ</MenuItem>
+                      <MenuItem value={Gender.OTHER}>Unisex (Cả hai)</MenuItem>
                     </Select>
                   </FormControl>
                 </div>

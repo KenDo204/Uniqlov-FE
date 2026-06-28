@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { useProduct } from '@/hooks/useProduct';
 import { useCategory } from '@/hooks/useCategory';
 import ConfirmModal from '@/components/general/ConfirmModal';
+import { Gender } from '@/types/enums/genderType';
 
 interface TempOption {
   name: string; // e.g. "colorName" or "size"
@@ -57,7 +58,7 @@ export default function EditProduct() {
   const [productSlug, setProductSlug] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
-  const [targetGender, setTargetGender] = useState<number>(2);
+  const [targetGender, setTargetGender] = useState<Gender>(Gender.OTHER);
   const [maxOrderQuantity, setMaxOrderQuantity] = useState<number>(5);
   const [inPopular, setInPopular] = useState(false);
   const [inStock, setInStock] = useState(true);
@@ -116,7 +117,7 @@ export default function EditProduct() {
       setProductSlug(productDetail.productSlug || '');
       setProductDescription(productDetail.productDescription || '');
       setCategoryId(productDetail.categoryId || '');
-      setTargetGender(productDetail.targetGender !== undefined ? productDetail.targetGender : 2);
+      setTargetGender(productDetail.targetGender !== undefined ? productDetail.targetGender : Gender.OTHER);
       setMaxOrderQuantity(productDetail.maxOrderQuantity || 5);
       setInPopular(productDetail.inPopular || false);
       setInStock(productDetail.inStock !== undefined ? productDetail.inStock : true);
@@ -670,11 +671,11 @@ export default function EditProduct() {
                       labelId="gender-select-label"
                       value={targetGender}
                       label="Giới tính mục tiêu *"
-                      onChange={(e) => { setTargetGender(Number(e.target.value)); setIsDirty(true); }}
+                      onChange={(e) => { setTargetGender(e.target.value as Gender); setIsDirty(true); }}
                     >
-                      <MenuItem value={1}>Nam</MenuItem>
-                      <MenuItem value={0}>Nữ</MenuItem>
-                      <MenuItem value={2}>Unisex</MenuItem>
+                      <MenuItem value={Gender.MALE}>Nam</MenuItem>
+                      <MenuItem value={Gender.FEMALE}>Nữ</MenuItem>
+                      <MenuItem value={Gender.OTHER}>Unisex</MenuItem>
                     </Select>
                   </FormControl>
                 </div>

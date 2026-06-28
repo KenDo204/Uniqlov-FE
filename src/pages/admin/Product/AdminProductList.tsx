@@ -12,6 +12,7 @@ import { useProduct } from '@/hooks/useProduct';
 import { useCategory } from '@/hooks/useCategory';
 import { toast } from 'react-toastify';
 import type { ProductResponse } from '@/types/product';
+import { Gender } from '@/types/enums/genderType';
 import CustomPagination from '@/components/general/Pagination';
 
 const AdminProductList: React.FC = () => {
@@ -61,9 +62,9 @@ const AdminProductList: React.FC = () => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  const getGenderLabel = (gender: number) => {
-    if (gender === 0) return 'Nữ';
-    if (gender === 1) return 'Nam';
+  const getGenderLabel = (gender: Gender) => {
+    if (gender === Gender.FEMALE) return 'Nữ';
+    if (gender === Gender.MALE) return 'Nam';
     return 'Unisex';
   };
 
@@ -128,7 +129,7 @@ const AdminProductList: React.FC = () => {
       const matchesSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             p.productSlug.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === '' || p.categoryId === Number(categoryFilter);
-      const matchesGender = genderFilter === '' || p.targetGender === Number(genderFilter);
+      const matchesGender = genderFilter === '' || p.targetGender === genderFilter;
       
       return matchesSearch && matchesCategory && matchesGender;
     });
@@ -213,9 +214,9 @@ const AdminProductList: React.FC = () => {
               className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[#00927c] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
             >
               <option value="">Tất cả giới tính</option>
-              <option value="1">Nam</option>
-              <option value="0">Nữ</option>
-              <option value="2">Unisex</option>
+              <option value={Gender.MALE}>Nam</option>
+              <option value={Gender.FEMALE}>Nữ</option>
+              <option value={Gender.OTHER}>Unisex</option>
             </select>
           </div>
         </div>
@@ -265,8 +266,8 @@ const AdminProductList: React.FC = () => {
                         <td className="px-6 py-4">{getCategoryName(prod.categoryId)}</td>
                         <td className="px-6 py-4 text-center">
                           <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium border
-                            ${prod.targetGender === 1 ? 'bg-blue-50 text-blue-700 border-blue-100' : 
-                              prod.targetGender === 0 ? 'bg-pink-50 text-pink-700 border-pink-100' : 
+                            ${prod.targetGender === Gender.MALE ? 'bg-blue-50 text-blue-700 border-blue-100' : 
+                              prod.targetGender === Gender.FEMALE ? 'bg-pink-50 text-pink-700 border-pink-100' : 
                               'bg-gray-50 text-gray-700 border-gray-100'}`}
                           >
                             {getGenderLabel(prod.targetGender)}

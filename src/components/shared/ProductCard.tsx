@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Star, Heart } from '@/components/ui/icons';
+import { useNavigate } from "react-router-dom";
+import { Heart, ShoppingBag } from '@/components/ui/icons';
 import { cn } from "@/lib/utils";
 import { formatVND } from '@/utils/formatters';
 import { paths } from '@/config/paths';
 import type { Product } from '@/features/products';
 import { toast } from 'react-toastify';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAppSelector } from '@/stores/hooks';
 
 export interface ProductCardProps {
   product: Product;
@@ -20,7 +22,29 @@ export function ProductCard({
 }: ProductCardProps) {
   const navigate = useNavigate();
   const [selectedColor, setSelectedColor] = useState<string>('');
-  const [isHovered, setIsHovered] = useState(false);
+
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { wishlist, toggleWishlist } = useWishlist();
+
+  const isInWishlist = useMemo(() => {
+    if (!wishlist || !product) return false;
+    return wishlist.content.some((item) => item.productId === product.product_id);
+  }, [wishlist, product]);
+
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.warn('Vui lòng đăng nhập để thêm sản phẩm vào mục yêu thích.');
+      navigate('/login');
+      return;
+    }
+    try {
+      await toggleWishlist(product.product_id);
+      toast.success(isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
+    } catch (err: any) {
+      toast.error(err || 'Không thể cập nhật danh sách yêu thích');
+    }
+  };
 
   // Initialize selected color
   useEffect(() => {
@@ -49,46 +73,41 @@ export function ProductCard({
   }, [product]);
   const isOutOfStock = !product.in_stock || totalStock === 0;
 
-  // Determine sale and mock discount pricing
-  const isSale = product.in_popular || (product.product_id % 3 === 0);
-  const currentPrice = activeVariant?.price || product.variants[0]?.price || 0;
-  const originalPrice = isSale ? Math.round((currentPrice / 0.8) / 1000) * 1000 : undefined;
-  const discountPercent = isSale ? 20 : 0;
+  // Extract prices safely from the model (active variant or fallback to product)
+  const salePrice = activeVariant?.price || product.variants?.[0]?.price || (product as any)?.price || 0;
+  const originalPrice = 
+    (activeVariant as any)?.originalPrice || 
+    (activeVariant as any)?.original_price || 
+    (product as any)?.originalPrice || 
+    (product as any)?.original_price || 
+    activeVariant?.cost_price || 
+    product.variants?.[0]?.cost_price || 
+    (activeVariant as any)?.costPrice;
 
-  // Ratings calculation
-  const avgRating = useMemo(() => {
-    if (!product.reviews || product.reviews.length === 0) {
-      return parseFloat((4.3 + (product.product_id % 8) * 0.1).toFixed(1));
-    }
-    const sum = product.reviews.reduce((acc, r) => acc + r.rating, 0);
-    return parseFloat((sum / product.reviews.length).toFixed(1));
-  }, [product]);
+  // Calculate discount percentage
+  const hasDiscount = originalPrice && originalPrice > salePrice;
+  const discountPercent = hasDiscount
+    ? Math.round(((originalPrice - salePrice) / originalPrice) * 100)
+    : 0;
 
-  const reviewCount = useMemo(() => {
-    if (!product.reviews || product.reviews.length === 0) {
-      return (product.product_id * 13) % 45 + 5;
-    }
-    return product.reviews.length;
-  }, [product]);
+  const showDiscount = hasDiscount && discountPercent > 0;
 
   const productUrl = paths.customer.productDetail.replace(':id', product.product_slug);
 
   return (
     <div
-      className="group flex flex-col h-full bg-white dark:bg-gray-900 border border-unilo-border dark:border-gray-800 rounded-xl overflow-hidden hover:shadow-md transition-all cursor-pointer text-left relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="group cursor-pointer text-left flex flex-col h-full bg-transparent"
       onClick={() => navigate(productUrl)}
     >
       {/* Image Container */}
-      <div className="relative h-64 md:h-80 bg-unilo-muted dark:bg-gray-800 overflow-hidden">
+      <div className="w-full aspect-[3/4] bg-gray-100 dark:bg-gray-800 overflow-hidden mb-4 relative">
         {/* Main Image */}
         <img
           src={activeImage}
           alt={product.product_name}
           className={cn(
-            "w-full h-full object-cover transition-opacity duration-300",
-            isHovered && secondaryImage ? "opacity-0" : "opacity-100"
+            "w-full h-full object-cover transition-all duration-700 group-hover:scale-105",
+            secondaryImage ? "group-hover:opacity-0" : ""
           )}
         />
         {/* Hover Secondary Image */}
@@ -96,130 +115,98 @@ export function ProductCard({
           <img
             src={secondaryImage}
             alt={`${product.product_name} secondary`}
-            className={cn(
-              "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
-              isHovered ? "opacity-100" : "opacity-0"
-            )}
+            className="absolute inset-0 w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
           />
         )}
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
           {isNewArrival && (
-            <span className="px-2.5 py-1 bg-theme text-white text-[9px] font-black uppercase tracking-wider rounded-md">
+            <span className="px-2 py-0.5 bg-black dark:bg-white text-white dark:text-black text-[9px] font-bold uppercase tracking-wider">
               Mới
             </span>
           )}
-          {isSale && (
-            <span className="px-2.5 py-1 bg-cancel text-white text-[9px] font-black uppercase tracking-wider rounded-md">
-              Giảm {discountPercent}%
+          {showDiscount && (
+            <span className="px-2 py-0.5 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider">
+              -{discountPercent}%
             </span>
           )}
           {isOutOfStock && (
-            <span className="px-2.5 py-1 bg-gray-500 text-white text-[9px] font-black uppercase tracking-wider rounded-md">
+            <span className="px-2 py-0.5 bg-gray-500 text-white text-[9px] font-bold uppercase tracking-wider">
               Hết hàng
             </span>
           )}
         </div>
 
-        {/* Wishlist Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            toast.success('Đã thêm vào danh sách yêu thích.');
-          }}
-          className="absolute top-3 right-3 p-2 bg-white/80 hover:bg-white dark:bg-black/40 dark:hover:bg-black/60 backdrop-blur rounded-full text-gray-500 dark:text-gray-300 hover:text-accent border-none cursor-pointer shadow-sm transition-colors"
-        >
-          <Heart className="w-4 h-4" />
-        </button>
-      </div>
+        {/* Action overlay buttons (Wishlist & Add to Cart) */}
+        <div className="absolute top-2.5 right-2.5 flex flex-col gap-2 z-10">
+          <button
+            onClick={handleToggleWishlist}
+            className={`p-1.5 bg-white/95 dark:bg-black/75 hover:bg-white dark:hover:bg-black rounded-full transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 border-none cursor-pointer shadow-sm flex items-center justify-center
+              ${isInWishlist ? 'text-red-500' : 'text-gray-700 dark:text-gray-300 hover:text-red-500'}`}
+            title="Yêu thích"
+          >
+            <Heart className={`w-3.5 h-3.5 ${isInWishlist ? 'fill-current' : ''}`} />
+          </button>
 
-      {/* Info Container */}
-      <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
-        <div className="space-y-1.5">
-          {/* Category Tag */}
-          <span className="text-[9px] uppercase font-bold tracking-widest text-accent">
-            {product.category_id}
-          </span>
-          {/* Product Name */}
-          <h4 className="font-heading font-bold text-sm text-gray-900 dark:text-white m-0 group-hover:text-theme transition-colors line-clamp-1">
-            {product.product_name}
-          </h4>
-
-          {/* Rating */}
-          <div className="flex items-center gap-1">
-            <div className="flex text-yellow-400">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={cn("w-3 h-3", i < Math.floor(avgRating) ? "fill-current" : "fill-gray-200 text-gray-200")}
-                />
-              ))}
-            </div>
-            <span className="text-[10px] text-gray-500 font-semibold">({reviewCount})</span>
-          </div>
-
-          {/* Color Swatches */}
-          {product.options_config.colors.length > 0 && (
-            <div className="flex gap-1.5 pt-1.5" onClick={(e) => e.stopPropagation()}>
-              {product.options_config.colors.map((color) => (
-                <button
-                  key={color.colorName}
-                  onClick={() => setSelectedColor(color.colorName)}
-                  style={{ backgroundColor: color.colorCode }}
-                  className={cn(
-                    "w-3.5 h-3.5 rounded-full border cursor-pointer hover:scale-110 transition-transform",
-                    selectedColor.toLowerCase() === color.colorName.toLowerCase()
-                      ? "border-primary scale-110 ring-1 ring-primary/40"
-                      : "border-gray-200 dark:border-gray-700"
-                  )}
-                  title={color.colorName}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Price and Buttons */}
-        <div className="space-y-3 pt-1 border-t border-unilo-border dark:border-gray-800">
-          {/* Pricing Row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-sm text-gray-900 dark:text-white">
-              {formatVND(currentPrice)}
-            </span>
-            {originalPrice && (
-              <span className="text-xs text-gray-400 line-through">
-                {formatVND(originalPrice)}
-              </span>
-            )}
-          </div>
-
-          {/* Action Buttons Row */}
-          <div className="flex gap-2 w-full" onClick={(e) => e.stopPropagation()}>
-            <Link
-              to={productUrl}
-              className="flex-1 py-2 text-center text-[11px] font-bold uppercase tracking-wider border border-gray-300 hover:border-black transition-colors rounded-lg bg-white text-gray-800 hover:text-black no-underline"
-            >
-              Chi tiết
-            </Link>
+          {onAddToCart && (
             <button
               onClick={(e) => {
-                if (onAddToCart) {
+                e.stopPropagation();
+                if (!isOutOfStock) {
                   onAddToCart(product, e, selectedColor);
                 }
               }}
               disabled={isOutOfStock}
               className={cn(
-                "flex-1 py-2 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors border-none",
-                isOutOfStock
-                  ? "bg-theme text-white cursor-not-allowed"
-                  : "bg-theme text-white hover:bg-theme-hover cursor-pointer"
+                "p-1.5 bg-white/95 dark:bg-black/75 hover:bg-white dark:hover:bg-black text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 border-none shadow-sm flex items-center justify-center",
+                isOutOfStock ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:text-theme dark:hover:text-white"
               )}
+              title={isOutOfStock ? "Hết hàng" : "Mua nhanh"}
             >
-              {isOutOfStock ? "Hết hàng" : "+ Mua nhanh"}
+              <ShoppingBag className="w-3.5 h-3.5" />
             </button>
-          </div>
+          )}
         </div>
+      </div>
+
+      {/* Product Name */}
+      <h4 className="text-[13px] font-medium text-gray-800 dark:text-gray-200 leading-snug mb-2 group-hover:text-black dark:group-hover:text-white transition-colors line-clamp-2">
+        {product.product_name}
+      </h4>
+
+      {/* Pricing and Colors */}
+      <div className="flex flex-col gap-1.5 mt-auto">
+        <div className="flex items-center gap-2">
+          <span className="text-[15px] font-bold text-theme dark:text-white">
+            {formatVND(salePrice)}
+          </span>
+          {showDiscount && (
+            <span className="text-[11px] text-gray-400 dark:text-gray-500 line-through">
+              {formatVND(originalPrice)}
+            </span>
+          )}
+        </div>
+
+        {/* Color Swatches */}
+        {product.options_config?.colors?.length > 0 && (
+          <div className="flex gap-1.5 pt-0.5" onClick={(e) => e.stopPropagation()}>
+            {product.options_config.colors.map((color) => (
+              <button
+                key={color.colorName}
+                onClick={() => setSelectedColor(color.colorName)}
+                style={{ backgroundColor: color.colorCode }}
+                className={cn(
+                  "w-3 h-3 rounded-full border cursor-pointer hover:scale-110 transition-all duration-200",
+                  selectedColor.toLowerCase() === color.colorName.toLowerCase()
+                    ? "border-theme dark:border-white ring-1 ring-black/20 dark:ring-white/20 scale-110"
+                    : "border-gray-200 dark:border-gray-800"
+                )}
+                title={color.colorName}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

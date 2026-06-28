@@ -6,10 +6,12 @@ import type {
   UpdateUserRequest 
 } from '@/types/user';
 
+const API_URL = '/users';
+
 export const userService = {
     
   getAllUsers: async (page: number = 0, size: number = 20): Promise<ApiResponse<PageResponse<UserDetailResponse>>> => {
-    const response = await axiosClient.get<ApiResponse<PageResponse<UserDetailResponse>>>('/users', {
+    const response = await axiosClient.get<ApiResponse<PageResponse<UserDetailResponse>>>(API_URL, {
       params: {
         page,
         size,
@@ -19,22 +21,22 @@ export const userService = {
   },
 
   getUserById: async (id: number): Promise<ApiResponse<UserDetailResponse>> => {
-    const response = await axiosClient.get<ApiResponse<UserDetailResponse>>(`/users/${id}`);
+    const response = await axiosClient.get<ApiResponse<UserDetailResponse>>(`${API_URL}/${id}`);
     return response.data;
   },
 
   createUser: async (data: CreateUserRequest): Promise<ApiResponse<UserDetailResponse>> => {
-    const response = await axiosClient.post<ApiResponse<UserDetailResponse>>('/users', data);
+    const response = await axiosClient.post<ApiResponse<UserDetailResponse>>(API_URL, data);
     return response.data;
   },
 
   updateUser: async (id: number, data: UpdateUserRequest): Promise<ApiResponse<UserDetailResponse>> => {
-    const response = await axiosClient.put<ApiResponse<UserDetailResponse>>(`/users/${id}`, data);
+    const response = await axiosClient.put<ApiResponse<UserDetailResponse>>(`${API_URL}/${id}`, data);
     return response.data;
   },
 
   deleteUser: async (id: number): Promise<ApiResponse<void>> => {
-    const response = await axiosClient.delete<ApiResponse<void>>(`/users/${id}`);
+    const response = await axiosClient.delete<ApiResponse<void>>(`${API_URL}/${id}`);
     return response.data;
   }
 };

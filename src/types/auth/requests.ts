@@ -17,9 +17,6 @@ export interface ActivateAccountRequest {
 }
 
 export interface LoginRequest {
-  /**
-   * @format email
-   */
   email: string;
   password: string;
 }

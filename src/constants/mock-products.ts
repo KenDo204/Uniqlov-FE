@@ -1,3 +1,5 @@
+import { Gender } from '@/types/enums/genderType';
+
 export interface ProductImage {
   image_id: number;
   image_url: string;
@@ -40,7 +42,7 @@ export interface Product {
   in_popular: boolean;
   in_stock: boolean;
 
-  target_gender: number; 
+  target_gender: Gender; 
   max_order_quantity: number; 
   
   options_config: {
@@ -72,7 +74,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Basic', 'Supima', 'Cotton', 'Tee', 'Everyday'],
     in_popular: true,
     in_stock: true,
-    target_gender: 2,
+    target_gender: Gender.OTHER,
     max_order_quantity: 5, 
     options_config: {
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
@@ -115,7 +117,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Wool', 'Merino', 'Sweater', 'Knitwear', 'Premium'],
     in_popular: true,
     in_stock: true,
-    target_gender: 1,
+    target_gender: Gender.MALE,
     max_order_quantity: 4,
     options_config: {
       sizes: ["S", "M", "L", "XL"],
@@ -152,7 +154,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Active', 'Athleisure', 'Hoodie', 'Stretch', 'Dry-EX'],
     in_popular: false,
     in_stock: true,
-    target_gender: 2,
+    target_gender: Gender.OTHER,
     max_order_quantity: 5,
     options_config: {
       sizes: ["S", "M", "L", "XL"],
@@ -196,7 +198,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Coat', 'Wool', 'Cashmere', 'Outerwear', 'Tailored'],
     in_popular: true,
     in_stock: true,
-    target_gender: 2,
+    target_gender: Gender.OTHER,
     max_order_quantity: 2,
     options_config: {
       sizes: ["S", "M", "L", "XL"],
@@ -228,7 +230,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Trousers', 'Pants', 'Drape', 'Wide Leg', 'Office'],
     in_popular: true,
     in_stock: true,
-    target_gender: 0,
+    target_gender: Gender.FEMALE,
     max_order_quantity: 4,
     options_config: {
       sizes: ["XS", "S", "M", "L"],
@@ -260,7 +262,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Linen', 'Shirt', 'Summer', 'Flax', 'Breathable'],
     in_popular: false,
     in_stock: true,
-    target_gender: 1,
+    target_gender: Gender.MALE,
     max_order_quantity: 5,
     options_config: {
       sizes: ["S", "M", "L", "XL"],
@@ -292,7 +294,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Down', 'Vest', 'Layering', 'Warmth', 'Lightweight'],
     in_popular: true,
     in_stock: true,
-    target_gender: 2,
+    target_gender: Gender.OTHER,
     max_order_quantity: 3,
     options_config: {
       sizes: ["S", "M", "L", "XL"],
@@ -324,7 +326,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Active', 'Leggings', 'Ribbed', 'Seamless', 'Yoga'],
     in_popular: true,
     in_stock: true,
-    target_gender: 0, // Nữ
+    target_gender: Gender.FEMALE, // Nữ
     max_order_quantity: 5, 
     options_config: {
       sizes: ["XS", "S", "M", "L"],
@@ -356,7 +358,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Dress', '3D Knit', 'Silk', 'Midi', 'Elegant'],
     in_popular: false,
     in_stock: true,
-    target_gender: 0,
+    target_gender: Gender.FEMALE,
     max_order_quantity: 3,
     options_config: {
       sizes: ["XS", "S", "M", "L"],
@@ -388,7 +390,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Chino', 'Pants', 'Cotton', 'Workwear', 'Smart Casual'],
     in_popular: true,
     in_stock: true,
-    target_gender: 1,
+    target_gender: Gender.MALE,
     max_order_quantity: 4,
     options_config: {
       sizes: ["S", "M", "L", "XL"],

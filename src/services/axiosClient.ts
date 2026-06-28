@@ -1,6 +1,7 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
-import { store } from '@/stores/store'; // Import store để dispatch action nếu cần
 import { clearAuth, updateTokens } from '@/stores/slices/authSlice';
+
+const REFRESH_URL = '/auth/refresh';
 
 export const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -51,6 +52,7 @@ axiosClient.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config;
+    const { store } = await import('@/stores/store');
 
     if (error.response) {
       const { status, data } = error.response;
@@ -59,7 +61,7 @@ axiosClient.interceptors.response.use(
         case 401:
         case 403:
           // Tránh lặp vô hạn nếu API refresh cũng trả về 401 hoặc 403
-          if (originalRequest.url === '/auth/refresh') {
+          if (originalRequest.url === REFRESH_URL) {
             store.dispatch(clearAuth());
             return Promise.reject(error);
           }
@@ -96,7 +98,7 @@ axiosClient.interceptors.response.use(
 
             try {
               // Gọi API cấp lại token
-              const rs = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/refresh`, {
+              const rs = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${REFRESH_URL}`, {
                 token: refreshToken,
               });
 

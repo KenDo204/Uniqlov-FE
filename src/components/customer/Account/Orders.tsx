@@ -8,11 +8,16 @@ import type { OrderResponse } from '@/types/order/responses';
 
 const getOrderStatusLabel = (status: string) => {
   const statusMap: Record<string, string> = {
-    'PENDING': 'Chờ thanh toán',
-    'PAID': 'Đã thanh toán',
+    'PENDING': 'Chờ xử lý',
+    'PENDING_REVIEW': 'Chờ duyệt',
+    'PENDING_PAYMENT': 'Chờ thanh toán',
+    'AWAITING_SHIPMENT': 'Chờ giao hàng',
     'SHIPPING': 'Đang giao hàng',
+    'DELIVERED': 'Đã giao hàng',
     'COMPLETED': 'Hoàn thành',
-    'CANCELLED': 'Đã hủy'
+    'CANCELLED': 'Đã hủy',
+    'RETURNED': 'Đã trả hàng',
+    'REFUND_FAILED': 'Hoàn tiền lỗi'
   };
   return statusMap[status] || status;
 };

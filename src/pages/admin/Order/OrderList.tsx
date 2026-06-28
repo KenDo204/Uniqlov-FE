@@ -10,7 +10,7 @@ import CustomPagination from '@/components/general/Pagination';
 import { useOrder } from '@/hooks/useOrder';
 import { toast } from 'react-toastify';
 import type { OrderSummaryResponse } from '@/types/order/responses';
-import type { OrderStatus } from '@/types/enums/orderType';
+import { OrderStatus } from '@/types/enums/orderType';
 
 const OrderList: React.FC = () => {
   const {
@@ -36,7 +36,7 @@ const OrderList: React.FC = () => {
   // Modals State
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
-  const [newStatus, setNewStatus] = useState<OrderStatus>('PENDING');
+  const [newStatus, setNewStatus] = useState<OrderStatus>(OrderStatus.PENDING);
 
   // Load orders list
   useEffect(() => {
@@ -106,23 +106,25 @@ const OrderList: React.FC = () => {
   // Helper for status badge styling
   const getStatusChip = (status: OrderStatus) => {
     switch (status) {
-      case 'PENDING':
-        return <Chip label="Đang chờ duyệt" color="warning" variant="outlined" size="small" icon={<PendingActions />} />;
-      case 'PENDING_PAYMENT':
+      case OrderStatus.PENDING:
+        return <Chip label="Chờ xử lý" color="warning" variant="outlined" size="small" icon={<PendingActions />} />;
+      case OrderStatus.PENDING_REVIEW:
+        return <Chip label="Chờ duyệt" color="warning" variant="outlined" size="small" icon={<PendingActions />} />;
+      case OrderStatus.PENDING_PAYMENT:
         return <Chip label="Chờ thanh toán" color="warning" variant="outlined" size="small" icon={<PendingActions />} />;
-      case 'AWAITING_SHIPMENT':
+      case OrderStatus.AWAITING_SHIPMENT:
         return <Chip label="Chờ giao hàng" color="info" variant="outlined" size="small" icon={<LocalShipping />} />;
-      case 'SHIPPING':
+      case OrderStatus.SHIPPING:
         return <Chip label="Đang giao hàng" color="info" size="small" icon={<LocalShipping />} />;
-      case 'DELIVERED':
+      case OrderStatus.DELIVERED:
         return <Chip label="Đã giao hàng" color="success" variant="outlined" size="small" icon={<CheckCircle />} />;
-      case 'COMPLETED':
+      case OrderStatus.COMPLETED:
         return <Chip label="Hoàn thành" color="success" size="small" icon={<CheckCircle />} />;
-      case 'CANCELLED':
+      case OrderStatus.CANCELLED:
         return <Chip label="Đã hủy" color="error" size="small" icon={<Cancel />} />;
-      case 'RETURNED':
+      case OrderStatus.RETURNED:
         return <Chip label="Trả hàng" color="error" variant="outlined" size="small" icon={<Cancel />} />;
-      case 'REFUND_FAILED':
+      case OrderStatus.REFUND_FAILED:
         return <Chip label="Hoàn tiền lỗi" color="error" size="small" icon={<Cancel />} />;
       default:
         return <Chip label={status} color="default" size="small" />;
@@ -176,14 +178,16 @@ const OrderList: React.FC = () => {
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
             >
               <MenuItem value="">Tất cả trạng thái</MenuItem>
-              <MenuItem value="PENDING">Đang chờ duyệt</MenuItem>
-              <MenuItem value="PENDING_PAYMENT">Chờ thanh toán</MenuItem>
-              <MenuItem value="AWAITING_SHIPMENT">Chờ giao hàng</MenuItem>
-              <MenuItem value="SHIPPING">Đang giao hàng</MenuItem>
-              <MenuItem value="DELIVERED">Đã giao hàng</MenuItem>
-              <MenuItem value="COMPLETED">Hoàn thành</MenuItem>
-              <MenuItem value="CANCELLED">Đã hủy</MenuItem>
-              <MenuItem value="RETURNED">Đã trả hàng</MenuItem>
+              <MenuItem value={OrderStatus.PENDING}>Chờ xử lý</MenuItem>
+              <MenuItem value={OrderStatus.PENDING_REVIEW}>Chờ duyệt</MenuItem>
+              <MenuItem value={OrderStatus.PENDING_PAYMENT}>Chờ thanh toán</MenuItem>
+              <MenuItem value={OrderStatus.AWAITING_SHIPMENT}>Chờ giao hàng</MenuItem>
+              <MenuItem value={OrderStatus.SHIPPING}>Đang giao hàng</MenuItem>
+              <MenuItem value={OrderStatus.DELIVERED}>Đã giao hàng</MenuItem>
+              <MenuItem value={OrderStatus.COMPLETED}>Hoàn thành</MenuItem>
+              <MenuItem value={OrderStatus.CANCELLED}>Đã hủy</MenuItem>
+              <MenuItem value={OrderStatus.RETURNED}>Đã trả hàng</MenuItem>
+              <MenuItem value={OrderStatus.REFUND_FAILED}>Hoàn tiền lỗi</MenuItem>
             </TextField>
           </div>
         </div>
@@ -453,13 +457,16 @@ const OrderList: React.FC = () => {
                       onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
                       sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
                     >
-                      <MenuItem value="PENDING">Đang chờ duyệt (PENDING)</MenuItem>
-                      <MenuItem value="PENDING_PAYMENT">Chờ thanh toán (PENDING_PAYMENT)</MenuItem>
-                      <MenuItem value="AWAITING_SHIPMENT">Chờ giao hàng (AWAITING_SHIPMENT)</MenuItem>
-                      <MenuItem value="SHIPPING">Đang vận chuyển (SHIPPING)</MenuItem>
-                      <MenuItem value="DELIVERED">Đã giao hàng (DELIVERED)</MenuItem>
-                      <MenuItem value="COMPLETED">Hoàn tất đơn (COMPLETED)</MenuItem>
-                      <MenuItem value="CANCELLED">Hủy bỏ đơn (CANCELLED)</MenuItem>
+                      <MenuItem value={OrderStatus.PENDING}>Chờ xử lý (PENDING)</MenuItem>
+                      <MenuItem value={OrderStatus.PENDING_REVIEW}>Chờ duyệt (PENDING_REVIEW)</MenuItem>
+                      <MenuItem value={OrderStatus.PENDING_PAYMENT}>Chờ thanh toán (PENDING_PAYMENT)</MenuItem>
+                      <MenuItem value={OrderStatus.AWAITING_SHIPMENT}>Chờ giao hàng (AWAITING_SHIPMENT)</MenuItem>
+                      <MenuItem value={OrderStatus.SHIPPING}>Đang vận chuyển (SHIPPING)</MenuItem>
+                      <MenuItem value={OrderStatus.DELIVERED}>Đã giao hàng (DELIVERED)</MenuItem>
+                      <MenuItem value={OrderStatus.COMPLETED}>Hoàn tất đơn (COMPLETED)</MenuItem>
+                      <MenuItem value={OrderStatus.CANCELLED}>Hủy bỏ đơn (CANCELLED)</MenuItem>
+                      <MenuItem value={OrderStatus.RETURNED}>Đã trả hàng (RETURNED)</MenuItem>
+                      <MenuItem value={OrderStatus.REFUND_FAILED}>Hoàn tiền lỗi (REFUND_FAILED)</MenuItem>
                     </TextField>
                   </div>
                   <Button

@@ -1,3 +1,5 @@
+import { Gender } from '@/types/enums/genderType';
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
@@ -17,7 +19,7 @@ export interface UserResponse {
     userId: number;
     email: string;
     fullName: string;
-    gender?: number;
+    gender?: Gender;
     phone?: string;
     dob?: string;
     isActive?: boolean;

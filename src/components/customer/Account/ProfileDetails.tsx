@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
+import { Gender } from '@/types/enums/genderType';
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
@@ -13,14 +14,14 @@ const profileSchema = z.object({
     z.literal('')
   ]).optional(),
   dob: z.string().optional(),
-  gender: z.number().optional(), // Ép kiểu chuỗi từ thẻ <select> về số
+  gender: z.nativeEnum(Gender).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-const getGenderLabel = (gender?: number) => {
-  if (gender === 0) return 'Nữ';
-  if (gender === 1) return 'Nam';
+const getGenderLabel = (gender?: string) => {
+  if (gender === Gender.FEMALE) return 'Nữ';
+  if (gender === Gender.MALE) return 'Nam';
   return 'Khác';
 };
 
@@ -37,7 +38,7 @@ export function ProfileDetails() {
       fullName: '',
       phone: '',
       dob: '',
-      gender: 2,
+      gender: Gender.OTHER,
     }
   });
 
@@ -48,7 +49,7 @@ export function ProfileDetails() {
         fullName: user.fullName || '',
         phone: user.phone || '',
         dob: user.dob || '',
-        gender: user.gender ?? 2,
+        gender: user.gender ?? Gender.OTHER,
       });
     }
   }, [user, isEditing, reset]);
@@ -149,12 +150,12 @@ export function ProfileDetails() {
           <div>
             <label className="block text-[13px] font-medium text-gray-800 mb-2">Giới tính</label>
             <select 
-              {...register('gender', { valueAsNumber: true })}
+              {...register('gender')}
               className="w-full border border-gray-300 rounded-none px-4 py-2.5 outline-none text-[14px] transition-colors focus:border-black bg-white"
             >
-              <option value={1}>Nam</option>
-              <option value={0}>Nữ</option>
-              <option value={2}>Khác</option>
+              <option value={Gender.MALE}>Nam</option>
+              <option value={Gender.FEMALE}>Nữ</option>
+              <option value={Gender.OTHER}>Khác</option>
             </select>
           </div>
 

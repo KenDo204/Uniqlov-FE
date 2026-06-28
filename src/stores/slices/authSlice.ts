@@ -48,7 +48,7 @@ export const getCurrentUserThunk = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await authService.getCurrentUser();
-      return response.result; // Trả về UserResponse
+      return response.result; 
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Không thể lấy thông tin người dùng');
     }

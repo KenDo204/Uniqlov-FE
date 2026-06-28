@@ -7,6 +7,9 @@ import { formatVND } from '../../utils/formatters';
 import { useProduct } from '@/hooks/useProduct';
 import { mapProductResponseToProduct } from '@/utils/mappers';
 import { ProductCard } from '@/components/shared/ProductCard';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useReview } from '@/hooks/useReview';
+import { useAppSelector } from '@/stores/hooks';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +24,27 @@ export function ProductDetail() {
     fetchPublicProducts,
     fetchProductBySlug
   } = useProduct();
+
+  const product = useMemo(() => {
+    if (!productDetail) return null;
+    return mapProductResponseToProduct(productDetail);
+  }, [productDetail]);
+
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { wishlist, fetchMyWishlist, toggleWishlist } = useWishlist();
+  const { 
+    productReviews, 
+    productSummary, 
+    fetchProductReviews, 
+    fetchProductReviewSummary, 
+    createReview 
+  } = useReview();
+
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [newRating, setNewRating] = useState<number>(5);
+  const [newComment, setNewComment] = useState<string>('');
+  const [newImagesInput, setNewImagesInput] = useState<string>('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Fetch product detail and public products (for bundle items)
   useEffect(() => {
@@ -40,10 +64,22 @@ export function ProductDetail() {
     }
   }, [rawProducts, fetchPublicProducts]);
 
-  const product = useMemo(() => {
-    if (!productDetail) return null;
-    return mapProductResponseToProduct(productDetail);
-  }, [productDetail]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchMyWishlist(0, 50).catch((err) => console.error('Error fetching wishlist:', err));
+    }
+  }, [isAuthenticated, fetchMyWishlist]);
+
+  useEffect(() => {
+    if (product) {
+      fetchProductReviews(product.product_id, 0, 10).catch((err) => {
+        console.error('Error fetching product reviews:', err);
+      });
+      fetchProductReviewSummary(product.product_id).catch((err) => {
+        console.error('Error fetching product review summary:', err);
+      });
+    }
+  }, [product, fetchProductReviews, fetchProductReviewSummary]);
 
   // States
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -164,6 +200,85 @@ export function ProductDetail() {
     const sum = product.reviews.reduce((acc, rev) => acc + rev.rating, 0);
     return parseFloat((sum / product.reviews.length).toFixed(1));
   }, [product]);
+
+  const displayRating = useMemo(() => {
+    if (productSummary && productSummary.averageRating !== undefined) {
+      return productSummary.averageRating;
+    }
+    return averageRating;
+  }, [productSummary, averageRating]);
+
+  const displayReviewCount = useMemo(() => {
+    if (productSummary && productSummary.totalReviews !== undefined) {
+      return productSummary.totalReviews;
+    }
+    return productReviews?.totalElements ?? 0;
+  }, [productSummary, productReviews]);
+
+  const isInWishlist = useMemo(() => {
+    if (!wishlist || !product) return false;
+    return wishlist.content.some((item) => item.productId === product.product_id);
+  }, [wishlist, product]);
+
+  const handleToggleWishlist = async () => {
+    if (!isAuthenticated) {
+      toast.warn('Vui lòng đăng nhập để thêm sản phẩm vào mục yêu thích.');
+      navigate('/login');
+      return;
+    }
+    if (!product) return;
+    try {
+      await toggleWishlist(product.product_id);
+      toast.success(isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
+    } catch (err: any) {
+      toast.error(err || 'Không thể cập nhật danh sách yêu thích');
+    }
+  };
+
+  const handleOpenReviewModal = () => {
+    if (!isAuthenticated) {
+      toast.warn('Vui lòng đăng nhập để viết đánh giá.');
+      navigate('/login');
+      return;
+    }
+    setNewRating(5);
+    setNewComment('');
+    setNewImagesInput('');
+    setIsReviewModalOpen(true);
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+    if (!newComment.trim()) {
+      toast.warn('Vui lòng viết nhận xét.');
+      return;
+    }
+    setIsSubmittingReview(true);
+    try {
+      const imageUrls = newImagesInput
+        .split(',')
+        .map((url) => url.trim())
+        .filter((url) => url.length > 0);
+
+      await createReview({
+        productId: product.product_id,
+        orderId: null,
+        rating: newRating,
+        comment: newComment.trim(),
+        imageUrls,
+      });
+
+      toast.success('Đã gửi đánh giá của bạn. Đang chờ duyệt!');
+      setIsReviewModalOpen(false);
+      fetchProductReviews(product.product_id, 0, 10);
+      fetchProductReviewSummary(product.product_id);
+    } catch (err: any) {
+      toast.error(err || 'Gửi đánh giá thất bại.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   const allProductsMapped = useMemo(() => {
     return (rawProducts || []).map(mapProductResponseToProduct);
@@ -288,11 +403,14 @@ export function ProductDetail() {
                 </div>
               </div>
 
-          <section id="reviews-section" className="mt-10 pt-4 border-t border-gray-200 scroll-mt-24">
+              <section id="reviews-section" className="mt-10 pt-4 border-t border-gray-200 scroll-mt-24">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[24px] font-medium m-0">Đánh giá</h2>
-              <button className="text-[14px] bg-transparent border-none flex items-center gap-1.5 cursor-pointer">
-                <span className="text-lg">✎</span> <p className='text-theme'>Viết bài đánh giá</p>
+              <button 
+                onClick={handleOpenReviewModal}
+                className="text-[14px] bg-transparent border-none flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="text-lg">✎</span> <p className='text-theme hover:text-theme-hover font-semibold m-0'>Viết bài đánh giá</p>
               </button>
             </div>
 
@@ -303,11 +421,11 @@ export function ProductDetail() {
               <div className="flex items-center gap-2 mb-8">
                 <div className="flex text-black">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < Math.floor(averageRating) ? 'fill-current' : ''}`} />
+                    <Star key={i} className={`w-4 h-4 ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
                   ))}
                 </div>
-                <span className="text-[16px] font-bold">{averageRating}</span>
-                <span className="text-[14px] text-theme">({product.reviews?.length || 0})</span>
+                <span className="text-[16px] font-bold">{displayRating}</span>
+                <span className="text-[14px] text-theme">({displayReviewCount})</span>
               </div>
               
               {/* Thanh biểu thị độ vừa vặn (Fit Slider) */}
@@ -334,16 +452,16 @@ export function ProductDetail() {
 
             {/* Danh sách các review */}
             <div className="w-full space-y-12">
-              {product.reviews && product.reviews.length > 0 ? (
-                product.reviews.map((rev, index) => (
-                  <div key={rev.review_id} className={`pb-12 ${index !== product.reviews.length - 1 ? 'border-b border-gray-200' : ''}`}>
+              {productReviews && productReviews.content.length > 0 ? (
+                productReviews.content.map((rev, index) => (
+                  <div key={rev.reviewId} className={`pb-12 ${index !== productReviews.content.length - 1 ? 'border-b border-gray-200' : ''}`}>
                     
                     {/* Tiêu đề Review & Ngày tháng */}
                     <div className="flex justify-between items-start mb-3">
-                      <h4 className="text-[18px] font-normal m-0 text-gray-900">
-                        {rev.comment.length > 30 ? rev.comment.substring(0, 50) + "..." : "A Great Essential with Room for a More Signature Touch"}
+                      <h4 className="text-[18px] font-normal m-0 text-gray-900 line-clamp-1">
+                        {rev.comment.length > 50 ? rev.comment.substring(0, 50) + "..." : rev.comment}
                       </h4>
-                      <span className="text-[13px] text-gray-500">{rev.created_at.split('T')[0]}</span>
+                      <span className="text-[13px] text-gray-500">{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</span>
                     </div>
                     
                     {/* Sao của Review */}
@@ -353,28 +471,21 @@ export function ProductDetail() {
                       ))}
                     </div>
 
-                    {/* Thông tin thuộc tính đã mua */}
-                    <div className="text-[13px] text-gray-900 space-y-1 mb-5 font-normal">
-                      <p className="m-0">Kích cỡ đã mua: S</p>
-                      <p className="m-0">Màu sắc đã mua: 00 WHITE</p>
-                      <p className="m-0">Quần áo có vừa không: Đúng với kích thước</p>
-                    </div>
-
                     {/* Nội dung Review */}
-                    <p className="text-[14px] leading-relaxed text-gray-900 mb-5">{rev.comment}</p>
+                    <p className="text-[14px] leading-relaxed text-gray-950 mb-5">{rev.comment}</p>
                     
                     {/* Nếu có ảnh đánh giá */}
-                    {rev.review_images && rev.review_images.length > 0 && (
+                    {rev.images && rev.images.length > 0 && (
                       <div className="flex gap-2 mb-5">
-                        {rev.review_images.map((img, i) => (
-                          <img key={i} src={img} alt="review" className="w-16 h-20 object-cover bg-gray-100" />
+                        {rev.images.map((img) => (
+                          <img key={img.reviewImageId} src={img.imageUrl} alt="review" className="w-16 h-20 object-cover bg-gray-100 border border-gray-100" />
                         ))}
                       </div>
                     )}
 
                     {/* Thông tin nhân khẩu học của User */}
                     <div className="text-[13px] text-gray-500 mb-2">
-                      {rev.full_name}
+                      {rev.userFullName || 'Khách hàng ẩn danh'}
                     </div>
                   </div>
                 ))
@@ -407,7 +518,7 @@ export function ProductDetail() {
                     className={`w-10 h-10 rounded-full cursor-pointer relative transition-all ${
                       selectedColor === color.colorName 
                         ? 'ring-1 ring-offset-2 ring-theme outline-none border border-black' 
-                        : 'border border-theme-hover hover:border-theme-hover'
+                        : 'border border-black hover:border-theme-hover'
                     }`}
                     title={color.colorName}
                   />
@@ -433,7 +544,7 @@ export function ProductDetail() {
                           ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50 bg-[url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'100%\'><line x1=\'0\' y1=\'100%\' x2=\'100%\' y2=\'0\' stroke=\'%23d1d5db\' stroke-width=\'1\'/></svg>")]'
                           : selectedSize === s.size
                             ? 'border-theme border-[2px] text-black font-bold'
-                            : 'border-theme-hover text-gray-800 hover:border-gray-500'
+                            : 'border-gray-500 text-gray-800 hover:border-theme-hover hover:text-theme-hover'
                         }`}
                     >
                       {s.size}
@@ -448,14 +559,17 @@ export function ProductDetail() {
               <div className="text-[26px] font-bold tracking-tight">
                 {formatVND(activeVariant?.price || product.variants[0]?.price || 0)}
               </div>
-              <div className="flex items-center gap-1 cursor-pointer">
+              <div className="flex items-center gap-1 cursor-pointer" onClick={() => {
+                const el = document.getElementById('reviews-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}>
                 <div className="flex text-black">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(averageRating) ? 'fill-current' : ''}`} />
+                    <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
                   ))}
                 </div>
-                <span className="text-[13px] font-bold ml-1">{averageRating}</span>
-                <span className="text-[13px] text-theme cursor-pointer">({product.reviews?.length || 0})</span>
+                <span className="text-[13px] font-bold ml-1">{displayRating}</span>
+                <span className="text-[13px] text-theme">({displayReviewCount})</span>
               </div>
             </div>
 
@@ -475,7 +589,7 @@ export function ProductDetail() {
               {/* Nút Thêm vào giỏ hàng đen tuyền */}
               <button
                 onClick={handleAddToCart}
-                className="flex-1 min-w-[200px] h-12 bg-theme text-white font-bold text-[14px] rounded-full hover:bg-gray-900 transition-colors border-none cursor-pointer"
+                className="flex-1 min-w-[200px] h-12 bg-theme text-white font-bold text-[14px] rounded-full hover:bg-theme-hover transition-colors border-none cursor-pointer"
               >
                 THÊM VÀO GIỎ HÀNG
               </button>
@@ -485,8 +599,19 @@ export function ProductDetail() {
 
             {/* Các nút phụ trợ */}
             <div className="flex gap-4 mt-6">
-              <button className="flex-1 h-8 rounded-full border border-gray-300 flex items-center justify-center gap-2 hover:bg-gray-50 bg-white cursor-pointer font-medium text-[13px] text-gray-700">
-                <Heart className="w-4 h-4" strokeWidth={1.5} /> THÊM VÀO MỤC YÊU THÍCH
+              <button 
+                onClick={handleToggleWishlist}
+                className={`flex-1 h-10 rounded-full border flex items-center justify-center gap-2 transition-all cursor-pointer font-semibold text-[13px]
+                  ${isInWishlist 
+                    ? 'border-red-200 bg-red-55/60 text-red-600 hover:bg-red-100' 
+                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+              >
+                <Heart 
+                  className={`w-4 h-4 ${isInWishlist ? 'fill-red-600 text-red-650' : 'text-gray-500'}`} 
+                  strokeWidth={1.5} 
+                /> 
+                {isInWishlist ? 'ĐÃ THÊM VÀO YÊU THÍCH' : 'THÊM VÀO MỤC YÊU THÍCH'}
               </button>
             </div>
            
@@ -520,6 +645,86 @@ export function ProductDetail() {
         )}
 
       </div>
+
+      {/* Modal Viết Đánh Giá */}
+      {isReviewModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-[500px] shadow-xl animate-fade-in text-left">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-[18px] font-bold m-0 text-black">Viết đánh giá sản phẩm</h3>
+              <button 
+                onClick={() => setIsReviewModalOpen(false)}
+                className="bg-transparent border-none text-[20px] font-light cursor-pointer text-gray-400 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              {/* Chọn số sao */}
+              <div>
+                <label className="block text-[13px] font-semibold mb-2 text-gray-700">Đánh giá sao *</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      type="button"
+                      key={star}
+                      onClick={() => setNewRating(star)}
+                      className="bg-transparent border-none cursor-pointer p-0 text-black hover:scale-110 transition-transform"
+                    >
+                      <Star 
+                        size={24} 
+                        className={star <= newRating ? "fill-black text-black" : "text-gray-300"} 
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nhận xét */}
+              <div>
+                <label className="block text-[13px] font-semibold mb-1 text-gray-700 font-sans">Nhận xét của bạn *</label>
+                <textarea
+                  rows={4}
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+                  className="w-full border border-gray-300 rounded p-2 text-[14px] focus:outline-none focus:border-black font-sans"
+                  required
+                />
+              </div>
+
+              {/* Đường dẫn ảnh */}
+              <div>
+                <label className="block text-[13px] font-semibold mb-1 text-gray-700">Đường dẫn ảnh đính kèm (tùy chọn, cách nhau bằng dấu phẩy)</label>
+                <input
+                  type="text"
+                  value={newImagesInput}
+                  onChange={(e) => setNewImagesInput(e.target.value)}
+                  placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] focus:outline-none focus:border-black"
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-full text-[13px] font-bold bg-white text-gray-700 hover:bg-gray-55 cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview}
+                  className="px-6 py-2 rounded-full text-[13px] font-bold bg-theme hover:bg-theme-hover text-white cursor-pointer border-none disabled:opacity-50"
+                >
+                  {isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

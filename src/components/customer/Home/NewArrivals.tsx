@@ -73,7 +73,7 @@ export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
           {newArrivals.map((product) => (
             <SwiperSlide key={product.product_id} className="h-auto !flex">
               {/* Thêm div bọc ngoài để tạo hiệu ứng hover shadow mượt mà cho từng card */}
-              <div className="w-full h-full bg-white rounded-xl transition-all duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:-translate-y-1">
+              <div className="w-full h-full rounded-xl transition-all duration-300 hover:-translate-y-1">
                 <ProductCard
                   product={product}
                   isNewArrival={true}

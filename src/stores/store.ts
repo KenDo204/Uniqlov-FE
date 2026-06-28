@@ -9,6 +9,8 @@ import productReducer from './slices/productSlice';
 import permissionReducer from './slices/permissionSlice';
 import couponReducer from './slices/couponSlice';
 import orderReducer from './slices/orderSlice';
+import wishlistReducer from './slices/wishlistSlice';
+import reviewReducer from './slices/reviewSlice';
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +23,8 @@ export const store = configureStore({
     cart: cartReducer,
     coupon: couponReducer,
     order: orderReducer,
+    wishlist: wishlistReducer,
+    review: reviewReducer,
     theme: themeReducer,
   },
 });

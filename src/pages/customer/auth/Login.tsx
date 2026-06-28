@@ -30,9 +30,9 @@ export function Login() {
     resetAuth(); 
     try {
       await login(data);
-      await fetchProfile();
       toast.success('Đăng nhập thành công!', { position: 'top-right' });
-      navigate('/'); 
+      navigate('/');
+      await fetchProfile();
     } catch (err: any) {
       toast.error(err || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!', { position: 'top-right' });
     }
