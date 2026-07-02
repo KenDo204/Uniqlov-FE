@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/stores/hooks';
 import { 
   fetchPublicProductsThunk,
   fetchPublicProductBySlugThunk,
+  fetchPublicProductVariantsThunk,
   fetchAdminProductsThunk,
   fetchAdminProductByIdThunk,
   createProductThunk,
@@ -23,6 +24,10 @@ export const useProduct = () => {
 
   const fetchProductBySlug = useCallback(async (slug: string) => {
     return await dispatch(fetchPublicProductBySlugThunk(slug)).unwrap();
+  }, [dispatch]);
+
+  const fetchProductVariants = useCallback(async (productId: number) => {
+    return await dispatch(fetchPublicProductVariantsThunk(productId)).unwrap();
   }, [dispatch]);
 
   // --- Admin APIs ---
@@ -58,11 +63,12 @@ export const useProduct = () => {
     error,
     fetchPublicProducts,
     fetchProductBySlug,
+    fetchProductVariants,
     fetchAdminProducts,
     createProduct,
     updateProduct,
     deleteProduct,
     fetchAdminProductById,
     clearDetail
-  }), [productsList, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
+  }), [productsList, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchProductVariants, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
 };

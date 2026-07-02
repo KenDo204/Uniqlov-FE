@@ -3,7 +3,8 @@ import type { ApiResponse } from '@/types/common/apiResponse';
 import type {
   ProductResponse,
   ProductCreateRequest,
-  ProductUpdateRequest
+  ProductUpdateRequest,
+  ProductVariantResponse
 } from '@/types/product';
 
 const API_URL = '/products';
@@ -23,6 +24,11 @@ export const productService = {
 
   getPublicProductBySlug: async (slug: string): Promise<ApiResponse<ProductResponse>> => {
     const response = await axiosClient.get<ApiResponse<ProductResponse>>(`${API_URL}/public/slug/${slug}`);
+    return response.data;
+  },
+
+  getVariantsPublic: async (productId: number): Promise<ApiResponse<ProductVariantResponse[]>> => {
+    const response = await axiosClient.get<ApiResponse<ProductVariantResponse[]>>(`${API_URL}/public/${productId}/variants`);
     return response.data;
   },
 

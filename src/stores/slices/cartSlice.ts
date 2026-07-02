@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import { cartService } from '@/services/cartService';
 import type { CartItemResponse } from '@/types/cart/responses';
 import type { CartItemRequest } from '@/types/cart/requests';
+import type { ProductVariantResponse } from '@/types/product';
+
 
 export interface CartItem {
   id: string; // For guest: variantId or slug-attribute combination. For DB: stringified variantId.
@@ -19,6 +21,7 @@ export interface CartItem {
   available?: boolean;
   unavailableReason?: string | null;
   variantAttributes?: Record<string, string>;
+  stockQuantity?: number;
 }
 
 interface CartState {
@@ -160,6 +163,21 @@ export const clearCartDbThunk = createAsyncThunk(
   }
 );
 
+export const changeItemVariantDbThunk = createAsyncThunk(
+  'cart/changeVariantDb',
+  async ({ oldVariantId, newVariantId, quantity, note }: { oldVariantId: number; newVariantId: number; quantity: number; note?: string }, { rejectWithValue }) => {
+    try {
+      // 1. Remove old variant
+      await cartService.removeItem(oldVariantId);
+      // 2. Add new variant
+      const response = await cartService.addItem({ variantId: newVariantId, quantity, note });
+      return response.result; // CartResponse
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Không thể thay đổi phân loại sản phẩm');
+    }
+  }
+);
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -194,6 +212,36 @@ const cartSlice = createSlice({
       state.items = [];
       persistCart(state.items);
       state.totalAmount = 0;
+    },
+    changeVariant(state, action: PayloadAction<{ oldVariantId: number; newVariant: ProductVariantResponse }>) {
+      const { oldVariantId, newVariant } = action.payload;
+      const existingItemIndex = state.items.findIndex(item => item.variantId === oldVariantId || item.id === `${oldVariantId}`);
+      if (existingItemIndex !== -1) {
+        const item = state.items[existingItemIndex];
+        const quantity = item.quantity;
+        
+        const duplicateIndex = state.items.findIndex(i => (i.variantId === newVariant.variantId || i.id === `${newVariant.variantId}`) && i.variantId !== oldVariantId);
+        
+        const { color, size } = parseAttributes(newVariant.variantAttributes);
+        
+        if (duplicateIndex !== -1) {
+          // Merge quantities and remove old item
+          state.items[duplicateIndex].quantity += quantity;
+          state.items.splice(existingItemIndex, 1);
+        } else {
+          // Update details
+          item.id = `${newVariant.variantId}`;
+          item.variantId = newVariant.variantId;
+          item.price = newVariant.price;
+          item.image = newVariant.variantImage === 'null' || !newVariant.variantImage ? item.image : newVariant.variantImage;
+          if (color) item.color = color;
+          if (size) item.size = size;
+          item.variantAttributes = newVariant.variantAttributes;
+          item.stockQuantity = newVariant.stockQuantity;
+        }
+      }
+      persistCart(state.items);
+      state.totalAmount = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     },
   },
   extraReducers: (builder) => {
@@ -279,8 +327,26 @@ const cartSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       });
+
+    // changeItemVariantDbThunk
+    builder
+      .addCase(changeItemVariantDbThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(changeItemVariantDbThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          state.items = action.payload.items.map(mapDbItemToLocal);
+          state.totalAmount = action.payload.totalAmount;
+        }
+      })
+      .addCase(changeItemVariantDbThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
   }
 });
 
-export const { addItem, removeItem, updateQuantity, clearCart } = cartSlice.actions;
+export const { addItem, removeItem, updateQuantity, clearCart, changeVariant } = cartSlice.actions;
 export default cartSlice.reducer;

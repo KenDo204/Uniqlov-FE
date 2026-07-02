@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { CreditCard, ArrowRight, CheckCircle2 } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
 import BackHome from '@/components/general/BackHomeButton';
@@ -8,6 +8,12 @@ import { useOrder } from '@/hooks/useOrder';
 import { useCoupon } from '@/hooks/useCoupon';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
+import { useAddress } from '@/hooks/useAddress';
+import { useGhn } from '@/hooks/useGhn';
+import { useProduct } from '@/hooks/useProduct';
+import type { AddressResponse } from '@/types/address';
+import AddressSelectionModal from '@/components/customer/Account/AddressSelectionModal';
+
 
 export function Checkout() {
   const navigate = useNavigate();
@@ -15,6 +21,9 @@ export function Checkout() {
   const { checkout } = useOrder();
   const { previewApplyCoupon } = useCoupon();
   const { user, isAuthenticated } = useAuth();
+  const { addresses, fetchAddresses } = useAddress();
+  const { shippingFee, calculateShippingFee } = useGhn();
+  const { products, fetchPublicProducts } = useProduct();
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -22,21 +31,80 @@ export function Checkout() {
   const [lastName, setLastName] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('TP. Hồ Chí Minh');
-  const [zip, setZip] = useState('70000');
+
+  const [selectedAddress, setSelectedAddress] = useState<AddressResponse | null>(null);
+  const [isAddressListOpen, setIsAddressListOpen] = useState(false);
 
   React.useEffect(() => {
     if (user) {
       setEmail(prev => prev || user.email || '');
-      setPhone(prev => prev || user.phone || '');
-      if (user.fullName) {
-        const nameParts = user.fullName.trim().split(/\s+/);
-        const first = nameParts[nameParts.length - 1] || '';
-        const last = nameParts.slice(0, nameParts.length - 1).join(' ') || '';
-        setFirstName(prev => prev || first);
-        setLastName(prev => prev || last);
-      }
     }
   }, [user]);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchAddresses().then((addrs) => {
+        if (addrs && addrs.length > 0) {
+          const def = addrs.find(a => a.isDefault) || addrs[0];
+          setSelectedAddress(def);
+        }
+      }).catch(err => {
+        console.error('Error fetching addresses:', err);
+      });
+    }
+  }, [isAuthenticated, fetchAddresses]);
+
+  React.useEffect(() => {
+    if (products.length === 0) {
+      fetchPublicProducts().catch(err => console.error("Error fetching products:", err));
+    }
+  }, [products.length, fetchPublicProducts]);
+
+  // Sync state variables with selected address
+  React.useEffect(() => {
+    if (selectedAddress) {
+      setPhone(selectedAddress.phone);
+      setAddress(selectedAddress.fullAddress);
+      setCity(selectedAddress.provinceName);
+      
+      const nameParts = selectedAddress.recipientName.trim().split(/\s+/);
+      const first = nameParts[nameParts.length - 1] || '';
+      const last = nameParts.slice(0, nameParts.length - 1).join(' ') || '';
+      setFirstName(first);
+      setLastName(last);
+    }
+  }, [selectedAddress]);
+
+  // Helper to calculate shipping fee via GHN
+  const calculateFeeForAddress = React.useCallback(async (addr: AddressResponse) => {
+    if (!addr) return;
+    
+    // Calculate total weight of cart
+    const totalWeightKg = items.reduce((sum, item) => {
+      const product = products.find(p => p.variants.some(v => v.variantId === item.variantId));
+      const itemWeight = product ? (product.weightKg || 0.2) : 0.2;
+      return sum + itemWeight * item.quantity;
+    }, 0);
+    const totalWeightGram = Math.max(100, Math.round(totalWeightKg * 1000));
+    
+    try {
+      await calculateShippingFee({
+        toDistrictId: addr.districtId,
+        toWardCode: addr.wardCode,
+        weightGram: totalWeightGram,
+        serviceId: 53320 // Standard GHN Express service
+      });
+    } catch (err) {
+      console.error("Failed to calculate shipping fee:", err);
+    }
+  }, [items, products, calculateShippingFee]);
+
+  // Recalculate shipping fee when selected address or items change
+  React.useEffect(() => {
+    if (selectedAddress && items.length > 0 && products.length > 0) {
+      calculateFeeForAddress(selectedAddress);
+    }
+  }, [selectedAddress, items, products, calculateFeeForAddress]);
   
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'vnpay' | 'momo'>('cod');
   const [coupon, setCoupon] = useState('');
@@ -53,36 +121,7 @@ export function Checkout() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Address suggestions list for Vietnam
-  const [addressSuggestions, setAddressSuggestions] = useState<string[]>([]);
-  const mockSuggestedAddresses = [
-    'Số 123, Đường Nguyễn Văn Cừ, Phường 2, Quận 5, TP. Hồ Chí Minh',
-    'Chung cư Sunrise City, Block A, Phường Tân Hưng, Quận 7, TP. Hồ Chí Minh',
-    'Số 1, Đường Đại Cồ Việt, Bách Khoa, Hai Bà Trưng, Hà Nội',
-    'Khu đô thị Phú Mỹ Hưng, Phường Tân Phong, Quận 7, TP. Hồ Chí Minh'
-  ];
 
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setAddress(val);
-    if (val.length > 3) {
-      setAddressSuggestions(mockSuggestedAddresses.filter(a => a.toLowerCase().includes(val.toLowerCase())));
-    } else {
-      setAddressSuggestions([]);
-    }
-  };
-
-  const selectSuggestedAddress = (addr: string) => {
-    setAddress(addr);
-    setAddressSuggestions([]);
-    if (addr.includes('Hà Nội')) {
-      setCity('Hà Nội');
-      setZip('10000');
-    } else {
-      setCity('TP. Hồ Chí Minh');
-      setZip('70000');
-    }
-  };
 
   const handleApplyCoupon = async () => {
     const code = coupon.trim().toUpperCase();
@@ -109,12 +148,19 @@ export function Checkout() {
   }, [rawSubtotal, discountPercent, fixedDiscount]);
 
   const subtotal = Math.max(0, rawSubtotal - discountAmount);
-  const shippingCost = rawSubtotal >= 1500000 || rawSubtotal === 0 ? 0 : 35000;
+  const shippingCost = useMemo(() => {
+    if (rawSubtotal >= 1500000 || rawSubtotal === 0) return 0;
+    return shippingFee?.total || 35000;
+  }, [rawSubtotal, shippingFee]);
   const total = subtotal + shippingCost;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !address || !city || !phone) {
+    if (!selectedAddress) {
+      toast.error('Vui lòng chọn hoặc thêm địa chỉ nhận hàng.');
+      return;
+    }
+    if (!email || !phone) {
       toast.error('Vui lòng điền đầy đủ thông tin giao hàng.');
       return;
     }
@@ -130,7 +176,7 @@ export function Checkout() {
 
       const payload = {
         cartItemIds,
-        addressId: 1,
+        addressId: selectedAddress.addressId,
         couponCode: coupon.trim() || undefined,
         paymentMethod: paymentMethod.toUpperCase() as any, // 'COD' | 'VNPAY' | 'MOMO'
         shippingMethod: 'STANDARD' as const,
@@ -230,85 +276,57 @@ export function Checkout() {
                 </div>
               </div>
 
-              {/* Step 2: Shipping details */}
-              <div className="bg-white border border-gray-200 p-6 rounded-[4px] space-y-5 shadow-sm">
+              {/* Step 2: Shipping details (Address Selection) */}
+              <div className="bg-white border border-gray-200 p-6 rounded-[4px] space-y-5 shadow-sm text-left">
                 <h3 className="text-base font-bold uppercase tracking-wider text-gray-800 m-0 border-b border-gray-100 pb-3 flex items-center gap-2">
                   2. Địa chỉ giao hàng
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-[12px] font-medium text-gray-700">Tên</label>
-                    <input
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Nhập tên"
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:border-black transition-colors"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-[12px] font-medium text-gray-700">Họ & Tên đệm</label>
-                    <input
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Nhập họ và tên đệm"
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:border-black transition-colors"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Auto-suggest Address Input */}
-                <div className="space-y-1.5 relative">
-                  <label className="block text-[12px] font-medium text-gray-700">Địa chỉ cụ thể (Số nhà, tên đường, phường/xã, quận/huyện)</label>
-                  <input
-                    type="text"
-                    value={address}
-                    onChange={handleAddressChange}
-                    placeholder="Nhập địa chỉ của bạn..."
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:border-black transition-colors"
-                    required
-                  />
-                  {addressSuggestions.length > 0 && (
-                    <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-[4px] shadow-lg z-25 overflow-hidden divide-y divide-gray-100 text-sm">
-                      {addressSuggestions.map((suggestion, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => selectSuggestedAddress(suggestion)}
-                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-gray-800 transition-colors"
-                        >
-                          {suggestion}
+                
+                {selectedAddress ? (
+                  <div className="bg-gray-50 p-4 border border-gray-200 rounded-[4px] relative">
+                    <div className="space-y-1 text-sm font-light">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="font-bold text-gray-900">{selectedAddress.recipientName}</span>
+                          <span className="text-gray-500 mx-2">|</span>
+                          <span className="font-medium text-gray-900">{selectedAddress.phone}</span>
                         </div>
-                      ))}
+                        <button
+                          type="button"
+                          onClick={() => setIsAddressListOpen(!isAddressListOpen)}
+                          className="text-theme font-medium text-xs hover:underline bg-transparent border-none cursor-pointer p-0"
+                        >
+                          {isAddressListOpen ? 'Đóng' : 'Thay đổi'}
+                        </button>
+                      </div>
+                      <p className="m-0 text-gray-600 text-[13px]">{selectedAddress.fullAddress}</p>
                     </div>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="block text-[12px] font-medium text-gray-700">Tỉnh / Thành phố</label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. TP. Hồ Chí Minh"
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:border-black transition-colors"
-                      required
+                    {/* Address Selection Modal */}
+                    <AddressSelectionModal
+                      open={isAddressListOpen}
+                      onClose={() => setIsAddressListOpen(false)}
+                      addresses={addresses}
+                      selectedAddressId={selectedAddress?.addressId || null}
+                      onSelect={(addr) => {
+                        setSelectedAddress(addr);
+                        setIsAddressListOpen(false);
+                      }}
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-[12px] font-medium text-gray-700">Mã Bưu điện</label>
-                    <input
-                      type="text"
-                      value={zip}
-                      onChange={(e) => setZip(e.target.value)}
-                      placeholder="e.g. 70000"
-                      className="w-full px-4 py-3 bg-white border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:border-black transition-colors"
-                      required
-                    />
+                ) : (
+                  <div className="p-4 border border-red-200 bg-red-50 text-red-700 text-sm rounded-[4px] text-center font-medium">
+                    Bạn chưa có địa chỉ nhận hàng nào được lưu.
                   </div>
+                )}
+
+                <div className="flex justify-between items-center pt-2">
+                  <Link 
+                    to="/account/addresses" 
+                    className="text-theme font-medium text-xs hover:underline inline-flex items-center gap-1"
+                  >
+                    Quản lý sổ địa chỉ / Thêm địa chỉ mới
+                  </Link>
                 </div>
               </div>
 

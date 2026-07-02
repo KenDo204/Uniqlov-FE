@@ -1,14 +1,16 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { productService } from '@/services/productService';
-import type { 
-  ProductResponse, 
-  ProductCreateRequest, 
-  ProductUpdateRequest 
+import type {
+  ProductResponse,
+  ProductCreateRequest,
+  ProductUpdateRequest,
+  ProductVariantResponse
 } from '@/types/product';
 
 // --- ĐỊNH NGHĨA STATE ---
 interface ProductState {
   productsList: ProductResponse[];
+  productVariantsList: ProductVariantResponse[];
   currentProductDetail: ProductResponse | null;
   isFetching: boolean;
   isSubmitting: boolean;
@@ -17,6 +19,7 @@ interface ProductState {
 
 const initialState: ProductState = {
   productsList: [],
+  productVariantsList: [],
   currentProductDetail: null,
   isFetching: false,
   isSubmitting: false,
@@ -42,6 +45,18 @@ export const fetchPublicProductBySlugThunk = createAsyncThunk(
   async (slug: string, { rejectWithValue }) => {
     try {
       const response = await productService.getPublicProductBySlug(slug);
+      return response.result;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Lỗi tải chi tiết sản phẩm');
+    }
+  }
+);
+
+export const fetchPublicProductVariantsThunk = createAsyncThunk(
+  'product/fetchPublicProductVariants',
+  async (productId: number, { rejectWithValue }) => {
+    try {
+      const response = await productService.getVariantsPublic(productId);
       return response.result;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Lỗi tải chi tiết sản phẩm');
@@ -170,6 +185,25 @@ const productSlice = createSlice({
       .addCase(fetchAdminProductByIdThunk.pending, handleFetchDetailPending)
       .addCase(fetchAdminProductByIdThunk.fulfilled, handleFetchDetailFulfilled)
       .addCase(fetchAdminProductByIdThunk.rejected, handleFetchDetailRejected);
+
+    // --- PRODUCT VARIANTS ---
+    const handleFetchVariantsPending = (state: ProductState) => {
+      state.isFetching = true;
+      state.error = null;
+    };
+    const handleFetchVariantsFulfilled = (state: ProductState, action: PayloadAction<ProductVariantResponse[] | undefined>) => {
+      state.isFetching = false;
+      if (action.payload) state.productVariantsList = action.payload;
+    };
+    const handleFetchVariantsRejected = (state: ProductState, action: any) => {
+      state.isFetching = false;
+      state.error = action.payload as string;
+    };
+
+    builder
+      .addCase(fetchPublicProductVariantsThunk.pending, handleFetchVariantsPending)
+      .addCase(fetchPublicProductVariantsThunk.fulfilled, handleFetchVariantsFulfilled)
+      .addCase(fetchPublicProductVariantsThunk.rejected, handleFetchVariantsRejected);
 
     // --- CREATE ---
     builder

@@ -11,6 +11,8 @@ import couponReducer from './slices/couponSlice';
 import orderReducer from './slices/orderSlice';
 import wishlistReducer from './slices/wishlistSlice';
 import reviewReducer from './slices/reviewSlice';
+import addressReducer from './slices/addressSlice';
+import ghnReducer from './slices/ghnSlice';
 
 export const store = configureStore({
   reducer: {
@@ -25,6 +27,8 @@ export const store = configureStore({
     order: orderReducer,
     wishlist: wishlistReducer,
     review: reviewReducer,
+    address: addressReducer,
+    ghn: ghnReducer,
     theme: themeReducer,
   },
 });

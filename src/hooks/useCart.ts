@@ -5,13 +5,16 @@ import {
   removeItem, 
   updateQuantity, 
   clearCart,
+  changeVariant,
   fetchCartDbThunk, 
   addItemDbThunk, 
   updateItemDbThunk, 
   removeItemDbThunk, 
-  clearCartDbThunk 
+  clearCartDbThunk,
+  changeItemVariantDbThunk
 } from '@/stores/slices/cartSlice';
 import type { CartItem } from '@/stores/slices/cartSlice';
+import type { ProductVariantResponse } from '@/types/product';
 
 export const useCart = () => {
   const dispatch = useAppDispatch();
@@ -72,6 +75,18 @@ export const useCart = () => {
     dispatch(clearCart());
   }, [dispatch, isAuthenticated]);
 
+  const changeCartItemVariant = useCallback(async (oldVariantId: number, newVariant: ProductVariantResponse, quantity: number, note?: string) => {
+    if (isAuthenticated) {
+      return await dispatch(changeItemVariantDbThunk({ 
+        oldVariantId, 
+        newVariantId: newVariant.variantId, 
+        quantity, 
+        note 
+      })).unwrap();
+    }
+    dispatch(changeVariant({ oldVariantId, newVariant }));
+  }, [dispatch, isAuthenticated]);
+
   return useMemo(() => ({
     items,
     totalAmount,
@@ -81,6 +96,7 @@ export const useCart = () => {
     addItem: addCartItem,
     removeItem: removeCartItem,
     updateQuantity: updateCartItemQuantity,
-    clearCart: clearAllCart
-  }), [items, totalAmount, isLoading, error, fetchCart, addCartItem, removeCartItem, updateCartItemQuantity, clearAllCart]);
+    clearCart: clearAllCart,
+    changeVariant: changeCartItemVariant
+  }), [items, totalAmount, isLoading, error, fetchCart, addCartItem, removeCartItem, updateCartItemQuantity, clearAllCart, changeCartItemVariant]);
 };

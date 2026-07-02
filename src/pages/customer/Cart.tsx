@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Minus, Ticket, ChevronRight, Heart, Star } from '@/components/ui/icons';
 import { useCartStore } from '../../stores/useCartStore';
 import { mockProducts } from '../../features/products';
@@ -9,13 +9,24 @@ import { formatVND } from '../../utils/formatters';
 import { useAppSelector } from '@/stores/hooks';
 import { useCoupon } from '@/hooks/useCoupon';
 import { useCart } from '@/hooks/useCart';
+import { useProduct } from '@/hooks/useProduct';
 import BackHome from '@/components/general/BackHomeButton';
+import type { CartItem } from '@/stores/slices/cartSlice';
+import type { ProductVariantResponse } from '@/types/product';
+import { useAddress } from '@/hooks/useAddress';
+import { useGhn } from '@/hooks/useGhn';
+import type { AddressResponse } from '@/types/address';
+
+
 
 export function Cart() {
   const navigate = useNavigate();
   const { items, removeItem, updateQuantity } = useCartStore();
-  const { fetchCart } = useCart();
+  const { fetchCart, changeVariant } = useCart();
+  const { fetchProductVariants, products, fetchPublicProducts } = useProduct();
   const { previewApplyCoupon } = useCoupon();
+  const { addresses, fetchAddresses } = useAddress();
+  const { shippingFee, calculateShippingFee } = useGhn();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   const [couponCode, setCouponCode] = useState('');
@@ -24,6 +35,17 @@ export function Cart() {
   const [couponSuccess, setCouponSuccess] = useState(false);
   const [couponDescription, setCouponDescription] = useState('');
   const [isCouponOpen, setIsCouponOpen] = useState(false); // State mở accordion mã giảm giá
+
+  // States for changing variants
+  const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
+  const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+  const [itemVariants, setItemVariants] = useState<ProductVariantResponse[]>([]);
+  const [tempAttributes, setTempAttributes] = useState<Record<string, string>>({});
+
+  // Address selection states
+  const [selectedAddress, setSelectedAddress] = useState<AddressResponse | null>(null);
+  const [isAddressListOpen, setIsAddressListOpen] = useState(false);
 
   const scrollToRecommendations = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -41,6 +63,149 @@ export function Cart() {
     }
   }, [isAuthenticated, fetchCart]);
 
+  // Fetch addresses if authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchAddresses().then((addrs) => {
+        if (addrs && addrs.length > 0) {
+          const def = addrs.find(a => a.isDefault) || addrs[0];
+          setSelectedAddress(def);
+        }
+      }).catch(err => {
+        console.error('Error fetching addresses:', err);
+      });
+    }
+  }, [isAuthenticated, fetchAddresses]);
+
+  // Helper to calculate shipping fee via GHN
+  const calculateFeeForAddress = React.useCallback(async (addr: AddressResponse) => {
+    if (!addr) return;
+    
+    // Calculate total weight of cart
+    const totalWeightKg = items.reduce((sum, item) => {
+      const product = products.find(p => p.variants.some(v => v.variantId === item.variantId));
+      const itemWeight = product ? (product.weightKg || 0.2) : 0.2;
+      return sum + itemWeight * item.quantity;
+    }, 0);
+    const totalWeightGram = Math.max(100, Math.round(totalWeightKg * 1000));
+    
+    try {
+      await calculateShippingFee({
+        toDistrictId: addr.districtId,
+        toWardCode: addr.wardCode,
+        weightGram: totalWeightGram,
+        serviceId: 53320 // Standard GHN Express service
+      });
+    } catch (err) {
+      console.error("Failed to calculate shipping fee:", err);
+    }
+  }, [items, products, calculateShippingFee]);
+
+  // Recalculate shipping fee when selected address or items change
+  React.useEffect(() => {
+    if (selectedAddress && items.length > 0 && products.length > 0) {
+      calculateFeeForAddress(selectedAddress);
+    }
+  }, [selectedAddress, items, products, calculateFeeForAddress]);
+
+  React.useEffect(() => {
+    if (products.length === 0) {
+      fetchPublicProducts().catch((err) => {
+        console.error('Error fetching public products:', err);
+      });
+    }
+  }, [products.length, fetchPublicProducts]);
+
+  // Extract attribute keys from variants
+  const attributeKeys = useMemo(() => {
+    if (itemVariants.length === 0) return [];
+    const keysSet = new Set<string>();
+    itemVariants.forEach(v => {
+      if (v.variantAttributes) {
+        Object.keys(v.variantAttributes).forEach(k => keysSet.add(k));
+      }
+    });
+    return Array.from(keysSet);
+  }, [itemVariants]);
+
+  // Extract all unique values for each key
+  const attributeValues = useMemo(() => {
+    const values: Record<string, string[]> = {};
+    attributeKeys.forEach(key => {
+      const valsSet = new Set<string>();
+      itemVariants.forEach(v => {
+        if (v.variantAttributes && v.variantAttributes[key]) {
+          valsSet.add(v.variantAttributes[key]);
+        }
+      });
+      values[key] = Array.from(valsSet);
+    });
+    return values;
+  }, [attributeKeys, itemVariants]);
+
+  // Find variant matching tempAttributes
+  const matchingVariant = useMemo(() => {
+    if (itemVariants.length === 0) return null;
+    return itemVariants.find(v => {
+      return attributeKeys.every(key => v.variantAttributes?.[key] === tempAttributes[key]);
+    }) || null;
+  }, [itemVariants, tempAttributes, attributeKeys]);
+
+  const handleOpenVariantModal = async (item: CartItem) => {
+    setSelectedCartItem(item);
+    setIsVariantModalOpen(true);
+    setLoadingVariants(true);
+
+    const vId = item.variantId || Number(item.id);
+    const product = products.find(p => p.variants.some(v => v.variantId === vId));
+    if (product) {
+      try {
+        const variantsData = await fetchProductVariants(product.productId);
+        setItemVariants(variantsData || []);
+        
+        const initialAttrs: Record<string, string> = {};
+        if (item.variantAttributes && Object.keys(item.variantAttributes).length > 0) {
+          Object.assign(initialAttrs, item.variantAttributes);
+        } else {
+          if (item.color) {
+            const colorKey = variantsData && variantsData.length > 0 
+              ? Object.keys(variantsData[0].variantAttributes).find(k => k.toLowerCase().includes('color') || k.toLowerCase().includes('màu')) 
+              : null;
+            if (colorKey) initialAttrs[colorKey] = item.color;
+          }
+          if (item.size) {
+            const sizeKey = variantsData && variantsData.length > 0 
+              ? Object.keys(variantsData[0].variantAttributes).find(k => k.toLowerCase().includes('size') || k.toLowerCase().includes('kích')) 
+              : null;
+            if (sizeKey) initialAttrs[sizeKey] = item.size;
+          }
+        }
+        setTempAttributes(initialAttrs);
+      } catch (err) {
+        console.error("Failed to fetch variants:", err);
+        toast.error("Không thể tải danh sách thuộc tính sản phẩm.");
+      } finally {
+        setLoadingVariants(false);
+      }
+    } else {
+      toast.error("Không tìm thấy thông tin sản phẩm.");
+      setLoadingVariants(false);
+      setIsVariantModalOpen(false);
+    }
+  };
+
+  const handleConfirmVariant = async () => {
+    if (!selectedCartItem || !matchingVariant) return;
+    try {
+      const oldVariantId = selectedCartItem.variantId || Number(selectedCartItem.id);
+      await changeVariant(oldVariantId, matchingVariant, selectedCartItem.quantity, selectedCartItem.note);
+      toast.success("Thay đổi phân loại thành công.");
+      setIsVariantModalOpen(false);
+    } catch (err: any) {
+      toast.error(err || "Không thể cập nhật phân loại sản phẩm.");
+    }
+  };
+
 
   // Financial calculations
   const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -54,7 +219,10 @@ export function Cart() {
   const subtotal = Math.max(0, rawSubtotal - discountAmount);
   const FREE_SHIPPING_LIMIT = 1500000;
   // const remainingForFree = Math.max(0, FREE_SHIPPING_LIMIT - rawSubtotal);
-  const shippingCost = rawSubtotal >= FREE_SHIPPING_LIMIT || rawSubtotal === 0 ? 0 : 35000;
+  const shippingCost = useMemo(() => {
+    if (rawSubtotal >= FREE_SHIPPING_LIMIT || rawSubtotal === 0) return 0;
+    return shippingFee?.total || 35000;
+  }, [rawSubtotal, shippingFee]);
   const total = subtotal + shippingCost;
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
@@ -128,19 +296,83 @@ export function Cart() {
             {/* CỘT TRÁI: DANH SÁCH SẢN PHẨM               */}
             {/* ========================================== */}
             <div className="flex-1 w-full border-t border-gray-200">
+              {/* Shipping Address Selection Section */}
+              {isAuthenticated && (
+                <div className="py-4 border-b border-gray-200 text-left">
+                  <div className="bg-gray-50 p-4 border border-gray-200 rounded-[4px] relative">
+                    <h4 className="text-sm font-bold text-gray-800 m-0 mb-2 uppercase tracking-wide">
+                      Địa chỉ nhận hàng
+                    </h4>
+                    {selectedAddress ? (
+                      <div className="space-y-1 text-sm font-light">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="font-bold text-gray-900">{selectedAddress.recipientName}</span>
+                            <span className="text-gray-500 mx-2">|</span>
+                            <span className="font-medium text-gray-900">{selectedAddress.phone}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddressListOpen(!isAddressListOpen)}
+                            className="text-theme font-medium text-xs hover:underline bg-transparent border-none cursor-pointer p-0"
+                          >
+                            {isAddressListOpen ? 'Đóng' : 'Thay đổi'}
+                          </button>
+                        </div>
+                        <p className="m-0 text-gray-600 text-[13px]">{selectedAddress.fullAddress}</p>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">
+                        Bạn chưa có địa chỉ nhận hàng. 
+                        <Link to="/account/addresses" className="text-theme font-medium hover:underline ml-1">
+                          Thêm địa chỉ mới
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Address Selection List */}
+                    {isAddressListOpen && addresses.length > 1 && (
+                      <div className="mt-3 border-t border-gray-200 pt-3 space-y-2 max-h-48 overflow-y-auto">
+                        {addresses
+                          .filter(addr => addr.addressId !== selectedAddress?.addressId)
+                          .map(addr => (
+                            <div 
+                              key={addr.addressId}
+                              onClick={() => {
+                                setSelectedAddress(addr);
+                                setIsAddressListOpen(false);
+                              }}
+                              className="p-2.5 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 rounded-[4px] cursor-pointer text-xs transition-colors text-left"
+                            >
+                              <div className="font-bold text-gray-900 mb-1">
+                                {addr.recipientName} ({addr.phone})
+                              </div>
+                              <div className="text-gray-600 leading-tight">{addr.fullAddress}</div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {items.map((item) => (
                 <div key={item.id} className="py-6 border-b border-gray-200 flex gap-4 md:gap-6">
 
                   {/* Hình ảnh to, vuông vức */}
                   <div className="w-[120px] h-[150px] md:w-[150px] md:h-[180px] shrink-0 bg-gray-50">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    <Link to={`/product/${item.id}`}>
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    </Link>
                   </div>
 
                   {/* Thông tin sản phẩm */}
                   <div className="flex-1 flex flex-col">
                     <div className="flex justify-between items-start gap-4">
                       <h3 className="font-medium text-[15px] md:text-[16px] m-0 leading-snug">
-                        {item.name}
+                        <Link to={`/product/${item.id}`} className="text-gray-900 hover:text-theme no-underline">
+                          {item.name}
+                        </Link>
                       </h3>
                       <button className="text-gray-400 hover:text-black bg-transparent border-none cursor-pointer p-0 shrink-0">
                         <Heart className="w-5 h-5" strokeWidth={1.5} />
@@ -148,31 +380,40 @@ export function Cart() {
                     </div>
 
                     {/* Size & Màu / Thuộc tính sản phẩm */}
-                    {item.variantAttributes && Object.keys(item.variantAttributes).length > 0 ? (
-                      <div className="text-[13px] text-gray-600 mt-2 space-y-1">
-                        {Object.entries(item.variantAttributes).map(([key, value]) => (
-                          <div key={key} className="flex gap-1">
-                            <span className="text-gray-500">{key}:</span>
-                            <span className="text-gray-900 font-medium">{value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-[13px] text-gray-600 mt-2 space-y-1">
-                        {item.color && (
-                          <div className="flex gap-1">
-                            <span className="text-gray-500">Màu sắc:</span>
-                            <span className="text-gray-900 font-medium">{item.color}</span>
-                          </div>
-                        )}
-                        {item.size && (
-                          <div className="flex gap-1">
-                            <span className="text-gray-500">Kích cỡ:</span>
-                            <span className="text-gray-900 font-medium">{item.size}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="mt-2 text-left">
+                      {item.variantAttributes && Object.keys(item.variantAttributes).length > 0 ? (
+                        <div className="text-[13px] text-gray-600 space-y-1">
+                          {Object.entries(item.variantAttributes).map(([key, value]) => (
+                            <div key={key} className="flex gap-1">
+                              <span className="text-gray-500">{key}:</span>
+                              <span className="text-gray-900 font-medium">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-[13px] text-gray-600 space-y-1">
+                          {item.color && (
+                            <div className="flex gap-1">
+                              <span className="text-gray-500">Màu sắc:</span>
+                              <span className="text-gray-900 font-medium">{item.color}</span>
+                            </div>
+                          )}
+                          {item.size && (
+                            <div className="flex gap-1">
+                              <span className="text-gray-500">Kích cỡ:</span>
+                              <span className="text-gray-900 font-medium">{item.size}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <button
+                        onClick={() => handleOpenVariantModal(item)}
+                        className="text-[12px] text-theme font-medium hover:underline mt-1.5 bg-transparent border-none cursor-pointer p-0 inline-flex items-center gap-1"
+                      >
+                        Thay đổi phân loại
+                      </button>
+                    </div>
 
                     <div className="text-[16px] font-bold mt-3 text-theme">{formatVND(item.price)}</div>
                     <div className="text-[12px] text-gray-500 mt-1">Sản phẩm được làm từ chất liệu tái chế</div>
@@ -236,7 +477,7 @@ export function Cart() {
                   )}
                   <div className="flex justify-between">
                     <span>Phí vận chuyển</span>
-                    <span>{shippingCost === 0 ? 'Miễn phí' : 'Sẽ được quyết định sau'}</span>
+                    <span>{shippingCost === 0 ? 'Miễn phí' : formatVND(shippingCost)}</span>
                   </div>
                 </div>
 
@@ -354,6 +595,109 @@ export function Cart() {
           </div>
         )}
       </div>
+
+      {/* Modal thay đổi phân loại */}
+      {isVariantModalOpen && selectedCartItem && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-[500px] shadow-xl animate-fade-in text-left">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4 border-b border-gray-150 pb-3">
+              <h3 className="text-[18px] font-bold m-0 text-black">Thay đổi phân loại</h3>
+              <button 
+                onClick={() => setIsVariantModalOpen(false)}
+                className="bg-transparent border-none text-[20px] font-light cursor-pointer text-gray-400 hover:text-black"
+              >
+                ✕
+              </button>
+            </div>
+
+            {loadingVariants ? (
+              <div className="py-12 text-center text-gray-500">Đang tải phân loại sản phẩm...</div>
+            ) : (
+              <div className="space-y-4">
+                {/* Product Info */}
+                <div className="flex gap-4 items-start border-b border-gray-150 pb-4">
+                  <img 
+                    src={matchingVariant?.variantImage || selectedCartItem.image} 
+                    alt={selectedCartItem.name} 
+                    className="w-20 h-24 object-cover bg-gray-50"
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-[15px] m-0 leading-snug">{selectedCartItem.name}</h4>
+                    <div className="mt-2 space-y-1">
+                      {matchingVariant ? (
+                        <>
+                          <div className="text-[16px] font-bold text-theme">{formatVND(matchingVariant.price)}</div>
+                          <div className="text-[12px] text-gray-500">Sku: {matchingVariant.skuCode}</div>
+                          <div className="text-[12px] text-gray-600 font-medium">
+                            Còn lại: {matchingVariant.stockQuantity > 0 ? `${matchingVariant.stockQuantity} sản phẩm` : <span className="text-red-500 font-bold">Hết hàng</span>}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-[13px] text-red-500 font-semibold">Tổ hợp phân loại này không khả dụng.</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attribute Selectors */}
+                <div className="space-y-4">
+                  {attributeKeys.map(key => (
+                    <div key={key}>
+                      <span className="block text-[13px] font-semibold mb-2 text-gray-700">{key}</span>
+                      <div className="flex flex-wrap gap-2">
+                        {attributeValues[key]?.map(val => {
+                          const isSelected = tempAttributes[key] === val;
+                          return (
+                            <button
+                              key={val}
+                              onClick={() => setTempAttributes(prev => ({ ...prev, [key]: val }))}
+                              className={`px-4 py-2 text-[13px] font-medium border flex items-center justify-center transition-all cursor-pointer bg-white rounded
+                                ${isSelected 
+                                  ? 'border-theme border-[2px] text-theme font-bold bg-theme/5' 
+                                  : 'border-gray-300 text-gray-800 hover:border-black'
+                                }`}
+                            >
+                              {val}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Status indicator / warnings */}
+                {matchingVariant && matchingVariant.stockQuantity <= 0 && (
+                  <div className="p-3 bg-red-50 text-red-700 text-[13px] rounded font-medium">
+                    Sản phẩm với phân loại này đã hết hàng. Vui lòng chọn phân loại khác.
+                  </div>
+                )}
+
+                {/* Footer buttons */}
+                <div className="flex gap-3 justify-end pt-4 border-t border-gray-150 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsVariantModalOpen(false)}
+                    className="px-5 py-2 border border-gray-300 rounded-full text-[13px] font-bold bg-white text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmVariant}
+                    disabled={!matchingVariant || matchingVariant.stockQuantity <= 0}
+                    className="px-6 py-2 rounded-full text-[13px] font-bold bg-theme hover:bg-theme-hover text-white cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Xác nhận
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

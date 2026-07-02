@@ -1,17 +1,7 @@
 import { type OrderStatus } from '@/types/enums/orderType';
 import { type PaymentMethod } from '@/types/enums/paymentType';
 import { type ShippingMethod } from '@/types/enums/shippingType';
-
-export interface AddressResponse {
-  addressId: number;
-  recipientName: string;
-  phone: string;
-  fullAddress: string;
-  streetNumber: string;
-  provinceId: number;
-  districtId: number;
-  wardCode: string;
-}
+import type { AddressResponse } from '../address';
 
 export interface CheckoutResponse {
   orderId: number;
