@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  CircularProgress, Tooltip, Dialog, DialogTitle, 
-  DialogContent, DialogActions, Button, TextField, IconButton, Chip, Checkbox, FormControlLabel
+import {
+  CircularProgress, Tooltip, IconButton, Button, Chip
 } from '@mui/material';
-import { 
-  Edit, Delete, Add, Shield 
+import {
+  Edit, Delete, Add, Shield
 } from '@mui/icons-material';
 import ConfirmModal from '@/components/general/ConfirmModal';
 import { useRole } from '@/hooks/useRole';
@@ -12,16 +11,15 @@ import { usePermission } from '@/hooks/usePermission';
 import { toast } from 'react-toastify';
 import type { RoleResponse } from '@/types/role';
 import CustomPagination from '@/components/general/Pagination';
+import AddRole from './AddRole';
+import EditRole from './EditRole';
 
 const RoleList: React.FC = () => {
-  const { 
-    roles, 
-    isFetching: loading, 
-    isSubmitting: actionLoading, 
-    fetchAllRoles, 
-    createRole, 
-    updateRole, 
-    deleteRole 
+  const {
+    roles,
+    fetchAllRoles,
+    deleteRole,
+    isFetching: loading
   } = useRole();
 
   const { permissions, fetchAllPermissions } = usePermission();
@@ -31,15 +29,6 @@ const RoleList: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleResponse | null>(null);
-
-  // Add Form state
-  const [addRoleName, setAddRoleName] = useState('');
-  const [addDescription, setAddDescription] = useState('');
-  const [addSelectedPermissions, setAddSelectedPermissions] = useState<number[]>([]);
-
-  // Edit Form state
-  const [editDescription, setEditDescription] = useState('');
-  const [editSelectedPermissions, setEditSelectedPermissions] = useState<number[]>([]);
 
   // Delete state
   const [roleToDelete, setRoleToDelete] = useState<number | null>(null);
@@ -70,68 +59,13 @@ const RoleList: React.FC = () => {
 
   // Handle Add Role
   const handleOpenAdd = () => {
-    setAddRoleName('');
-    setAddDescription('');
-    setAddSelectedPermissions([]);
     setIsAddModalOpen(true);
-  };
-
-  const handleToggleAddPermission = (id: number) => {
-    setAddSelectedPermissions(prev => 
-      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-    );
-  };
-
-  const handleSaveAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!addRoleName.trim()) {
-      toast.error('Vui lòng nhập tên vai trò');
-      return;
-    }
-
-    try {
-      await createRole({
-        roleName: addRoleName.trim().toUpperCase(),
-        description: addDescription.trim() || undefined,
-        permissionIds: addSelectedPermissions
-      });
-      toast.success('Thêm mới vai trò thành công!');
-      setIsAddModalOpen(false);
-      fetchAllRoles();
-    } catch (error: any) {
-      toast.error(error || 'Thêm vai trò thất bại');
-    }
   };
 
   // Handle Edit Role
   const handleOpenEdit = (role: RoleResponse) => {
     setSelectedRole(role);
-    setEditDescription(role.description || '');
-    setEditSelectedPermissions(role.permissions?.map(p => p.permissionId) || []);
     setIsEditModalOpen(true);
-  };
-
-  const handleToggleEditPermission = (id: number) => {
-    setEditSelectedPermissions(prev => 
-      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
-    );
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRole) return;
-
-    try {
-      await updateRole(selectedRole.roleId, {
-        description: editDescription.trim() || undefined,
-        permissionIds: editSelectedPermissions
-      });
-      toast.success('Cập nhật vai trò thành công!');
-      setIsEditModalOpen(false);
-      fetchAllRoles();
-    } catch (error: any) {
-      toast.error(error || 'Cập nhật vai trò thất bại');
-    }
   };
 
   // Handle Delete Role
@@ -162,103 +96,108 @@ const RoleList: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý vai trò (Roles)</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Cấp nhóm quyền, mô tả vai trò và cấu trúc phân quyền hệ thống</p>
           </div>
-          <button
+          <Button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 bg-[#00927c] hover:bg-[#007a68] text-white px-5 py-2.5 rounded-xl font-medium border-none cursor-pointer transition-colors shadow-sm"
+            variant="contained"
+            sx={{
+              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+            }}
           >
-            <Add fontSize="small" />
-            Thêm vai trò mới
-          </button>
+            <Add fontSize="medium" />
+            Thêm vai trò
+          </Button>
         </div>
 
         {/* ROLE LIST (CARDS) */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <CircularProgress size={40} sx={{ color: '#00927c' }} />
+            <CircularProgress size={40} sx={{ color: 'theme' }} />
             <p className="mt-3 text-gray-500 font-medium m-0">Đang tải danh sách vai trò...</p>
           </div>
         ) : paginatedRoles.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {paginatedRoles.map(role => (
-              <div 
-                key={role.roleId} 
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-all"
-              >
-                <div>
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <Shield fontSize="small" />
+                <div
+                  key={role.roleId}
+                  className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-all"
+                >
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                          <Shield fontSize="small" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-800 m-0">{role.roleName}</h3>
+                          <p className="text-xs text-gray-400 mt-0.5 m-0">ID: {role.roleId}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-800 m-0">{role.roleName}</h3>
-                        <p className="text-xs text-gray-400 mt-0.5 m-0">ID: {role.roleId}</p>
+
+                      <div className="flex gap-1">
+                        <Tooltip title="Chỉnh sửa vai trò & quyền" arrow>
+                          <IconButton
+                            onClick={() => handleOpenEdit(role)}
+                            size="small"
+                            sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                          >
+                            <Edit fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Xóa vai trò" arrow>
+                          <IconButton
+                            onClick={() => handleDeleteClick(role.roleId)}
+                            size="small"
+                            sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                          >
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </div>
                     </div>
 
-                    <div className="flex gap-1">
-                      <Tooltip title="Chỉnh sửa vai trò & quyền" arrow>
-                        <IconButton 
-                          onClick={() => handleOpenEdit(role)}
-                          size="small"
-                          sx={{ color: '#00927c', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
-                        >
-                          <Edit fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Xóa vai trò" arrow>
-                        <IconButton 
-                          onClick={() => handleDeleteClick(role.roleId)}
-                          size="small"
-                          sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
-                        >
-                          <Delete fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </div>
-                  </div>
+                    <p className="text-sm text-gray-500 mt-4 mb-4 leading-relaxed">
+                      {role.description || <span className="italic text-gray-400">Không có mô tả chi tiết cho vai trò này.</span>}
+                    </p>
 
-                  <p className="text-sm text-gray-500 mt-4 mb-4 leading-relaxed">
-                    {role.description || <span className="italic text-gray-400">Không có mô tả chi tiết cho vai trò này.</span>}
-                  </p>
-
-                  <div className="border-t border-gray-100 pt-4">
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Quyền hạn gán ({role.permissions?.length || 0})</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {role.permissions && role.permissions.length > 0 ? (
-                        role.permissions.map(p => (
-                          <Chip 
-                            key={p.permissionId} 
-                            label={p.permissionName} 
-                            size="small" 
-                            variant="outlined"
-                            sx={{ 
-                              fontSize: '11px', 
-                              color: '#4b5563', 
-                              borderColor: '#e5e7eb',
-                              bgcolor: '#f9fafb'
-                            }} 
-                          />
-                        ))
-                      ) : (
-                        <span className="text-xs text-gray-400 italic">Chưa được gán quyền nào.</span>
-                      )}
+                    <div className="border-t border-gray-100 pt-4">
+                      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Quyền hạn gán ({role.permissions?.length || 0})</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {role.permissions && role.permissions.length > 0 ? (
+                          role.permissions.map(p => (
+                            <Chip
+                              key={p.permissionId}
+                              label={p.permissionName}
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                fontSize: '11px',
+                                color: '#4b5563',
+                                borderColor: '#e5e7eb',
+                                bgcolor: '#f9fafb'
+                              }}
+                            />
+                          ))
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Chưa được gán quyền nào.</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <CustomPagination
-            currentPage={currentPage}
-            totalPages={Math.ceil((roles?.length || 0) / itemsPerPage)}
-            totalItems={roles?.length || 0}
-            itemsPerPage={itemsPerPage}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </>
-      ) : (
+              ))}
+            </div>
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={Math.ceil((roles?.length || 0) / itemsPerPage)}
+              totalItems={roles?.length || 0}
+              itemsPerPage={itemsPerPage}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </>
+        ) : (
           <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
             <div className="flex flex-col items-center justify-center">
               <img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" alt="Empty" className="w-20 h-20 opacity-50 mb-4" />
@@ -270,184 +209,21 @@ const RoleList: React.FC = () => {
       </div>
 
       {/* ADD MODAL */}
-      <Dialog 
-        open={isAddModalOpen} 
-        onClose={() => { if (!actionLoading) setIsAddModalOpen(false); }}
-        fullWidth
-        maxWidth="md"
-        slotProps={{ paper: { sx: { borderRadius: '20px', p: 1 } } }}
-      >
-        <form onSubmit={handleSaveAdd}>
-          <DialogTitle className="font-bold text-gray-800 text-lg border-b border-gray-100 pb-3 pt-4 px-6 m-0">
-            Định nghĩa vai trò mới
-          </DialogTitle>
-          
-          <DialogContent className="pt-6 pb-6 px-6 max-h-[70vh] overflow-y-auto">
-            <div className="flex flex-col gap-5 mt-2">
-              <TextField
-                label="Tên vai trò"
-                placeholder="VD: MANAGER, SUPPORT..."
-                fullWidth
-                required
-                value={addRoleName}
-                onChange={(e) => setAddRoleName(e.target.value.toUpperCase())}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-              />
-
-              <TextField
-                label="Mô tả vai trò"
-                placeholder="Mô tả tóm tắt trách nhiệm quyền hạn..."
-                fullWidth
-                multiline
-                rows={2}
-                value={addDescription}
-                onChange={(e) => setAddDescription(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-              />
-
-              <div className="mt-2">
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Tích chọn quyền gán (Permissions)</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 border border-gray-200 p-4 rounded-xl max-h-60 overflow-y-auto bg-gray-50">
-                  {permissions && permissions.length > 0 ? (
-                    permissions.map(p => (
-                      <FormControlLabel
-                        key={p.permissionId}
-                        control={
-                          <Checkbox
-                            checked={addSelectedPermissions.includes(p.permissionId)}
-                            onChange={() => handleToggleAddPermission(p.permissionId)}
-                            sx={{ color: '#d1d5db', '&.Mui-checked': { color: '#00927c' } }}
-                          />
-                        }
-                        label={
-                          <div>
-                            <span className="text-sm font-medium text-gray-700">{p.permissionName}</span>
-                            {p.description && <p className="text-[10px] text-gray-400 m-0 leading-tight">{p.description}</p>}
-                          </div>
-                        }
-                      />
-                    ))
-                  ) : (
-                    <span className="col-span-full text-sm text-gray-400 italic">Không tìm thấy quyền nào trong hệ thống.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-
-          <DialogActions className="p-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
-            <Button
-              onClick={() => setIsAddModalOpen(false)}
-              disabled={actionLoading}
-              variant="outlined"
-              sx={{
-                color: '#374151', borderColor: '#d1d5db', textTransform: 'none', px: 3,
-                fontWeight: 'bold', fontSize: '13px', borderRadius: '12px',
-                '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' }
-              }}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              disabled={actionLoading}
-              variant="contained"
-              sx={{
-                bgcolor: '#00927c', textTransform: 'none', px: 4,
-                fontWeight: 'bold', fontSize: '13px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
-              }}
-            >
-              {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Tạo vai trò'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+      <AddRole
+        open={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => fetchAllRoles()}
+        permissions={permissions}
+      />
 
       {/* EDIT MODAL */}
-      <Dialog 
-        open={isEditModalOpen} 
-        onClose={() => { if (!actionLoading) setIsEditModalOpen(false); }}
-        fullWidth
-        maxWidth="md"
-        slotProps={{ paper: { sx: { borderRadius: '20px', p: 1 } } }}
-      >
-        <form onSubmit={handleSaveEdit}>
-          <DialogTitle className="font-bold text-gray-800 text-lg border-b border-gray-100 pb-3 pt-4 px-6 m-0">
-            Chỉnh sửa vai trò: {selectedRole?.roleName}
-          </DialogTitle>
-          
-          <DialogContent className="pt-6 pb-6 px-6 max-h-[70vh] overflow-y-auto">
-            <div className="flex flex-col gap-5 mt-2">
-              <TextField
-                label="Mô tả vai trò"
-                placeholder="Mô tả vai trò trách nhiệm..."
-                fullWidth
-                multiline
-                rows={2}
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-              />
-
-              <div className="mt-2">
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Cập nhật quyền gán (Permissions)</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 border border-gray-200 p-4 rounded-xl max-h-60 overflow-y-auto bg-gray-50">
-                  {permissions && permissions.length > 0 ? (
-                    permissions.map(p => (
-                      <FormControlLabel
-                        key={p.permissionId}
-                        control={
-                          <Checkbox
-                            checked={editSelectedPermissions.includes(p.permissionId)}
-                            onChange={() => handleToggleEditPermission(p.permissionId)}
-                            sx={{ color: '#d1d5db', '&.Mui-checked': { color: '#00927c' } }}
-                          />
-                        }
-                        label={
-                          <div>
-                            <span className="text-sm font-medium text-gray-700">{p.permissionName}</span>
-                            {p.description && <p className="text-[10px] text-gray-400 m-0 leading-tight">{p.description}</p>}
-                          </div>
-                        }
-                      />
-                    ))
-                  ) : (
-                    <span className="col-span-full text-sm text-gray-400 italic">Không tìm thấy quyền nào.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-
-          <DialogActions className="p-6 pt-4 border-t border-gray-100 flex justify-end gap-3">
-            <Button
-              onClick={() => setIsEditModalOpen(false)}
-              disabled={actionLoading}
-              variant="outlined"
-              sx={{
-                color: '#374151', borderColor: '#d1d5db', textTransform: 'none', px: 3,
-                fontWeight: 'bold', fontSize: '13px', borderRadius: '12px',
-                '&:hover': { borderColor: '#9ca3af', backgroundColor: '#f9fafb' }
-              }}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              disabled={actionLoading}
-              variant="contained"
-              sx={{
-                bgcolor: '#00927c', textTransform: 'none', px: 4,
-                fontWeight: 'bold', fontSize: '13px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
-              }}
-            >
-              {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Lưu lại'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+      <EditRole
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={() => fetchAllRoles()}
+        role={selectedRole}
+        permissions={permissions}
+      />
 
       {/* CONFIRM DELETE MODAL */}
       <ConfirmModal

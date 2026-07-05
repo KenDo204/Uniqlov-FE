@@ -12,8 +12,8 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const verifySession = async () => {
-      const token = localStorage.getItem('accessToken'); 
-      
+      const token = localStorage.getItem('accessToken');
+
       if (!token) {
         setIsInitializing(false);
         return;
@@ -37,7 +37,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
   if (isInitializing) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: '#f3f4f6' }}>
-        <CircularProgress sx={{ color: '#00927c' }} />
+        <CircularProgress sx={{ color: 'theme' }} />
       </Box>
     );
   }

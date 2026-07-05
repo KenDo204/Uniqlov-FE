@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  CircularProgress, Tooltip, Dialog, DialogTitle, 
+import {
+  CircularProgress, Tooltip, Dialog, DialogTitle,
   DialogContent, DialogActions, Button, IconButton
 } from '@mui/material';
-import { 
-  Search, Delete, Visibility, CheckCircle, ErrorOutlined, Edit
+import {
+  Add, Search, Delete, Visibility, CheckCircle, ErrorOutlined, Edit
 } from '@mui/icons-material';
 import ConfirmModal from '@/components/general/ConfirmModal';
 import { useProduct } from '@/hooks/useProduct';
@@ -17,11 +17,11 @@ import CustomPagination from '@/components/general/Pagination';
 
 const AdminProductList: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    products, 
-    isFetching: loading, 
-    fetchAdminProducts, 
-    deleteProduct 
+  const {
+    products,
+    isFetching: loading,
+    fetchAdminProducts,
+    deleteProduct
   } = useProduct();
 
   const { categories, fetchAdminCategories } = useCategory();
@@ -34,7 +34,7 @@ const AdminProductList: React.FC = () => {
   // Modals state
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductResponse | null>(null);
-  
+
   // Delete confirm modal state
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
@@ -71,7 +71,7 @@ const AdminProductList: React.FC = () => {
   // Find category name by ID
   const getCategoryName = (catId: number) => {
     if (!categories) return 'Không xác định';
-    
+
     const findInTree = (nodes: any[]): string | null => {
       for (const node of nodes) {
         if (node.categoryId === catId) return node.categoryName;
@@ -82,7 +82,7 @@ const AdminProductList: React.FC = () => {
       }
       return null;
     };
-    
+
     return findInTree(categories) || 'Không xác định';
   };
 
@@ -92,7 +92,7 @@ const AdminProductList: React.FC = () => {
     const prices = product.variants.map(v => v.price);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
-    
+
     if (minPrice === maxPrice) return formatCurrency(minPrice);
     return `${formatCurrency(minPrice)} - ${formatCurrency(maxPrice)}`;
   };
@@ -126,11 +126,11 @@ const AdminProductList: React.FC = () => {
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     return products.filter(p => {
-      const matchesSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            p.productSlug.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.productSlug.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === '' || p.categoryId === Number(categoryFilter);
       const matchesGender = genderFilter === '' || p.targetGender === genderFilter;
-      
+
       return matchesSearch && matchesCategory && matchesGender;
     });
   }, [products, searchTerm, categoryFilter, genderFilter]);
@@ -145,10 +145,10 @@ const AdminProductList: React.FC = () => {
     const list: { categoryId: number; categoryName: string; level: number }[] = [];
     const traverse = (nodes: any[], level = 0) => {
       for (const node of nodes) {
-        list.push({ 
-          categoryId: node.categoryId, 
-          categoryName: '— '.repeat(level) + node.categoryName, 
-          level 
+        list.push({
+          categoryId: node.categoryId,
+          categoryName: '— '.repeat(level) + node.categoryName,
+          level
         });
         if (node.children && node.children.length > 0) {
           traverse(node.children, level + 1);
@@ -168,16 +168,17 @@ const AdminProductList: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý sản phẩm</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Xem toàn bộ danh mục sản phẩm của hệ thống, kiểm soát kho hàng và các cửa hàng</p>
           </div>
-          <Button 
+          <Button
             onClick={() => navigate('/admin/products/add')}
             variant="contained"
             sx={{
-              bgcolor: '#00927c', textTransform: 'none', px: 3, py: 1.2,
+              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
               fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: '#007c69', boxShadow: 'none' }
+              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
             }}
           >
-            + Thêm sản phẩm
+            <Add fontSize="medium" />
+            Thêm sản phẩm
           </Button>
         </div>
 
@@ -185,12 +186,12 @@ const AdminProductList: React.FC = () => {
         <div className="bg-white rounded-2xl p-4 md:p-6 mb-6 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-3.5 text-gray-400" fontSize="small" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Tìm kiếm theo tên sản phẩm hoặc slug..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[#00927c] transition-colors text-[14px]"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors text-[14px]"
             />
           </div>
 
@@ -198,7 +199,7 @@ const AdminProductList: React.FC = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[#00927c] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
             >
               <option value="">Tất cả danh mục</option>
               {flatCategoriesList.map(cat => (
@@ -211,7 +212,7 @@ const AdminProductList: React.FC = () => {
             <select
               value={genderFilter}
               onChange={(e) => setGenderFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[#00927c] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
             >
               <option value="">Tất cả giới tính</option>
               <option value={Gender.MALE}>Nam</option>
@@ -242,7 +243,7 @@ const AdminProductList: React.FC = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
-                      <CircularProgress size={32} sx={{ color: '#00927c' }} />
+                      <CircularProgress size={32} sx={{ color: 'theme' }} />
                       <p className="mt-2 text-gray-500 m-0">Đang tải danh sách sản phẩm...</p>
                     </td>
                   </tr>
@@ -253,9 +254,9 @@ const AdminProductList: React.FC = () => {
                     return (
                       <tr key={prod.productId} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4">
-                          <img 
-                            src={thumbImg?.imageUrl || 'https://via.placeholder.com/80'} 
-                            alt={prod.productName} 
+                          <img
+                            src={thumbImg?.imageUrl || 'https://via.placeholder.com/80'}
+                            alt={prod.productName}
                             className="w-12 h-12 object-cover rounded-lg border border-gray-100"
                           />
                         </td>
@@ -266,9 +267,9 @@ const AdminProductList: React.FC = () => {
                         <td className="px-6 py-4">{getCategoryName(prod.categoryId)}</td>
                         <td className="px-6 py-4 text-center">
                           <span className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium border
-                            ${prod.targetGender === Gender.MALE ? 'bg-blue-50 text-blue-700 border-blue-100' : 
-                              prod.targetGender === Gender.FEMALE ? 'bg-pink-50 text-pink-700 border-pink-100' : 
-                              'bg-gray-50 text-gray-700 border-gray-100'}`}
+                            ${prod.targetGender === Gender.MALE ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                              prod.targetGender === Gender.FEMALE ? 'bg-pink-50 text-pink-700 border-pink-100' :
+                                'bg-gray-50 text-gray-700 border-gray-100'}`}
                           >
                             {getGenderLabel(prod.targetGender)}
                           </span>
@@ -283,8 +284,8 @@ const AdminProductList: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border
-                            ${prod.inStock 
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
+                            ${prod.inStock
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                               : 'bg-red-50 text-red-700 border-red-100'}`}
                           >
                             {prod.inStock ? (
@@ -303,19 +304,19 @@ const AdminProductList: React.FC = () => {
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center gap-1">
                             <Tooltip title="Xem chi tiết sản phẩm" arrow>
-                              <IconButton 
+                              <IconButton
                                 onClick={() => {
                                   setSelectedProduct(prod);
                                   setIsDetailOpen(true);
                                 }}
                                 size="small"
-                                sx={{ color: '#00927c', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                                sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                               >
                                 <Visibility fontSize="small" />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Chỉnh sửa sản phẩm" arrow>
-                              <IconButton 
+                              <IconButton
                                 onClick={() => navigate(`/admin/products/edit/${prod.productId}`)}
                                 size="small"
                                 sx={{ color: '#3b82f6', bgcolor: '#eff6ff', '&:hover': { bgcolor: '#dbeafe' } }}
@@ -324,7 +325,7 @@ const AdminProductList: React.FC = () => {
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Xóa/Khóa sản phẩm" arrow>
-                              <IconButton 
+                              <IconButton
                                 onClick={() => handleDeleteClick(prod.productId)}
                                 size="small"
                                 sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
@@ -362,8 +363,8 @@ const AdminProductList: React.FC = () => {
       </div>
 
       {/* DETAIL MODAL */}
-      <Dialog 
-        open={isDetailOpen} 
+      <Dialog
+        open={isDetailOpen}
         onClose={() => { setIsDetailOpen(false); }}
         fullWidth
         maxWidth="md"
@@ -372,16 +373,16 @@ const AdminProductList: React.FC = () => {
         <DialogTitle className="font-bold text-gray-800 text-lg border-b border-gray-100 pb-3 pt-4 px-6 m-0">
           Chi tiết sản phẩm quản trị
         </DialogTitle>
-        
+
         <DialogContent className="pt-6 pb-6 px-6 max-h-[75vh] overflow-y-auto">
           {selectedProduct && (
             <div className="space-y-6">
               {/* Product Info Summary */}
               <div className="flex flex-col sm:flex-row gap-6">
                 <div className="w-full sm:w-1/3 max-w-[200px]">
-                  <img 
-                    src={selectedProduct.images?.find(img => img.isThumbnail)?.imageUrl || selectedProduct.images?.[0]?.imageUrl || 'https://via.placeholder.com/200'} 
-                    alt={selectedProduct.productName} 
+                  <img
+                    src={selectedProduct.images?.find(img => img.isThumbnail)?.imageUrl || selectedProduct.images?.[0]?.imageUrl || 'https://via.placeholder.com/200'}
+                    alt={selectedProduct.productName}
                     className="w-full h-auto object-cover rounded-xl border border-gray-100"
                   />
                 </div>
@@ -390,7 +391,7 @@ const AdminProductList: React.FC = () => {
                     <h2 className="text-xl font-bold text-gray-800 m-0">{selectedProduct.productName}</h2>
                     <p className="text-xs text-gray-400 mt-1 m-0">Slug: {selectedProduct.productSlug} | ID: {selectedProduct.productId}</p>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-400 block mb-0.5">Danh mục</span>
@@ -474,13 +475,13 @@ const AdminProductList: React.FC = () => {
                   {selectedProduct.images && selectedProduct.images.length > 0 ? (
                     selectedProduct.images.map((img) => (
                       <div key={img.imageId} className="relative group">
-                        <img 
-                          src={img.imageUrl} 
-                          alt="product gallery" 
+                        <img
+                          src={img.imageUrl}
+                          alt="product gallery"
                           className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                         />
                         {img.isThumbnail && (
-                          <span className="absolute top-1 left-1 bg-[#00927c] text-white text-[9px] px-1 rounded font-bold">
+                          <span className="absolute top-1 left-1 bg-[theme] text-white text-[9px] px-1 rounded font-bold">
                             Ảnh bìa
                           </span>
                         )}
@@ -494,10 +495,10 @@ const AdminProductList: React.FC = () => {
             </div>
           )}
         </DialogContent>
-        
+
         <DialogActions className="p-6 pt-4 border-t border-gray-100">
-          <Button 
-            onClick={() => setIsDetailOpen(false)} 
+          <Button
+            onClick={() => setIsDetailOpen(false)}
             variant="contained"
             sx={{
               bgcolor: '#374151', textTransform: 'none', px: 4,

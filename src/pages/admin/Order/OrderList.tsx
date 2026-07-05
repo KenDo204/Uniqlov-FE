@@ -212,7 +212,7 @@ const OrderList: React.FC = () => {
                 {loading && orders.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-12 text-center">
-                      <CircularProgress size={32} sx={{ color: '#00927c' }} />
+                      <CircularProgress size={32} sx={{ color: 'theme' }} />
                       <p className="mt-2 text-gray-500 m-0">Đang tải danh sách đơn hàng...</p>
                     </td>
                   </tr>
@@ -226,8 +226,8 @@ const OrderList: React.FC = () => {
                         {formatDate(order.orderDate)}
                       </td>
                       <td className="px-6 py-4 font-medium text-gray-800">
-                        {order.paymentMethod === 'COD' ? 'Thanh toán COD' : 
-                         order.paymentMethod === 'VNPAY' ? 'Ví VNPAY' : 'Ví MoMo'}
+                        {order.paymentMethod === 'COD' ? 'Thanh toán COD' :
+                          order.paymentMethod === 'VNPAY' ? 'Ví VNPAY' : 'Ví MoMo'}
                       </td>
                       <td className="px-6 py-4 text-center font-semibold">
                         {order.itemCount}
@@ -243,7 +243,7 @@ const OrderList: React.FC = () => {
                           <IconButton
                             onClick={() => handleOpenDetail(order.orderId)}
                             size="small"
-                            sx={{ color: '#00927c', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                            sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                           >
                             <Visibility fontSize="small" />
                           </IconButton>
@@ -294,7 +294,7 @@ const OrderList: React.FC = () => {
         <DialogContent className="pt-6 pb-6 px-6 max-h-[75vh] overflow-y-auto">
           {loading && !currentOrderDetail ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <CircularProgress size={32} sx={{ color: '#00927c' }} />
+              <CircularProgress size={32} sx={{ color: 'theme' }} />
               <p className="mt-2 text-gray-500 text-sm">Đang tải thông tin đơn hàng...</p>
             </div>
           ) : currentOrderDetail ? (
@@ -311,7 +311,7 @@ const OrderList: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Mã vận chuyển</div>
-                  <div className="mt-1 font-mono font-bold text-[#00927c]">
+                  <div className="mt-1 font-mono font-bold text-[theme]">
                     {currentOrderDetail.trackingNumber || 'Chưa cập nhật'}
                   </div>
                 </div>
@@ -346,8 +346,8 @@ const OrderList: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <Payment fontSize="small" sx={{ color: '#4b5563' }} />
                         <span>
-                          {currentOrderDetail.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' : 
-                           currentOrderDetail.paymentMethod === 'VNPAY' ? 'Cổng thanh toán VNPAY' : 'Ví MoMo'}
+                          {currentOrderDetail.paymentMethod === 'COD' ? 'Thanh toán khi nhận hàng (COD)' :
+                            currentOrderDetail.paymentMethod === 'VNPAY' ? 'Cổng thanh toán VNPAY' : 'Ví MoMo'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -474,7 +474,7 @@ const OrderList: React.FC = () => {
                     disabled={actionLoading}
                     variant="contained"
                     sx={{
-                      bgcolor: '#00927c', textTransform: 'none', px: 4, height: '40px',
+                      bgcolor: 'theme', textTransform: 'none', px: 4, height: '40px',
                       fontWeight: 'bold', fontSize: '13px', borderRadius: '10px', boxShadow: 'none',
                       '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
                     }}

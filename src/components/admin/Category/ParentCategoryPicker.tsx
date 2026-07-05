@@ -7,7 +7,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import type { CategoryResponse } from "@/types/category";
 
-const THEME_PRIMARY = "#00927c";
+const THEME_PRIMARY = "theme";
 
 interface ParentCategoryPickerProps {
   open: boolean;
@@ -161,7 +161,7 @@ const ParentCategoryPicker: React.FC<ParentCategoryPickerProps> = ({ open, onClo
 
       <DialogActions sx={{ p: 3, pt: 0, justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body2" color="textSecondary">
-          Đang chọn: <span className="font-bold text-[#00927c]">{isRootSelected ? "Không có (Làm danh mục gốc)" : selectedParent?.categoryName}</span>
+          Đang chọn: <span className="font-bold text-theme">{isRootSelected ? "Không có (Làm danh mục gốc)" : selectedParent?.categoryName}</span>
         </Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button 

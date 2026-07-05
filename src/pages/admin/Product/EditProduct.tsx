@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { 
-  Button, TextField, Select, MenuItem, FormControl, 
-  InputLabel, Switch, FormControlLabel, Card, 
-  Typography, Table, TableBody, TableCell, TableContainer, 
+import {
+  Button, TextField, Select, MenuItem, FormControl,
+  InputLabel, Switch, FormControlLabel, Card,
+  Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Radio, IconButton, Box, CircularProgress
 } from '@mui/material';
 import { Delete, ArrowBack, AddCircle, Refresh } from '@mui/icons-material';
@@ -37,16 +37,16 @@ interface VariantInput {
 export default function EditProduct() {
   const { productId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
-  
-  const { 
-    productDetail, 
-    isFetching: isFetchingProduct, 
-    isSubmitting, 
-    fetchAdminProductById, 
-    updateProduct, 
-    clearDetail 
+
+  const {
+    productDetail,
+    isFetching: isFetchingProduct,
+    isSubmitting,
+    fetchAdminProductById,
+    updateProduct,
+    clearDetail
   } = useProduct();
-  
+
   const { categories, fetchAdminCategories } = useCategory();
 
   // Navigation Guard / Form Dirty State
@@ -85,7 +85,7 @@ export default function EditProduct() {
 
   // Form State - Variable Product Options Config (Max 2 groups)
   const [options, setOptions] = useState<TempOption[]>([
-    { name: 'colorName', values: [], rawInput: '' },
+    { name: 'color', values: [], rawInput: '' },
     { name: 'size', values: [], rawInput: '' }
   ]);
   const [variants, setVariants] = useState<VariantInput[]>([]);
@@ -96,7 +96,7 @@ export default function EditProduct() {
   // Fetch product detail and categories on mount
   useEffect(() => {
     fetchAdminCategories().catch(err => console.error('Error fetching categories:', err));
-    
+
     if (productId) {
       fetchAdminProductById(Number(productId)).catch((err) => {
         console.error('Error fetching product details:', err);
@@ -140,10 +140,10 @@ export default function EditProduct() {
       // Determine product type (Simple vs Variable)
       const rawVariants = productDetail.variants || [];
       const hasAttributes = rawVariants.some(v => v.variantAttributes && Object.keys(v.variantAttributes).length > 0);
-      
+
       const parsedConfig = productDetail.optionsConfig || {};
-      const hasConfig = (parsedConfig.sizes && parsedConfig.sizes.length > 0) || 
-                        (parsedConfig.colors && parsedConfig.colors.length > 0);
+      const hasConfig = (parsedConfig.sizes && parsedConfig.sizes.length > 0) ||
+        (parsedConfig.colors && parsedConfig.colors.length > 0);
 
       if (hasAttributes || hasConfig) {
         setProductType('variable');
@@ -153,7 +153,7 @@ export default function EditProduct() {
         const colorsList = (parsedConfig.colors || []).map((c: any) => typeof c === 'string' ? c : c.colorName);
 
         setOptions([
-          { name: 'colorName', values: colorsList, rawInput: colorsList.join(', ') },
+          { name: 'color', values: colorsList, rawInput: colorsList.join(', ') },
           { name: 'size', values: sizesList, rawInput: sizesList.join(', ') }
         ]);
 
@@ -201,11 +201,11 @@ export default function EditProduct() {
     const traverse = (nodes: any[], level = 0) => {
       for (const node of nodes) {
         const isLeaf = !node.children || node.children.length === 0;
-        list.push({ 
-          categoryId: node.categoryId, 
-          categoryName: '— '.repeat(level) + node.categoryName, 
+        list.push({
+          categoryId: node.categoryId,
+          categoryName: '— '.repeat(level) + node.categoryName,
           isLeaf,
-          level 
+          level
         });
         if (node.children && node.children.length > 0) {
           traverse(node.children, level + 1);
@@ -309,10 +309,10 @@ export default function EditProduct() {
     }
 
     const newVariants = combos.map(combo => {
-      const existing = variants.find(v => 
+      const existing = variants.find(v =>
         Object.entries(combo).every(([k, val]) => v.attributes[k] === val)
       );
-      
+
       return {
         attributes: combo,
         price: existing?.price || Number(simplePrice) || 500000,
@@ -340,53 +340,7 @@ export default function EditProduct() {
     setIsDirty(true);
   };
 
-  // Check if current variants list matches Cartesian combos of the options
-  const checkCartesianMatch = (): boolean => {
-    if (productType === 'simple') return true;
 
-    // Process input options
-    const processedOptions = options.map(opt => {
-      const vals = opt.rawInput
-        .split(',')
-        .map(v => v.trim())
-        .filter(v => v.length > 0);
-      return {
-        name: opt.name.trim(),
-        values: vals
-      };
-    });
-
-    const activeOptions = processedOptions.filter(o => o.name && o.values.length > 0);
-    if (activeOptions.length === 0) return false;
-
-    // Generate Cartesian combinations
-    let combos: Record<string, string>[] = [{}];
-    for (const opt of activeOptions) {
-      const nextCombos: Record<string, string>[] = [];
-      for (const current of combos) {
-        for (const val of opt.values) {
-          nextCombos.push({
-            ...current,
-            [opt.name]: val
-          });
-        }
-      }
-      combos = nextCombos;
-    }
-
-    if (combos.length !== variants.length) return false;
-
-    // Match each combination with existing variants
-    return combos.every(combo => {
-      return variants.some(v => {
-        const variantAttr = v.attributes || {};
-        const comboEntries = Object.entries(combo);
-        const varEntries = Object.entries(variantAttr);
-        if (comboEntries.length !== varEntries.length) return false;
-        return comboEntries.every(([k, val]) => variantAttr[k] === val);
-      });
-    });
-  };
 
   // Validate form data
   const validateForm = (): boolean => {
@@ -453,9 +407,9 @@ export default function EditProduct() {
         }
 
         // Validate that variants list matches Cartesian combinations of the options
-        if (!checkCartesianMatch()) {
-          newErrors.variants = 'Tổ hợp biến thể hiện tại không khớp với cấu hình thuộc tính đã chỉnh sửa. Vui lòng nhấn "Sinh lại tổ hợp biến thể" để đồng bộ.';
-        }
+        // if (!checkCartesianMatch()) {
+        //   newErrors.variants = 'Tổ hợp biến thể hiện tại không khớp với cấu hình thuộc tính đã chỉnh sửa. Vui lòng nhấn "Sinh lại tổ hợp biến thể" để đồng bộ.';
+        // }
 
         variants.forEach((v, idx) => {
           if (v.price <= 0) {
@@ -475,7 +429,7 @@ export default function EditProduct() {
     }
 
     setErrors(newErrors);
-    
+
     const isValid = Object.keys(newErrors).length === 0;
     if (!isValid) {
       const firstError = Object.values(newErrors)[0];
@@ -525,14 +479,11 @@ export default function EditProduct() {
       }));
 
       const sizesOpt = options.find(o => o.name === 'size');
-      const colorsOpt = options.find(o => o.name === 'colorName');
+      const colorsOpt = options.find(o => o.name === 'color');
 
       optionsConfigObj = {
-        sizes: sizesOpt ? sizesOpt.values : [],
-        colors: colorsOpt ? colorsOpt.values.map(col => ({
-          colorName: col,
-          colorCode: '#8E8E93'
-        })) : []
+        colors: colorsOpt ? colorsOpt.values : [],
+        sizes: sizesOpt ? sizesOpt.values : []
       };
     }
 
@@ -543,7 +494,7 @@ export default function EditProduct() {
       inStock,
       targetGender,
       maxOrderQuantity,
-      optionsConfig: JSON.stringify(optionsConfigObj),
+      optionsConfig: optionsConfigObj,
       productTags,
       categoryId: Number(categoryId),
       weightKg: Number(weightKg),
@@ -575,7 +526,7 @@ export default function EditProduct() {
   if (isFetchingProduct && !productDetail) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: 2 }}>
-        <CircularProgress sx={{ color: '#00927c' }} />
+        <CircularProgress sx={{ color: 'theme' }} />
         <Typography variant="body2" className="text-gray-500 font-medium">Đang tải dữ liệu sản phẩm...</Typography>
       </Box>
     );
@@ -584,7 +535,7 @@ export default function EditProduct() {
   return (
     <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
       <div className="max-w-5xl mx-auto space-y-6">
-        
+
         {/* BACK HEADER */}
         <div className="flex items-center gap-3">
           <IconButton onClick={handleCancelClick} size="small" sx={{ bgcolor: 'white', border: '1px solid #e5e7eb' }}>
@@ -648,9 +599,9 @@ export default function EditProduct() {
                     >
                       <MenuItem value=""><em>-- Chọn danh mục --</em></MenuItem>
                       {flatCategoriesList.map(cat => (
-                        <MenuItem 
-                          key={cat.categoryId} 
-                          value={cat.categoryId} 
+                        <MenuItem
+                          key={cat.categoryId}
+                          value={cat.categoryId}
                           disabled={!cat.isLeaf}
                           sx={{ pl: cat.level * 2 + 2 }}
                         >
@@ -833,12 +784,12 @@ export default function EditProduct() {
                 placeholder="https://..."
                 size="small"
               />
-              <Button 
+              <Button
                 type="button"
                 onClick={handleAddImage}
                 variant="outlined"
                 startIcon={<AddCircle />}
-                sx={{ textTransform: 'none', color: '#00927c', borderColor: '#00927c', '&:hover': { borderColor: '#007c69', bgcolor: 'rgba(0,146,124,0.04)' } }}
+                sx={{ textTransform: 'none', color: 'theme', borderColor: 'theme', '&:hover': { borderColor: '#007c69', bgcolor: 'rgba(0,146,124,0.04)' } }}
               >
                 Thêm ảnh
               </Button>
@@ -853,7 +804,7 @@ export default function EditProduct() {
                 {images.map((img, idx) => (
                   <div key={idx} className="relative group border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col">
                     <img src={img.url} alt="Product upload" className="w-full h-32 object-cover" />
-                    
+
                     <div className="p-2 flex flex-col gap-1.5 flex-1 justify-between">
                       <FormControlLabel
                         control={
@@ -867,7 +818,7 @@ export default function EditProduct() {
                         label={<span className="text-xs font-semibold text-gray-600">Ảnh bìa</span>}
                         className="m-0"
                       />
-                      
+
                       <Button
                         variant="text"
                         color="error"
@@ -901,18 +852,16 @@ export default function EditProduct() {
                 <button
                   type="button"
                   onClick={() => { setProductType('simple'); setIsDirty(true); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${
-                    productType === 'simple' ? 'bg-[#00927c] text-white shadow-sm' : 'text-gray-500 bg-transparent'
-                  }`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${productType === 'simple' ? 'bg-[theme] text-white shadow-sm' : 'text-gray-500 bg-transparent'
+                    }`}
                 >
                   Sản phẩm đơn giản
                 </button>
                 <button
                   type="button"
                   onClick={() => { setProductType('variable'); setIsDirty(true); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${
-                    productType === 'variable' ? 'bg-[#00927c] text-white shadow-sm' : 'text-gray-500 bg-transparent'
-                  }`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${productType === 'variable' ? 'bg-[theme] text-white shadow-sm' : 'text-gray-500 bg-transparent'
+                    }`}
                 >
                   Nhiều biến thể
                 </button>
@@ -973,7 +922,7 @@ export default function EditProduct() {
             ) : (
               // VARIABLE
               <div className="space-y-6">
-                
+
                 {/* Options config */}
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-150 space-y-4">
                   <Typography variant="subtitle2" className="font-bold text-gray-700" sx={{ mb: 1.5 }}>
@@ -983,10 +932,10 @@ export default function EditProduct() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {options.map((opt, idx) => (
                       <div key={idx} className="p-3 bg-white border border-gray-200 rounded-xl space-y-3">
-                        <Typography variant="caption" className="font-bold text-[#00927c] block" sx={{ mb: 1.5 }}>
+                        <Typography variant="caption" className="font-bold text-[theme] block" sx={{ mb: 1.5 }}>
                           NHÓM THUỘC TÍNH {idx + 1}
                         </Typography>
-                        
+
                         <TextField
                           label="Tên thuộc tính"
                           variant="outlined"
@@ -1020,12 +969,12 @@ export default function EditProduct() {
                   </div>
 
                   <div className="flex justify-end pt-2">
-                    <Button 
+                    <Button
                       type="button"
-                      variant="contained" 
+                      variant="contained"
                       onClick={handleGenerateVariants}
                       startIcon={<Refresh />}
-                      sx={{ bgcolor: '#00927c', textTransform: 'none', px: 3, py: 1, borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
+                      sx={{ bgcolor: 'theme', textTransform: 'none', px: 3, py: 1, borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
                     >
                       Sinh lại tổ hợp biến thể
                     </Button>
@@ -1062,12 +1011,12 @@ export default function EditProduct() {
                                 <div className="flex gap-1 flex-wrap">
                                   {Object.entries(v.attributes).map(([key, val]) => (
                                     <span key={key} className="bg-gray-100 border border-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-[10px] font-medium">
-                                      {key === 'colorName' ? 'Màu' : (key === 'size' ? 'Size' : key)}: {val}
+                                      {key === 'color' ? 'Màu' : (key === 'size' ? 'Size' : key)}: {val}
                                     </span>
                                   ))}
                                 </div>
                               </TableCell>
-                               <TableCell>
+                              <TableCell>
                                 <TextField
                                   type="number"
                                   value={v.price}
@@ -1141,7 +1090,7 @@ export default function EditProduct() {
               type="submit"
               disabled={isSubmitting}
               variant="contained"
-              sx={{ bgcolor: '#00927c', textTransform: 'none', px: 6, py: 1.2, fontWeight: 'bold', borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
+              sx={{ bgcolor: 'theme', textTransform: 'none', px: 6, py: 1.2, fontWeight: 'bold', borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
             >
               {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật sản phẩm'}
             </Button>

@@ -59,7 +59,7 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
             <DialogContent sx={{ p: 0 }}>
                 {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                        <CircularProgress size={30} sx={{ color: '#00927c' }} />
+                        <CircularProgress size={30} sx={{ color: 'theme' }} />
                     </Box>
                 ) : addresses.length === 0 ? (
                     <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -81,8 +81,8 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
                                         <Radio
                                             checked={tempSelected?.addressId === address.addressId}
                                             sx={{
-                                                color: '#00927c',
-                                                '&.Mui-checked': { color: '#00927c' },
+                                                color: 'theme',
+                                                '&.Mui-checked': { color: 'theme' },
                                                 mr: 1,
                                                 ml: -1
                                             }}
@@ -113,8 +113,8 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
                                                             sx={{ 
                                                                 mt: 1, 
                                                                 display: 'inline-block',
-                                                                border: '1px solid #00927c', 
-                                                                color: '#00927c', 
+                                                                border: '1px solid theme', 
+                                                                color: 'theme', 
                                                                 fontSize: '10px', 
                                                                 px: 0.5, 
                                                                 borderRadius: '2px' 
@@ -144,7 +144,7 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
                     onClick={handleConfirm} 
                     variant="contained" 
                     disabled={!tempSelected}
-                    sx={{ bgcolor: '#00927c', px: 3, fontWeight: 'bold', '&:hover': { bgcolor: '#007a68' } }}
+                    sx={{ bgcolor: 'theme', px: 3, fontWeight: 'bold', '&:hover': { bgcolor: '#007a68' } }}
                 >
                     Xác nhận
                 </Button>

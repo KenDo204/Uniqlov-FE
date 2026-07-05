@@ -57,7 +57,7 @@ export function Home() {
       {/* SECTION 3: BEST SELLERS */}
       {isFetching ? (
         <div className="flex flex-col items-center justify-center py-12 space-y-3 bg-white/50 rounded-2xl max-w-[1400px] mx-auto">
-          <div className="w-8 h-8 border-3 border-[#00927c] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-3 border-[theme] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-xs text-gray-400">Đang tải sản phẩm bán chạy...</p>
         </div>
       ) : error ? (
@@ -75,7 +75,7 @@ export function Home() {
       {/* SECTION 5: NEW ARRIVALS */}
       {isFetching ? (
         <div className="flex flex-col items-center justify-center py-12 space-y-3 bg-white/50 rounded-2xl max-w-[1400px] mx-auto">
-          <div className="w-8 h-8 border-3 border-[#00927c] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-3 border-[theme] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-xs text-gray-400">Đang tải sản phẩm mới...</p>
         </div>
       ) : error ? (

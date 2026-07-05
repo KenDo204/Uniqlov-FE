@@ -1,8 +1,8 @@
 /* ========================================= */
 /* 1. FONTS & TAILWIND IMPORTS               */
 /* ========================================= */
-@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=Inter:ital,wght@0,100..900;1,100..900&family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
-@import "@fontsource-variable/geist";
+@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800;900&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -16,6 +16,7 @@
 @theme {
 
   --color-theme: #00927c;
+  /* --color-theme: #00FFFF; */
   --color-theme-hover: #007a68;
   --color-cancel: #d32f2f;
   --color-cancel-hover: #b71c1c;
@@ -34,8 +35,8 @@
   --color-unilo-success: #16A34A;
 
   /* Gộp font chữ */
-  --font-sans: "Jost", "Inter Tight", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Jost", "Geist Variable", sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Pacifico", sans-serif;
 
   /* Gộp Animations (từ app.css) */
   --animate-fade-in: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -163,6 +164,7 @@
   html {
     @apply font-sans;
   }
+
   body {
     background-color: var(--color-unilo-bg);
     color: var(--color-unilo-primary);
@@ -170,41 +172,78 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
   * {
     @apply border-border outline-ring/50;
   }
-  
+
 }
 
 /* ========================================= */
 /* 4. KEYFRAMES & UTILITIES                  */
 /* ========================================= */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Custom premium scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #FFFFFF; }
-::-webkit-scrollbar-thumb { background: #EAEAEA; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #CCCCCC; }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #EAEAEA;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #CCCCCC;
+}
 
 /* Buttons */
 .btn-primary {
   @apply py-4 px-8 bg-unilo-primary text-white font-bold rounded-[12px] hover:bg-black hover:opacity-90 active:scale-[0.98] transition-all duration-300 shadow-sm inline-flex items-center justify-center gap-2;
 }
+
 .btn-secondary {
   @apply py-4 px-8 bg-white text-unilo-primary border border-unilo-border font-bold rounded-[12px] hover:bg-gray-50 active:scale-[0.98] transition-all duration-300 inline-flex items-center justify-center gap-2;
 }
+
 .btn-accent {
   @apply py-4 px-8 bg-unilo-accent text-white font-bold rounded-[12px] hover:bg-unilo-accent-hover active:scale-[0.98] transition-all duration-300 inline-flex items-center justify-center gap-2;
 }
@@ -212,47 +251,205 @@
 /* ========================================= */
 /* 5. COMPONENT LAYOUT STYLES (Từ App.css)   */
 /* ========================================= */
-.counter { font-size: 16px; padding: 5px 10px; border-radius: 5px; color: var(--accent); background: var(--accent-bg); border: 2px solid transparent; transition: border-color 0.3s; margin-bottom: 24px; }
-.counter:hover { border-color: var(--accent-border); }
-.counter:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.hero { position: relative; }
-.hero .base, .hero .framework, .hero .vite { inset-inline: 0; margin: 0 auto; }
-.hero .base { width: 170px; position: relative; z-index: 0; }
-.hero .framework, .hero .vite { position: absolute; }
-.hero .framework { z-index: 1; top: 34px; height: 28px; transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4); }
-.hero .vite { z-index: 0; top: 107px; height: 26px; width: auto; transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8); }
-
-#center { display: flex; flex-direction: column; gap: 25px; place-content: center; place-items: center; flex-grow: 1; }
-@media (max-width: 1024px) { #center { padding: 32px 20px 24px; gap: 18px; } }
-
-#next-steps { display: flex; border-top: 1px solid var(--border); text-align: left; }
-#next-steps > div { flex: 1 1 0; padding: 32px; }
-@media (max-width: 1024px) { #next-steps > div { padding: 24px 20px; } }
-#next-steps .icon { margin-bottom: 16px; width: 22px; height: 22px; }
-@media (max-width: 1024px) { #next-steps { flex-direction: column; text-align: center; } }
-
-#docs { border-right: 1px solid var(--border); }
-@media (max-width: 1024px) { #docs { border-right: none; border-bottom: 1px solid var(--border); } }
-
-#next-steps ul { list-style: none; padding: 0; display: flex; gap: 8px; margin: 32px 0 0; }
-#next-steps ul .logo { height: 18px; }
-#next-steps ul a { color: var(--text-h); font-size: 16px; border-radius: 6px; background: var(--social-bg); display: flex; padding: 6px 12px; align-items: center; gap: 8px; text-decoration: none; transition: box-shadow 0.3s; }
-#next-steps ul a:hover { box-shadow: var(--shadow); }
-#next-steps ul a .button-icon { height: 18px; width: 18px; }
-@media (max-width: 1024px) { 
-  #next-steps ul { margin-top: 20px; flex-wrap: wrap; justify-content: center; }
-  #next-steps ul li { flex: 1 1 calc(50% - 8px); }
-  #next-steps ul a { width: 100%; justify-content: center; box-sizing: border-box; }
+.counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
 }
 
-#spacer { height: 88px; border-top: 1px solid var(--border); }
-@media (max-width: 1024px) { #spacer { height: 48px; } }
+.counter:hover {
+  border-color: var(--accent-border);
+}
 
-.ticks { position: relative; width: 100%; }
-.ticks::before, .ticks::after { content: ''; position: absolute; top: -4.5px; border: 5px solid transparent; }
-.ticks::before { left: 0; border-left-color: var(--border); }
-.ticks::after { right: 0; border-right-color: var(--border); }
+.counter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hero {
+  position: relative;
+}
+
+.hero .base,
+.hero .framework,
+.hero .vite {
+  inset-inline: 0;
+  margin: 0 auto;
+}
+
+.hero .base {
+  width: 170px;
+  position: relative;
+  z-index: 0;
+}
+
+.hero .framework,
+.hero .vite {
+  position: absolute;
+}
+
+.hero .framework {
+  z-index: 1;
+  top: 34px;
+  height: 28px;
+  transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4);
+}
+
+.hero .vite {
+  z-index: 0;
+  top: 107px;
+  height: 26px;
+  width: auto;
+  transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8);
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+}
+
+@media (max-width: 1024px) {
+  #center {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+#next-steps>div {
+  flex: 1 1 0;
+  padding: 32px;
+}
+
+@media (max-width: 1024px) {
+  #next-steps>div {
+    padding: 24px 20px;
+  }
+}
+
+#next-steps .icon {
+  margin-bottom: 16px;
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 1024px) {
+  #next-steps {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+}
+
+@media (max-width: 1024px) {
+  #docs {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+}
+
+#next-steps ul .logo {
+  height: 18px;
+}
+
+#next-steps ul a {
+  color: var(--text-h);
+  font-size: 16px;
+  border-radius: 6px;
+  background: var(--social-bg);
+  display: flex;
+  padding: 6px 12px;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: box-shadow 0.3s;
+}
+
+#next-steps ul a:hover {
+  box-shadow: var(--shadow);
+}
+
+#next-steps ul a .button-icon {
+  height: 18px;
+  width: 18px;
+}
+
+@media (max-width: 1024px) {
+  #next-steps ul {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  #next-steps ul li {
+    flex: 1 1 calc(50% - 8px);
+  }
+
+  #next-steps ul a {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 1024px) {
+  #spacer {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+}
+
+.ticks::before,
+.ticks::after {
+  content: '';
+  position: absolute;
+  top: -4.5px;
+  border: 5px solid transparent;
+}
+
+.ticks::before {
+  left: 0;
+  border-left-color: var(--border);
+}
+
+.ticks::after {
+  right: 0;
+  border-right-color: var(--border);
+}
 
 /* --- TÙY CHỈNH THANH CUỘN (SCROLLBAR) --- */
 
@@ -266,16 +463,27 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: #e5e7eb; /* Màu gray-200 của Tailwind */
+  background-color: #e5e7eb;
+  /* Màu gray-200 của Tailwind */
   border-radius: 9999px;
 }
 
 .scrollbar-thin:hover::-webkit-scrollbar-thumb {
-  background-color: #d1d5db; /* Màu gray-300 khi di chuột vào vùng cuộn */
+  background-color: #d1d5db;
+  /* Màu gray-300 khi di chuột vào vùng cuộn */
 }
 
 /* Dành cho Firefox */
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: #e5e7eb transparent;
+}
+
+/* Material Symbols Default Style */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
 }

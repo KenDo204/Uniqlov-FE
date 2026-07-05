@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {  Star, Heart, ChevronRight  } from '@/components/ui/icons';
+import { Star, Heart, ChevronRight } from '@/components/ui/icons';
 import { useCart } from '@/hooks/useCart';
 import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';
@@ -32,12 +32,12 @@ export function ProductDetail() {
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const { wishlist, fetchMyWishlist, toggleWishlist } = useWishlist();
-  const { 
-    productReviews, 
-    productSummary, 
-    fetchProductReviews, 
-    fetchProductReviewSummary, 
-    createReview 
+  const {
+    productReviews,
+    productSummary,
+    fetchProductReviews,
+    fetchProductReviewSummary,
+    createReview
   } = useReview();
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -293,7 +293,7 @@ export function ProductDetail() {
   if (isFetching && !product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 bg-white">
-        <div className="w-12 h-12 border-4 border-[#00927c] border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[theme] border-t-transparent rounded-full animate-spin"></div>
         <p className="text-gray-500 font-medium">Đang tải thông tin sản phẩm...</p>
       </div>
     );
@@ -305,7 +305,7 @@ export function ProductDetail() {
         <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-2xl font-bold font-sans">!</div>
         <h3 className="text-lg font-bold text-gray-800">Không tìm thấy sản phẩm</h3>
         <p className="text-sm text-gray-500 max-w-md">{error}</p>
-        <button 
+        <button
           onClick={() => navigate('/')}
           className="px-6 py-2.5 bg-black text-white font-bold rounded-full hover:bg-gray-900 border-none cursor-pointer"
         >
@@ -321,7 +321,7 @@ export function ProductDetail() {
         <img src="https://cdn-icons-png.flaticon.com/512/7486/7486754.png" alt="Empty" className="w-20 h-20 opacity-50" />
         <h3 className="text-lg font-bold text-gray-800">Sản phẩm không tồn tại</h3>
         <p className="text-sm text-gray-500">Chúng tôi không tìm thấy thông tin sản phẩm bạn yêu cầu.</p>
-        <button 
+        <button
           onClick={() => navigate('/')}
           className="px-6 py-2.5 bg-black text-white font-bold rounded-full hover:bg-gray-900 border-none cursor-pointer"
         >
@@ -334,7 +334,7 @@ export function ProductDetail() {
   return (
     <div className="bg-white min-h-screen pb-20 font-sans text-gray-900">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        
+
         {/* Breadcrumbs */}
         <div className="text-[12px] text-gray-500 mb-6 flex gap-1 uppercase tracking-wide">
           <span className="text-theme cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span> /
@@ -346,10 +346,10 @@ export function ProductDetail() {
         {/* KHỐI 2 CỘT CHÍNH (ẢNH & THÔNG TIN)         */}
         {/* ========================================== */}
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start relative">
-          
+
           {/* CỘT TRÁI: Thư viện ảnh + Mô tả chi tiết */}
           <div className="flex-1 w-full">
-            
+
             {/* Lưới ảnh sản phẩm */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
               {galleryImages.map((img, idx) => (
@@ -363,7 +363,7 @@ export function ProductDetail() {
             <div className="border-t border-gray-200 pt-10 pr-0 md:pr-10">
               <h2 className="text-[20px] font-medium mb-6">Mô tả</h2>
               <p className="text-[14px] text-gray-600 mb-8">Mã sản phẩm: {activeVariant?.sku_code || 'N/A'}</p>
-              
+
               <div className="mb-10">
                 <h3 className="text-[16px] font-medium mb-4">Điểm nổi bật</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -404,103 +404,103 @@ export function ProductDetail() {
               </div>
 
               <section id="reviews-section" className="mt-10 pt-4 border-t border-gray-200 scroll-mt-24">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[24px] font-medium m-0">Đánh giá</h2>
-              <button 
-                onClick={handleOpenReviewModal}
-                className="text-[14px] bg-transparent border-none flex items-center gap-1.5 cursor-pointer"
-              >
-                <span className="text-lg">✎</span> <p className='text-theme hover:text-theme-hover font-semibold m-0'>Viết bài đánh giá</p>
-              </button>
-            </div>
-
-            {/* Tổng quan đánh giá (Nằm full chiều ngang) */}
-            <div className="mb-10 border-b border-gray-200 pb-12">
-              
-              {/* Số sao trung bình */}
-              <div className="flex items-center gap-2 mb-8">
-                <div className="flex text-black">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
-                  ))}
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-[24px] font-medium m-0">Đánh giá</h2>
+                  <button
+                    onClick={handleOpenReviewModal}
+                    className="text-[14px] bg-transparent border-none flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span className="text-lg">✎</span> <p className='text-theme hover:text-theme-hover font-semibold m-0'>Viết bài đánh giá</p>
+                  </button>
                 </div>
-                <span className="text-[16px] font-bold">{displayRating}</span>
-                <span className="text-[14px] text-theme">({displayReviewCount})</span>
-              </div>
-              
-              {/* Thanh biểu thị độ vừa vặn (Fit Slider) */}
-              <div className="w-full max-w-[400px]">
-                <div className="relative h-[2px] bg-gray-200 w-full flex items-center mb-3">
-                  {/* 5 vạch chia (notches) */}
-                  <div className="absolute left-0 w-1.5 h-1.5 bg-gray-300 rounded-full" />
-                  <div className="absolute left-1/4 w-1.5 h-1.5 bg-gray-300 rounded-full" />
-                  <div className="absolute left-1/2 w-1.5 h-1.5 bg-gray-300 rounded-full" />
-                  <div className="absolute left-3/4 w-1.5 h-1.5 bg-gray-300 rounded-full" />
-                  <div className="absolute right-0 w-1.5 h-1.5 bg-gray-300 rounded-full" />
 
-                  {/* Chấm đen chỉ định (Đang đặt ở giữa) */}
-                  <div className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-black rounded-full z-10" />
-                </div>
-                <div className="flex justify-between text-[13px] text-gray-800">
-                  <span className="w-1/3 text-left">Chật</span>
-                  <span className="w-1/3 text-center">Đúng với kích<br/>thước</span>
-                  <span className="w-1/3 text-right">Rộng</span>
-                </div>
-              </div>
+                {/* Tổng quan đánh giá (Nằm full chiều ngang) */}
+                <div className="mb-10 border-b border-gray-200 pb-12">
 
-            </div>
-
-            {/* Danh sách các review */}
-            <div className="w-full space-y-12">
-              {productReviews && productReviews.content.length > 0 ? (
-                productReviews.content.map((rev, index) => (
-                  <div key={rev.reviewId} className={`pb-12 ${index !== productReviews.content.length - 1 ? 'border-b border-gray-200' : ''}`}>
-                    
-                    {/* Tiêu đề Review & Ngày tháng */}
-                    <div className="flex justify-between items-start mb-3">
-                      <h4 className="text-[18px] font-normal m-0 text-gray-900 line-clamp-1">
-                        {rev.comment.length > 50 ? rev.comment.substring(0, 50) + "..." : rev.comment}
-                      </h4>
-                      <span className="text-[13px] text-gray-500">{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                    
-                    {/* Sao của Review */}
-                    <div className="flex text-black mb-5">
+                  {/* Số sao trung bình */}
+                  <div className="flex items-center gap-2 mb-8">
+                    <div className="flex text-black">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < rev.rating ? 'fill-current' : ''}`} />
+                        <Star key={i} className={`w-4 h-4 ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
                       ))}
                     </div>
+                    <span className="text-[16px] font-bold">{displayRating}</span>
+                    <span className="text-[14px] text-theme">({displayReviewCount})</span>
+                  </div>
 
-                    {/* Nội dung Review */}
-                    <p className="text-[14px] leading-relaxed text-gray-950 mb-5">{rev.comment}</p>
-                    
-                    {/* Nếu có ảnh đánh giá */}
-                    {rev.images && rev.images.length > 0 && (
-                      <div className="flex gap-2 mb-5">
-                        {rev.images.map((img) => (
-                          <img key={img.reviewImageId} src={img.imageUrl} alt="review" className="w-16 h-20 object-cover bg-gray-100 border border-gray-100" />
-                        ))}
-                      </div>
-                    )}
+                  {/* Thanh biểu thị độ vừa vặn (Fit Slider) */}
+                  <div className="w-full max-w-[400px]">
+                    <div className="relative h-[2px] bg-gray-200 w-full flex items-center mb-3">
+                      {/* 5 vạch chia (notches) */}
+                      <div className="absolute left-0 w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                      <div className="absolute left-1/4 w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                      <div className="absolute left-1/2 w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                      <div className="absolute left-3/4 w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                      <div className="absolute right-0 w-1.5 h-1.5 bg-gray-300 rounded-full" />
 
-                    {/* Thông tin nhân khẩu học của User */}
-                    <div className="text-[13px] text-gray-500 mb-2">
-                      {rev.userFullName || 'Khách hàng ẩn danh'}
+                      {/* Chấm đen chỉ định (Đang đặt ở giữa) */}
+                      <div className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-black rounded-full z-10" />
+                    </div>
+                    <div className="flex justify-between text-[13px] text-gray-800">
+                      <span className="w-1/3 text-left">Chật</span>
+                      <span className="w-1/3 text-center">Đúng với kích<br />thước</span>
+                      <span className="w-1/3 text-right">Rộng</span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-[14px] text-gray-500">Chưa có đánh giá nào.</p>
-              )}
-            </div>
-          </section>
+
+                </div>
+
+                {/* Danh sách các review */}
+                <div className="w-full space-y-12">
+                  {productReviews && productReviews.content.length > 0 ? (
+                    productReviews.content.map((rev, index) => (
+                      <div key={rev.reviewId} className={`pb-12 ${index !== productReviews.content.length - 1 ? 'border-b border-gray-200' : ''}`}>
+
+                        {/* Tiêu đề Review & Ngày tháng */}
+                        <div className="flex justify-between items-start mb-3">
+                          <h4 className="text-[18px] font-normal m-0 text-gray-900 line-clamp-1">
+                            {rev.comment.length > 50 ? rev.comment.substring(0, 50) + "..." : rev.comment}
+                          </h4>
+                          <span className="text-[13px] text-gray-500">{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</span>
+                        </div>
+
+                        {/* Sao của Review */}
+                        <div className="flex text-black mb-5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} className={`w-4 h-4 ${i < rev.rating ? 'fill-current' : ''}`} />
+                          ))}
+                        </div>
+
+                        {/* Nội dung Review */}
+                        <p className="text-[14px] leading-relaxed text-gray-950 mb-5">{rev.comment}</p>
+
+                        {/* Nếu có ảnh đánh giá */}
+                        {rev.images && rev.images.length > 0 && (
+                          <div className="flex gap-2 mb-5">
+                            {rev.images.map((img) => (
+                              <img key={img.reviewImageId} src={img.imageUrl} alt="review" className="w-16 h-20 object-cover bg-gray-100 border border-gray-100" />
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Thông tin nhân khẩu học của User */}
+                        <div className="text-[13px] text-gray-500 mb-2">
+                          {rev.userFullName || 'Khách hàng ẩn danh'}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[14px] text-gray-500">Chưa có đánh giá nào.</p>
+                  )}
+                </div>
+              </section>
 
             </div>
           </div>
 
           {/* CỘT PHẢI: Thông tin mua hàng (Sticky) */}
           <div className="w-full lg:w-[380px] shrink-0 sticky top-24 pb-12">
-            
+
             {/* Header info */}
             <h1 className="text-[20px] font-light m-0 leading-tight">{product.product_name}</h1>
 
@@ -515,11 +515,10 @@ export function ProductDetail() {
                     key={color.colorName}
                     onClick={() => setSelectedColor(color.colorName)}
                     style={{ backgroundColor: color.colorCode }}
-                    className={`w-10 h-10 rounded-full cursor-pointer relative transition-all ${
-                      selectedColor === color.colorName 
-                        ? 'ring-1 ring-offset-2 ring-theme outline-none border border-black' 
-                        : 'border border-black hover:border-theme-hover'
-                    }`}
+                    className={`w-10 h-10 rounded-full cursor-pointer relative transition-all ${selectedColor === color.colorName
+                      ? 'ring-1 ring-offset-2 ring-theme outline-none border border-black'
+                      : 'border border-black hover:border-theme-hover'
+                      }`}
                     title={color.colorName}
                   />
                 ))}
@@ -594,27 +593,27 @@ export function ProductDetail() {
                 THÊM VÀO GIỎ HÀNG
               </button>
             </div>
-            
+
             <p className="text-[12px] text-gray-500 mt-3">Còn hàng</p>
 
             {/* Các nút phụ trợ */}
             <div className="flex gap-4 mt-6">
-              <button 
+              <button
                 onClick={handleToggleWishlist}
                 className={`flex-1 h-10 rounded-full border flex items-center justify-center gap-2 transition-all cursor-pointer font-semibold text-[13px]
-                  ${isInWishlist 
-                    ? 'border-red-200 bg-red-55/60 text-red-600 hover:bg-red-100' 
+                  ${isInWishlist
+                    ? 'border-red-200 bg-red-55/60 text-red-600 hover:bg-red-100'
                     : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
               >
-                <Heart 
-                  className={`w-4 h-4 ${isInWishlist ? 'fill-red-600 text-red-650' : 'text-gray-500'}`} 
-                  strokeWidth={1.5} 
-                /> 
+                <Heart
+                  className={`w-4 h-4 ${isInWishlist ? 'fill-red-600 text-red-650' : 'text-gray-500'}`}
+                  strokeWidth={1.5}
+                />
                 {isInWishlist ? 'ĐÃ THÊM VÀO YÊU THÍCH' : 'THÊM VÀO MỤC YÊU THÍCH'}
               </button>
             </div>
-           
+
           </div>
         </div>
 
@@ -627,10 +626,10 @@ export function ProductDetail() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 relative">
               {/* Nút mũi tên trái/phải (chỉ để trang trí cho giống hình) */}
               <button className="hidden md:flex absolute left-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-200 shadow-sm items-center justify-center z-10 cursor-pointer">
-                 <ChevronRight className="w-5 h-5 rotate-180 text-gray-400" />
+                <ChevronRight className="w-5 h-5 rotate-180 text-gray-400" />
               </button>
               <button className="hidden md:flex absolute right-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-200 shadow-sm items-center justify-center z-10 cursor-pointer">
-                 <ChevronRight className="w-5 h-5 text-gray-400" />
+                <ChevronRight className="w-5 h-5 text-gray-400" />
               </button>
 
               {bundleItems.map((prod) => (
@@ -652,7 +651,7 @@ export function ProductDetail() {
           <div className="bg-white rounded-lg p-6 w-full max-w-[500px] shadow-xl animate-fade-in text-left">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-[18px] font-bold m-0 text-black">Viết đánh giá sản phẩm</h3>
-              <button 
+              <button
                 onClick={() => setIsReviewModalOpen(false)}
                 className="bg-transparent border-none text-[20px] font-light cursor-pointer text-gray-400 hover:text-black"
               >
@@ -671,9 +670,9 @@ export function ProductDetail() {
                       onClick={() => setNewRating(star)}
                       className="bg-transparent border-none cursor-pointer p-0 text-black hover:scale-110 transition-transform"
                     >
-                      <Star 
-                        size={24} 
-                        className={star <= newRating ? "fill-black text-black" : "text-gray-300"} 
+                      <Star
+                        size={24}
+                        className={star <= newRating ? "fill-black text-black" : "text-gray-300"}
                       />
                     </button>
                   ))}

@@ -21,7 +21,7 @@
 //         <div
 //             ref={cardRef}
 //             className={`group cursor-pointer flex flex-col bg-white hover:shadow-lg transition-all duration-300 h-full overflow-hidden ${isFocused
-//                 ? 'ring-2 ring-[#00927c] shadow-[0_12px_30px_rgba(0,146,124,0.35)] scale-[1.02]'
+//                 ? 'ring-2 ring-[theme] shadow-[0_12px_30px_rgba(0,146,124,0.35)] scale-[1.02]'
 //                 : ''
 //                 }`}
 //             onClick={() => {

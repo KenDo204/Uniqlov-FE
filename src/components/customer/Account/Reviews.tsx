@@ -52,7 +52,7 @@ export function Reviews() {
   if (isFetching && !myReviews) {
     return (
       <div className="flex justify-center items-center py-20">
-        <CircularProgress sx={{ color: '#00927c' }} />
+        <CircularProgress sx={{ color: 'theme' }} />
       </div>
     );
   }
@@ -61,7 +61,7 @@ export function Reviews() {
 
   return (
     <div className="animate-fade-in text-left">
-      <h2 className="text-[24px] font-medium m-0 mb-6">Đánh giá đã đăng</h2>
+      <h2 className="text-[24px] font-medium m-0 mb-6">Đánh giá</h2>
       <hr className="border-t border-gray-200 mb-8" />
 
       {items.length === 0 ? (
@@ -70,7 +70,7 @@ export function Reviews() {
         <div className="space-y-8">
           {items.map((review) => (
             <div key={review.reviewId} className="border border-gray-200 p-6 flex flex-col sm:flex-row gap-6">
-              
+
               {/* Cột thông tin sản phẩm (Trái) */}
               <div className="flex gap-4 sm:w-1/3 shrink-0 border-b sm:border-b-0 sm:border-r border-gray-100 pb-4 sm:pb-0 sm:pr-6">
                 <div className="w-[60px] h-[80px] bg-gray-100 shrink-0 overflow-hidden">
@@ -111,17 +111,17 @@ export function Reviews() {
                 {review.images && review.images.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
                     {review.images.map((img) => (
-                      <a 
-                        key={img.reviewImageId} 
-                        href={img.imageUrl} 
-                        target="_blank" 
+                      <a
+                        key={img.reviewImageId}
+                        href={img.imageUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="w-12 h-12 border border-gray-200 overflow-hidden block"
                       >
-                        <img 
-                          src={img.imageUrl} 
-                          alt="Review attachment" 
-                          className="w-full h-full object-cover hover:opacity-80 transition-opacity" 
+                        <img
+                          src={img.imageUrl}
+                          alt="Review attachment"
+                          className="w-full h-full object-cover hover:opacity-80 transition-opacity"
                         />
                       </a>
                     ))}
@@ -129,7 +129,7 @@ export function Reviews() {
                 )}
 
                 <div className="mt-4 flex gap-3">
-                  <button 
+                  <button
                     onClick={() => handleDelete(review.reviewId)}
                     className="text-[12px] font-medium text-red-500 bg-transparent border-none p-0 cursor-pointer hover:underline"
                   >

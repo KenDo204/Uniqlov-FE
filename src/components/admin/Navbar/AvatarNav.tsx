@@ -73,7 +73,7 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
           cursor: "pointer",
           '&:hover': {
             opacity: 0.8,
-            boxShadow: "0 0 0 2px #00927c",
+            boxShadow: "0 0 0 2px theme",
             borderRadius: '50%',
             transition: "all 0.3s ease-in-out"
           }
@@ -110,7 +110,7 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
                   <MenuItem
                     key={index}
                     onClick={() => { setOpen(false); navigate(item.path); }}
-                    sx={{ py: 1.5, '&:hover': { bgcolor: '#e6f4f1', color: '#00927c' } }}
+                    sx={{ py: 1.5, '&:hover': { bgcolor: '#e6f4f1', color: 'theme' } }}
                   >
                     <ListItemIcon sx={{ color: 'inherit' }}>
                       {item.icon}
@@ -127,11 +127,11 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
 
                 <MenuItem
                   sx={{
-                    background: 'linear-gradient(to right, #00927c, #00927c)',
+                    background: 'linear-gradient(to right, theme, theme)',
                     color: 'white',
                     borderRadius: 1,
                     '&:hover': {
-                      background: 'linear-gradient(to right, #00927c, #00927c)',
+                      background: 'linear-gradient(to right, theme, theme)',
                       color: 'white',
                     }
                   }}

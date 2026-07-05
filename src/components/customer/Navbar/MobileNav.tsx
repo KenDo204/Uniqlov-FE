@@ -28,7 +28,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center' }}>
                 <h1
                     onClick={() => { navigate("/"); setIsOpen(false); }}
-                    className="logo cursor-pointer text-3xl font-bold text-[#00927c] m-0 font-sans"
+                    className="logo cursor-pointer text-3xl font-bold text-theme m-0 font-sans"
                 >
                     EasyMall
                 </h1>
@@ -90,7 +90,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
                             fontSize: '1.15rem',
                             fontWeight: 600,
                             borderRadius: '10px',
-                            backgroundColor: '#00927c',
+                            backgroundColor: 'theme',
                             textTransform: 'none',
                             fontFamily: 'var(--font-sans)',
                             '&:hover': { backgroundColor: '#007a68' }
@@ -123,7 +123,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
                                 fontSize: '1.15rem',
                                 fontWeight: 600,
                                 borderRadius: '10px',
-                                backgroundColor: '#00927c',
+                                backgroundColor: 'theme',
                                 textTransform: 'none',
                                 fontFamily: 'var(--font-sans)',
                                 '&:hover': { backgroundColor: '#007a68' }

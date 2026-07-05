@@ -49,7 +49,7 @@ export function Account() {
                 </li>
                 <li>
                   <NavLink to="/account/reviews" className={navLinkClass}>
-                    Đánh giá đã đăng
+                    Đánh giá
                   </NavLink>
                 </li>
               </ul>

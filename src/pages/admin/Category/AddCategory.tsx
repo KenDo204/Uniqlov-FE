@@ -16,7 +16,7 @@ const AddCategory: React.FC = () => {
   const [parentId, setParentId] = useState<number | null>(null);
   const [parentPathText, setParentPathText] = useState<string>('Không có (Làm danh mục gốc)');
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  
+
   const [iconUrl, setIconUrl] = useState('');
   const [categoryType, setCategoryType] = useState('');
   const [targetDemographic, setTargetDemographic] = useState<number>(0);
@@ -65,8 +65,8 @@ const AddCategory: React.FC = () => {
     <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-3xl mx-auto text-left">
         <div className="flex items-center gap-4 mb-8">
-          <button 
-            onClick={() => navigate('/admin/categories')} 
+          <button
+            onClick={() => navigate('/admin/categories')}
             className="p-2.5 rounded-xl flex items-center justify-center bg-white shadow-sm border border-gray-100 hover:bg-gray-100 cursor-pointer transition-colors"
           >
             <ArrowBack fontSize="small" className="text-gray-600" />
@@ -94,10 +94,10 @@ const AddCategory: React.FC = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '0.75rem',
                     transition: 'all 0.3s ease',
-                    '&:hover fieldset': { borderColor: '#00927c' },
-                    '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                    '&:hover fieldset': { borderColor: 'theme' },
+                    '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                   },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                 }}
               />
             </Box>
@@ -106,9 +106,9 @@ const AddCategory: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Danh mục cha</label>
               <div
                 onClick={() => setIsPickerOpen(true)}
-                className="w-full flex items-center justify-between p-4 border border-gray-300 rounded-xl cursor-pointer hover:border-[#00927c] transition-colors bg-white box-border"
+                className="w-full flex items-center justify-between p-4 border border-gray-300 rounded-xl cursor-pointer hover:border-[theme] transition-colors bg-white box-border"
               >
-                <span className={parentId === null ? 'text-gray-800 font-medium' : 'text-[#00927c] font-medium'}>
+                <span className={parentId === null ? 'text-gray-800 font-medium' : 'text-[theme] font-medium'}>
                   {parentPathText}
                 </span>
                 <KeyboardArrowRight className="text-gray-400" />
@@ -131,10 +131,10 @@ const AddCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
               </Box>
@@ -152,10 +152,10 @@ const AddCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 >
                   <MenuItem value={0}>Tất cả</MenuItem>
@@ -182,10 +182,10 @@ const AddCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
               </Box>
@@ -204,10 +204,10 @@ const AddCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
               </Box>
@@ -237,7 +237,7 @@ const AddCategory: React.FC = () => {
                 disabled={isSubmitting}
                 startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
                 sx={{
-                  bgcolor: '#00927c',
+                  bgcolor: 'theme',
                   borderRadius: '0.75rem',
                   textTransform: 'none',
                   px: 4,

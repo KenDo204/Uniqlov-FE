@@ -28,7 +28,7 @@ export function Wishlists() {
   if (isFetching && !wishlist) {
     return (
       <div className="flex justify-center items-center py-20">
-        <CircularProgress sx={{ color: '#00927c' }} />
+        <CircularProgress sx={{ color: 'theme' }} />
       </div>
     );
   }
@@ -47,7 +47,7 @@ export function Wishlists() {
           {items.map((item) => (
             <div key={item.wishlistId} className="relative group border border-transparent hover:border-gray-200 p-2 transition-all">
               {/* Nút xóa khỏi yêu thích */}
-              <button 
+              <button
                 onClick={() => handleRemove(item.productId)}
                 className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center bg-white/80 rounded-full text-gray-500 hover:text-black hover:bg-white cursor-pointer shadow-sm opacity-0 group-hover:opacity-100 transition-opacity border-none"
                 title="Xóa khỏi yêu thích"
@@ -56,20 +56,20 @@ export function Wishlists() {
               </button>
 
               {/* Ảnh sản phẩm */}
-              <div 
+              <div
                 onClick={() => navigate(`/product/${item.productSlug}`)}
                 className="w-full aspect-[3/4] bg-gray-100 mb-4 overflow-hidden cursor-pointer"
               >
-                <img 
-                  src={item.thumbnailUrl || 'https://via.placeholder.com/300x400'} 
-                  alt={item.productName} 
+                <img
+                  src={item.thumbnailUrl || 'https://via.placeholder.com/300x400'}
+                  alt={item.productName}
                   className="w-full h-full object-cover mix-blend-multiply hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
               {/* Thông tin */}
               <div className="space-y-1 text-[14px]">
-                <h3 
+                <h3
                   onClick={() => navigate(`/product/${item.productSlug}`)}
                   className="font-medium text-black m-0 line-clamp-1 cursor-pointer hover:text-theme"
                 >
@@ -80,7 +80,7 @@ export function Wishlists() {
               </div>
 
               {/* Nút xem chi tiết */}
-              <button 
+              <button
                 onClick={() => navigate(`/product/${item.productSlug}`)}
                 className="w-full mt-4 py-2.5 border border-black text-[12px] font-bold uppercase tracking-wide bg-white text-black hover:bg-black hover:text-white transition-colors cursor-pointer"
               >

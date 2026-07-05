@@ -34,8 +34,8 @@ const AddressCard: React.FC<AddressCardProps> = ({
                         value={address.addressId}
                         name="address-radio"
                         sx={{
-                            color: '#00927c',
-                            '&.Mui-checked': { color: '#00927c' },
+                            color: 'theme',
+                            '&.Mui-checked': { color: 'theme' },
                             p: 0
                         }}
                     />

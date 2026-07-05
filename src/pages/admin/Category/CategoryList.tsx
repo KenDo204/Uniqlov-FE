@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
+import {
   IconButton, CircularProgress, Tooltip,
-  Dialog, DialogTitle, Switch, DialogContent, DialogActions, 
-  Button, Typography 
+  Dialog, DialogTitle, Switch, DialogContent, DialogActions,
+  Button, Typography
 } from '@mui/material';
-import { 
-  Add, Edit, Delete, FolderOpen, Folder, 
-  KeyboardArrowRight, KeyboardArrowDown, Segment, WarningAmber 
+import {
+  Add, Edit, Delete, FolderOpen, Folder,
+  KeyboardArrowRight, KeyboardArrowDown, Segment, WarningAmber
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useCategory } from '@/hooks/useCategory';
@@ -16,12 +16,12 @@ import CustomPagination from '@/components/general/Pagination';
 
 const CategoryList: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    categories, 
-    isFetching: loading, 
-    fetchAdminCategories, 
-    deleteCategory, 
-    updateCategory 
+  const {
+    categories,
+    isFetching: loading,
+    fetchAdminCategories,
+    deleteCategory,
+    updateCategory
   } = useCategory();
 
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
@@ -44,9 +44,9 @@ const CategoryList: React.FC = () => {
   }, [categories]);
 
   const handleToggleExpand = (categoryId: number) => {
-    setExpandedIds((prev) => 
-      prev.includes(categoryId) 
-        ? prev.filter(id => id !== categoryId) 
+    setExpandedIds((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId]
     );
   };
@@ -67,13 +67,13 @@ const CategoryList: React.FC = () => {
     return sortedCategoryTree.slice(start, start + itemsPerPage);
   }, [sortedCategoryTree, currentPage]);
 
-  const CategoryRow = ({ 
-    category, 
-    level = 0, 
+  const CategoryRow = ({
+    category,
+    level = 0,
     index
-  }: { 
-    category: CategoryResponse; 
-    level?: number; 
+  }: {
+    category: CategoryResponse;
+    level?: number;
     index?: number;
   }) => {
     const hasChildren = category.children && category.children.length > 0;
@@ -109,21 +109,21 @@ const CategoryList: React.FC = () => {
           </td>
 
           <td className="px-6 py-4">
-            <div 
+            <div
               className="flex items-center"
               style={{ paddingLeft: `${level * 2}rem` }}
             >
               <div className="w-8 flex justify-center">
                 {hasChildren ? (
-                  <IconButton 
-                    size="small" 
+                  <IconButton
+                    size="small"
                     onClick={() => handleToggleExpand(category.categoryId)}
                     sx={{ p: 0.5 }}
                   >
                     {isExpanded ? <KeyboardArrowDown fontSize="small" /> : <KeyboardArrowRight fontSize="small" />}
                   </IconButton>
                 ) : (
-                  <span className="w-8"></span> 
+                  <span className="w-8"></span>
                 )}
               </div>
 
@@ -134,9 +134,9 @@ const CategoryList: React.FC = () => {
               ) : (
                 <Segment className="text-amber-500 mr-2" fontSize="small" />
               )}
-              
-              <span 
-                className={`${level === 0 ? 'font-semibold text-gray-800' : 'text-gray-600'} cursor-pointer hover:text-[#00927c] transition-colors`}
+
+              <span
+                className={`${level === 0 ? 'font-semibold text-gray-800' : 'text-gray-600'} cursor-pointer hover:text-[theme] transition-colors`}
                 onClick={() => hasChildren && handleToggleExpand(category.categoryId)}
               >
                 {category.categoryName}
@@ -146,9 +146,9 @@ const CategoryList: React.FC = () => {
 
           <td className="px-6 py-4 text-center w-32">
             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium border
-              ${level === 0 ? 'bg-blue-50 text-blue-700 border-blue-100' : 
-                level === 1 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
-                'bg-amber-50 text-amber-700 border-amber-100'}`}
+              ${level === 0 ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                level === 1 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                  'bg-amber-50 text-amber-700 border-amber-100'}`}
             >
               Cấp {level + 1}
             </span>
@@ -156,33 +156,33 @@ const CategoryList: React.FC = () => {
 
           <td className="px-6 py-4 text-center w-40">
             <div className="flex items-center justify-center gap-2">
-              <Switch 
-                checked={category.categoryStatus === 1} 
+              <Switch
+                checked={category.categoryStatus === 1}
                 onChange={handleToggleStatus}
                 disabled={isUpdating}
                 size="small"
                 sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: '#00927c' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#00927c' },
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: 'theme' },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'theme' },
                 }}
               />
-              {isUpdating && <CircularProgress size={14} sx={{ color: '#00927c' }} />}
+              {isUpdating && <CircularProgress size={14} sx={{ color: 'theme' }} />}
             </div>
           </td>
 
           <td className="px-6 py-4 text-center w-32">
             <div className="flex items-center justify-center gap-1">
               <Tooltip title="Chỉnh sửa" arrow>
-                <IconButton 
+                <IconButton
                   onClick={() => navigate(`/admin/categories/edit/${category.categoryId}`)}
                   size="small"
-                  sx={{ color: '#00927c', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                  sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                 >
                   <Edit fontSize="small" />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Xóa" arrow>
-                <IconButton 
+                <IconButton
                   onClick={() => handleDeleteClick(category.categoryId)}
                   size="small"
                   sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
@@ -197,10 +197,10 @@ const CategoryList: React.FC = () => {
         {hasChildren && isExpanded && (
           <React.Fragment>
             {category.children.map((child: CategoryResponse) => (
-              <CategoryRow 
-                key={child.categoryId} 
-                category={child} 
-                level={level + 1} 
+              <CategoryRow
+                key={child.categoryId}
+                category={child}
+                level={level + 1}
               />
             ))}
           </React.Fragment>
@@ -240,13 +240,18 @@ const CategoryList: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý danh mục</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Xem, thêm, sửa, xóa cấu trúc danh mục sản phẩm của hệ thống</p>
           </div>
-          <button
+          <Button
             onClick={() => navigate('/admin/categories/add')}
-            className="flex items-center gap-2 bg-[#00927c] hover:bg-[#007a68] text-white px-5 py-2.5 rounded-xl font-medium border-none cursor-pointer transition-colors shadow-sm"
+            variant="contained"
+            sx={{
+              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+            }}
           >
-            <Add fontSize="small" />
+            <Add fontSize="medium" />
             Thêm danh mục
-          </button>
+          </Button>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -266,17 +271,17 @@ const CategoryList: React.FC = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center">
-                      <CircularProgress size={32} sx={{ color: '#00927c' }} />
+                      <CircularProgress size={32} sx={{ color: 'theme' }} />
                       <p className="mt-2 text-gray-500 m-0">Đang tải dữ liệu...</p>
                     </td>
                   </tr>
                 ) : paginatedCategories.length > 0 ? (
                   paginatedCategories.map((cat, index) => (
-                    <CategoryRow 
-                      key={cat.categoryId} 
-                      category={cat} 
-                      level={0} 
-                      index={(currentPage - 1) * itemsPerPage + index} 
+                    <CategoryRow
+                      key={cat.categoryId}
+                      category={cat}
+                      level={0}
+                      index={(currentPage - 1) * itemsPerPage + index}
                     />
                   ))
                 ) : (
@@ -304,10 +309,10 @@ const CategoryList: React.FC = () => {
       </div>
 
       {/* POPUP XÁC NHẬN XÓA */}
-      <Dialog 
-        open={deleteModalOpen} 
-        onClose={() => { if (!isDeleting) setDeleteModalOpen(false); }} 
-        fullWidth 
+      <Dialog
+        open={deleteModalOpen}
+        onClose={() => { if (!isDeleting) setDeleteModalOpen(false); }}
+        fullWidth
         maxWidth="xs"
         slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
       >
@@ -323,25 +328,26 @@ const CategoryList: React.FC = () => {
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
-          <Button 
-            onClick={() => setDeleteModalOpen(false)} 
+          <Button
+            onClick={() => setDeleteModalOpen(false)}
             variant="outlined"
             disabled={isDeleting}
-            sx={{ 
+            sx={{
               color: '#374151', borderColor: '#d1d5db', textTransform: 'none', px: 3,
               fontWeight: 'bold', fontSize: '14px',
-              '&:hover': { 
+              '&:hover': {
                 borderColor: "#9ca3af",
-                bgcolor: "#f9fafb" }
+                bgcolor: "#f9fafb"
+              }
             }}
           >
             Hủy
           </Button>
-          <Button 
-            onClick={executeDelete} 
-            variant="contained" 
+          <Button
+            onClick={executeDelete}
+            variant="contained"
             disabled={isDeleting}
-            sx={{ 
+            sx={{
               backgroundColor: '#ef4444', textTransform: 'none', px: 3,
               fontWeight: 'bold', fontSize: '14px',
               '&:hover': { backgroundColor: '#dc2626' }

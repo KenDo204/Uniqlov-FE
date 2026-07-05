@@ -15,7 +15,7 @@ const EditCategory: React.FC = () => {
 
   const [categoryName, setCategoryName] = useState('');
   const [parentPathText, setParentPathText] = useState<string>('Đang tải...');
-  
+
   const [iconUrl, setIconUrl] = useState('');
   const [categoryType, setCategoryType] = useState('');
   const [targetDemographic, setTargetDemographic] = useState<number>(0);
@@ -116,7 +116,7 @@ const EditCategory: React.FC = () => {
   if (isPageLoading || isFetching) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <CircularProgress sx={{ color: '#00927c' }} />
+        <CircularProgress sx={{ color: 'theme' }} />
         <p className="mt-2 text-gray-500 font-medium">Đang tải thông tin danh mục...</p>
       </div>
     );
@@ -126,8 +126,8 @@ const EditCategory: React.FC = () => {
     <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
       <div className="max-w-3xl mx-auto text-left">
         <div className="flex items-center gap-4 mb-8">
-          <button 
-            onClick={() => navigate('/admin/categories')} 
+          <button
+            onClick={() => navigate('/admin/categories')}
             className="p-2.5 rounded-xl flex items-center justify-center bg-white shadow-sm border border-gray-100 hover:bg-gray-100 cursor-pointer transition-colors"
           >
             <ArrowBack fontSize="small" className="text-gray-600" />
@@ -154,10 +154,10 @@ const EditCategory: React.FC = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '0.75rem',
                     transition: 'all 0.3s ease',
-                    '&:hover fieldset': { borderColor: '#00927c' },
-                    '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                    '&:hover fieldset': { borderColor: 'theme' },
+                    '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                   },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                 }}
               />
             </Box>
@@ -187,10 +187,10 @@ const EditCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
               </Box>
@@ -208,10 +208,10 @@ const EditCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 >
                   <MenuItem value={0}>Tất cả</MenuItem>
@@ -238,10 +238,10 @@ const EditCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
               </Box>
@@ -260,10 +260,10 @@ const EditCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: '#00927c' },
-                      '&.Mui-focused fieldset': { borderColor: '#00927c', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'theme' },
+                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#00927c' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
               </Box>
@@ -276,8 +276,8 @@ const EditCategory: React.FC = () => {
                     checked={categoryStatus === 1}
                     onChange={(e) => setCategoryStatus(e.target.checked ? 1 : 0)}
                     sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': { color: '#00927c' },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#00927c' },
+                      '& .MuiSwitch-switchBase.Mui-checked': { color: 'theme' },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'theme' },
                     }}
                   />
                 }
@@ -314,7 +314,7 @@ const EditCategory: React.FC = () => {
                 disabled={isSubmitting}
                 startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
                 sx={{
-                  bgcolor: '#00927c',
+                  bgcolor: 'theme',
                   borderRadius: '0.75rem',
                   textTransform: 'none',
                   px: 4,

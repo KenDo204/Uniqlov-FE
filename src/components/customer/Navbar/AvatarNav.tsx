@@ -161,7 +161,7 @@ const AvatarNav = ({ user }: { user: UserResponse | null }) => {
                     </MenuItem>
                   ) : ""
                   }
-                  <MenuItem 
+                  <MenuItem
                     onClick={handleLogout}
                     sx={{ py: 1.5, color: '#dc2626', '&:hover': { bgcolor: '#fef2f2' } }}
                   >

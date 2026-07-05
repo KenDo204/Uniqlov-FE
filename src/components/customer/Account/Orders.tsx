@@ -23,12 +23,12 @@ const getOrderStatusLabel = (status: string) => {
 };
 
 export function Orders() {
-  const { 
-    orders, 
-    isFetching, 
-    fetchMyOrders, 
-    fetchMyOrderDetail, 
-    cancelMyOrder 
+  const {
+    orders,
+    isFetching,
+    fetchMyOrders,
+    fetchMyOrderDetail,
+    cancelMyOrder
   } = useOrder();
 
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
@@ -85,7 +85,7 @@ export function Orders() {
     try {
       await cancelMyOrder(cancelOrderId, { reason: reason.trim() });
       toast.success('Hủy đơn hàng thành công!');
-      
+
       // Update local state status to CANCELLED
       if (orderDetails[cancelOrderId]) {
         setOrderDetails(prev => ({
@@ -96,7 +96,7 @@ export function Orders() {
           }
         }));
       }
-      
+
       // Reload list
       fetchMyOrders(0, 10);
       setIsCancelModalOpen(false);
@@ -113,7 +113,7 @@ export function Orders() {
 
       {isFetching && orders.length === 0 ? (
         <div className="flex justify-center items-center py-20">
-          <CircularProgress sx={{ color: '#00927c' }} />
+          <CircularProgress sx={{ color: 'theme' }} />
         </div>
       ) : orders.length === 0 ? (
         <p className="text-[14px] text-gray-500">Bạn chưa có đơn hàng nào.</p>
@@ -127,7 +127,7 @@ export function Orders() {
             return (
               <div key={ord.orderId} className="border border-gray-200 p-0 rounded-lg overflow-hidden shadow-sm bg-white">
                 {/* Header của Đơn hàng */}
-                <div 
+                <div
                   onClick={() => handleToggleDetails(ord.orderId)}
                   className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between sm:items-center gap-2 cursor-pointer hover:bg-gray-100/70 transition-colors"
                 >
@@ -141,7 +141,7 @@ export function Orders() {
                       {getOrderStatusLabel(ord.orderStatus)}
                     </span>
                     {ord.orderStatus === 'PENDING' && (
-                      <button 
+                      <button
                         onClick={(e) => handleOpenCancel(ord.orderId, e)}
                         className="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded border-none font-bold text-[11px] cursor-pointer transition-colors"
                       >
@@ -156,7 +156,7 @@ export function Orders() {
                   <div className="border-t border-gray-100 p-6 bg-white animate-fade-in">
                     {isLoading ? (
                       <div className="flex justify-center py-6">
-                        <CircularProgress size={24} sx={{ color: '#00927c' }} />
+                        <CircularProgress size={24} sx={{ color: 'theme' }} />
                       </div>
                     ) : details ? (
                       <div className="space-y-6">
@@ -165,13 +165,13 @@ export function Orders() {
                           {details.items.map((item) => (
                             <div key={item.orderDetailId} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                               <div className="w-[70px] h-[90px] bg-gray-50 shrink-0 rounded overflow-hidden border border-gray-100">
-                                <img 
-                                  src={(item as any).variantImage || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&q=80'} 
-                                  alt={item.productName} 
-                                  className="w-full h-full object-cover" 
+                                <img
+                                  src={(item as any).variantImage || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&q=80'}
+                                  alt={item.productName}
+                                  className="w-full h-full object-cover"
                                 />
                               </div>
-                              
+
                               <div className="flex-1 text-[13px]">
                                 <h4 className="font-semibold text-gray-800 m-0 leading-snug">{item.productName}</h4>
                                 <p className="text-gray-400 text-[11px] mt-0.5 mb-1">SKU: {item.skuCode}</p>
@@ -180,7 +180,7 @@ export function Orders() {
                                   <span>Số lượng: <span className="font-bold text-gray-800">{item.quantity}</span></span>
                                 </div>
                               </div>
-                              
+
                               <div className="text-[13px] font-bold text-right shrink-0">
                                 {formatVND(item.price)}
                               </div>
@@ -194,12 +194,12 @@ export function Orders() {
                             <p className="m-0">Phương thức: <span className="font-bold text-gray-800">{details.paymentMethod}</span></p>
                             <p className="m-0">Vận chuyển: <span className="font-bold text-gray-800">{details.shippingMethod}</span></p>
                             {details.trackingNumber && (
-                              <p className="m-0">Mã vận đơn: <span className="font-bold text-[#00927c]">{details.trackingNumber}</span> (GHN)</p>
+                              <p className="m-0">Mã vận đơn: <span className="font-bold text-[theme]">{details.trackingNumber}</span> (GHN)</p>
                             )}
                             <p className="m-0">Địa chỉ giao: <span className="font-medium text-gray-800">{details.address.fullAddress}</span></p>
                             {details.note && <p className="m-0 italic text-gray-400">Ghi chú: "{details.note}"</p>}
                           </div>
-                          
+
                           <div className="text-right space-y-1.5 font-medium text-gray-500">
                             <div className="flex justify-between md:justify-end gap-10">
                               <span>Tiền sản phẩm:</span>
@@ -217,7 +217,7 @@ export function Orders() {
                             </div>
                             <div className="flex justify-between md:justify-end gap-10 text-[15px] font-bold text-gray-900 border-t border-gray-100 pt-2 mt-2">
                               <span>Tổng thanh toán:</span>
-                              <span className="text-[#00927c]">{formatVND(details.finalPaymentMoney)}</span>
+                              <span className="text-[theme]">{formatVND(details.finalPaymentMoney)}</span>
                             </div>
                           </div>
                         </div>
@@ -229,7 +229,7 @@ export function Orders() {
                 )}
 
                 {/* Footer tóm tắt (Tổng tiền & Bấm xem chi tiết) */}
-                <div 
+                <div
                   onClick={() => handleToggleDetails(ord.orderId)}
                   className="px-6 py-4 border-t border-gray-100 flex flex-row justify-between items-center gap-4 bg-white cursor-pointer hover:bg-gray-50/50"
                 >

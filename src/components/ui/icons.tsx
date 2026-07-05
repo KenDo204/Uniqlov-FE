@@ -53,6 +53,7 @@ import {
   Favorite as MuiFavoriteFilled,
   FavoriteBorder as MuiFavoriteBorder,
   Checkroom as CheckroomIcon,
+  MenuOpen as MuiMenuOpen,
 } from '@mui/icons-material';
 
 // Helper to create a component compatible with lucide-react props (size, style, etc.)
@@ -123,6 +124,7 @@ export const User = createIcon(MuiPerson);
 export const Users = createIcon(MuiPeople);
 export const X = createIcon(MuiClose);
 export const Checkroom = createIcon(CheckroomIcon);
+export const MenuOpen = createIcon(MuiMenuOpen);
 
 // Custom Star with dynamic outline/fill based on classes
 export const Star = React.forwardRef(({ size, className, style, strokeWidth, ...props }: any, ref: any) => {

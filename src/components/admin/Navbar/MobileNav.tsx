@@ -41,7 +41,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
             <Box sx={{ p: 3, pb: 2, borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center' }}>
                 <h1
                     onClick={() => { navigate("/admin"); setIsOpen(false); }}
-                    className="logo cursor-pointer text-2xl font-bold text-[#00927c] m-0 font-sans"
+                    className="logo cursor-pointer text-2xl font-bold text-theme m-0 font-sans"
                 >
                     EasyMall Admin
                 </h1>
@@ -59,11 +59,11 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
                                     py: 1.5, 
                                     px: 3,
                                     bgcolor: isActive ? 'rgba(0, 146, 124, 0.08)' : 'transparent',
-                                    color: isActive ? '#00927c' : '#374151'
+                                    color: isActive ? 'theme' : '#374151'
                                 }} 
                                 onClick={() => { navigate(item.path); setIsOpen(false); }}
                             >
-                                <ListItemIcon sx={{ minWidth: 40, color: isActive ? '#00927c' : '#4b5563' }}>
+                                <ListItemIcon sx={{ minWidth: 40, color: isActive ? 'theme' : '#4b5563' }}>
                                     <Icon size={20} />
                                 </ListItemIcon>
                                 <ListItemText>
@@ -103,7 +103,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
                                 fontSize: '1rem',
                                 fontWeight: 600,
                                 borderRadius: '10px',
-                                backgroundColor: '#00927c',
+                                backgroundColor: 'theme',
                                 textTransform: 'none',
                                 fontFamily: 'var(--font-sans)',
                                 '&:hover': { backgroundColor: '#007a68' }
