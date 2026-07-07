@@ -20,4 +20,6 @@ export interface UserDetailResponse {
   roleName: string;
 
   roleId: number;
+
+  avatar?:string;
 }

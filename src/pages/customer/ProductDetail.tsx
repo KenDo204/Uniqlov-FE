@@ -126,8 +126,14 @@ export function ProductDetail() {
 
   const galleryImages = useMemo(() => {
     if (!product) return [];
-    return product.images.map((img) => img.image_url);
-  }, [product]);
+    const baseImages = product.images.map((img) => img.image_url);
+    if (activeVariant?.variant_image) {
+      const variantImg = activeVariant.variant_image;
+      const filtered = baseImages.filter((img) => img !== variantImg);
+      return [variantImg, ...filtered];
+    }
+    return baseImages;
+  }, [product, activeVariant]);
 
   const handleAddToCart = async () => {
     if (!product) return;

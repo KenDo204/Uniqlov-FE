@@ -93,7 +93,7 @@ const RoleList: React.FC = () => {
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý vai trò (Roles)</h1>
+            <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý vai trò</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Cấp nhóm quyền, mô tả vai trò và cấu trúc phân quyền hệ thống</p>
           </div>
           <Button

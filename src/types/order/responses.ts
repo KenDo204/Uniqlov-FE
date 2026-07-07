@@ -32,7 +32,6 @@ export interface OrderResponse {
   note?: string;
 
   totalProductMoney: number;
-  shopDiscountAmount: number;
   originalShippingFee: number;
   shippingDiscountAmount: number;
   paymentDiscountAmount: number;

@@ -6,6 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
 import { Gender } from '@/types/enums/genderType';
+import { uploadService } from '@/services/uploadService';
+import { useUpload } from '@/hooks/useUpload';
+import { CameraAlt } from '@mui/icons-material';
 
 const profileSchema = z.object({
   fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
@@ -19,7 +22,7 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
-const getGenderLabel = (gender?: string) => {
+const getGenderLabel = (gender?: Gender) => {
   if (gender === Gender.FEMALE) return 'Nữ';
   if (gender === Gender.MALE) return 'Nam';
   return 'Khác';
@@ -31,6 +34,7 @@ export function ProfileDetails() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isUploading, uploadFile } = useUpload(uploadService.uploadUserAvatar);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -38,7 +42,7 @@ export function ProfileDetails() {
       fullName: '',
       phone: '',
       dob: '',
-      gender: Gender.OTHER,
+      gender: Gender.UNISEX,
     }
   });
 
@@ -49,10 +53,32 @@ export function ProfileDetails() {
         fullName: user.fullName || '',
         phone: user.phone || '',
         dob: user.dob || '',
-        gender: user.gender ?? Gender.OTHER,
+        gender: user.gender ?? Gender.UNISEX,
       });
     }
   }, [user, isEditing, reset]);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    const url = await uploadFile(file);
+    if (url) {
+      try {
+        await updateUser(user.userId, {
+          avatar: url
+        });
+        
+        toast.success('Cập nhật ảnh đại diện thành công!');
+        if (fetchProfile) {
+          await fetchProfile();
+        }
+      } catch (err: any) {
+        toast.error(err || 'Không thể cập nhật ảnh đại diện lúc này.', { position: 'top-right' });
+      }
+    }
+    event.target.value = '';
+  };
 
   // 3. Xử lý Submit API
   const onSubmit = async (data: ProfileFormValues) => {
@@ -96,6 +122,34 @@ export function ProfileDetails() {
       <div className="mb-10 text-[14px]">
         <p className="text-gray-500 mb-2">Địa chỉ email</p>
         <p className="text-gray-900 m-0 font-medium">{user.email}</p>
+      </div>
+
+      <hr className="border-t border-gray-200 mb-8" />
+
+      {/* Section: Ảnh đại diện */}
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-[18px] font-medium m-0">Ảnh đại diện</h3>
+      </div>
+      <div className="flex items-center gap-6 mb-10">
+        <div className="relative">
+          <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden border border-gray-300">
+            {user.avatar ? (
+              <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl font-bold uppercase">
+                {user.fullName?.[0] || 'U'}
+              </div>
+            )}
+          </div>
+          <label className={`absolute bottom-0 right-0 p-1.5 rounded-full bg-theme text-white shadow cursor-pointer hover:bg-theme-hover transition ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+            <CameraAlt fontSize="small" />
+            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={isUploading} />
+          </label>
+        </div>
+        <div className="text-[13px] text-gray-500">
+          <p className="m-0">Kích thước tệp tối đa 5MB</p>
+          <p className="m-0">Định dạng hỗ trợ: JPEG, PNG</p>
+        </div>
       </div>
 
       <hr className="border-t border-gray-200 mb-8" />
@@ -155,7 +209,7 @@ export function ProfileDetails() {
             >
               <option value={Gender.MALE}>Nam</option>
               <option value={Gender.FEMALE}>Nữ</option>
-              <option value={Gender.OTHER}>Khác</option>
+              <option value={Gender.UNISEX}>Khác</option>
             </select>
           </div>
 

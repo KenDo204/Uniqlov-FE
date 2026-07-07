@@ -105,7 +105,7 @@ export interface ProductUpdateRequest {
   maxOrderQuantity?: number;
 
   /** JSON string tự do */
-  optionsConfig?: Record<string, any>;
+  optionsConfig?: string;
 
   productTags?: string[];
   categoryId?: number;

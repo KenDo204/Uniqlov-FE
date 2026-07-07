@@ -171,7 +171,7 @@ export function ProductCard({
       </div>
 
       {/* Product Name */}
-      <h4 className="text-[13px] font-medium text-gray-800 dark:text-gray-200 leading-snug mb-2 group-hover:text-black dark:group-hover:text-white transition-colors line-clamp-2">
+      <h4 className="text-[13px] font-medium text-gray-800 dark:text-gray-200 leading-snug mb-2 group-hover:text-black dark:group-hover:text-white transition-colors line-clamp-2 hover:text-theme">
         {product.product_name}
       </h4>
 

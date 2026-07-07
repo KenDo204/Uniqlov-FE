@@ -69,11 +69,11 @@ export function Account() {
                     Sổ địa chỉ
                   </NavLink>
                 </li>
-                {/* <li>
+                <li>
                   <NavLink to="/account/password" className={navLinkClass}>
                     Thay đổi mật khẩu
                   </NavLink>
-                </li> */}
+                </li>
                 <li>
                   <button
                     onClick={handleLogout}

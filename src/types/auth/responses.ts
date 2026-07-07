@@ -16,13 +16,14 @@ export interface IntrospectResponse {
 }
 
 export interface UserResponse {
-    userId: number;
-    email: string;
-    fullName: string;
-    gender?: Gender;
-    phone?: string;
-    dob?: string;
-    isActive?: boolean;
-    createdAt?: string;
-    roleName?: string;
+  userId: number;
+  email: string;
+  fullName: string;
+  gender?: Gender;
+  phone?: string;
+  dob?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  roleName?: string;
+  avatar?: string;
 }

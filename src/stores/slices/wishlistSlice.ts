@@ -88,11 +88,47 @@ const wishlistSlice = createSlice({
       })
       .addCase(toggleWishlistThunk.fulfilled, (state, action) => {
         state.isSubmitting = false;
-        if (state.wishlist && action.payload && action.payload.inWishlist === false) {
-          state.wishlist.content = state.wishlist.content.filter(
-            (item) => item.productId !== action.payload.productId
-          );
-          state.wishlist.totalElements = Math.max(0, state.wishlist.totalElements - 1);
+        if (action.payload) {
+          if (action.payload.inWishlist === false) {
+            if (state.wishlist) {
+              state.wishlist.content = state.wishlist.content.filter(
+                (item) => item.productId !== action.payload.productId
+              );
+              state.wishlist.totalElements = Math.max(0, state.wishlist.totalElements - 1);
+            }
+          } else if (action.payload.inWishlist === true) {
+            const mockItem = {
+              wishlistId: Date.now(),
+              productId: action.payload.productId,
+              productName: '',
+              productSlug: '',
+              thumbnailUrl: '',
+              minPrice: 0,
+              inStock: true,
+              addedAt: new Date().toISOString()
+            } as WishlistResponse;
+
+            if (state.wishlist) {
+              const exists = state.wishlist.content.some((item) => item.productId === action.payload.productId);
+              if (!exists) {
+                state.wishlist.content.unshift(mockItem);
+                state.wishlist.totalElements += 1;
+              }
+            } else {
+              state.wishlist = {
+                content: [mockItem],
+                pageable: null,
+                totalElements: 1,
+                totalPages: 1,
+                size: 20,
+                number: 0,
+                first: true,
+                last: true,
+                numberOfElements: 1,
+                empty: false
+              };
+            }
+          }
         }
       })
       .addCase(toggleWishlistThunk.rejected, (state, action) => {

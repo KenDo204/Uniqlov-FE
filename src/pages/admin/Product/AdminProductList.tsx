@@ -129,7 +129,7 @@ const AdminProductList: React.FC = () => {
       const matchesSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.productSlug.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === '' || p.categoryId === Number(categoryFilter);
-      const matchesGender = genderFilter === '' || p.targetGender === genderFilter;
+      const matchesGender = genderFilter === '' || p.targetGender === Number(genderFilter);
 
       return matchesSearch && matchesCategory && matchesGender;
     });
@@ -217,7 +217,7 @@ const AdminProductList: React.FC = () => {
               <option value="">Tất cả giới tính</option>
               <option value={Gender.MALE}>Nam</option>
               <option value={Gender.FEMALE}>Nữ</option>
-              <option value={Gender.OTHER}>Unisex</option>
+              <option value={Gender.UNISEX}>Unisex</option>
             </select>
           </div>
         </div>

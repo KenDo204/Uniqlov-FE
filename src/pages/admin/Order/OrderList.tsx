@@ -198,7 +198,7 @@ const OrderList: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
-                  <th className="px-6 py-4 font-semibold">Mã đơn hàng</th>
+                  <th className="px-6 py-4 font-semibold text-center w-16">STT</th>
                   <th className="px-6 py-4 font-semibold">Ngày đặt</th>
                   <th className="px-6 py-4 font-semibold">Hình thức thanh toán</th>
                   <th className="px-6 py-4 font-semibold text-center">Số lượng SP</th>
@@ -217,10 +217,10 @@ const OrderList: React.FC = () => {
                     </td>
                   </tr>
                 ) : filteredOrders.length > 0 ? (
-                  filteredOrders.map((order) => (
+                  filteredOrders.map((order, index) => (
                     <tr key={order.orderId} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-bold text-gray-900">
-                        #{order.orderId}
+                      <td className="px-6 py-4 text-center font-bold text-gray-900">
+                        {page * size + index + 1}
                       </td>
                       <td className="px-6 py-4">
                         {formatDate(order.orderDate)}
@@ -417,12 +417,7 @@ const OrderList: React.FC = () => {
                     <span>Tổng tiền sản phẩm:</span>
                     <span>{formatCurrency(currentOrderDetail.totalProductMoney)}</span>
                   </div>
-                  {currentOrderDetail.shopDiscountAmount > 0 && (
-                    <div className="flex justify-between text-red-500">
-                      <span>Giảm giá từ shop:</span>
-                      <span>-{formatCurrency(currentOrderDetail.shopDiscountAmount)}</span>
-                    </div>
-                  )}
+
                   <div className="flex justify-between">
                     <span>Phí vận chuyển:</span>
                     <span>{formatCurrency(currentOrderDetail.originalShippingFee)}</span>

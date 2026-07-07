@@ -38,4 +38,5 @@ export interface UpdateUserRequest {
   dob?: string;
   roleId?: number;
   isActive?: boolean;
+  avatar?:string;
 }

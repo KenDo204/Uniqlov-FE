@@ -57,13 +57,12 @@ const ConfirmModal = ({
             <DialogActions sx={{ px: 3, pb: 2 }}>
                 <Button 
                     onClick={handleClose} 
-                    color="inherit"
                     sx={{ 
-                        bgcolor: '#d32f2f', 
+                        bgcolor: 'var(--color-cancel)', 
                         font: '14pt',
                         fontWeight: 'bold',
                         textTransform: 'uppercase',
-                        '&:hover': { bgcolor: '#b71c1c' }
+                        '&:hover': { bgcolor: 'var(--color-cancel-hover)' }
                     }}
                 >
                     {cancelText}
@@ -73,12 +72,12 @@ const ConfirmModal = ({
                     autoFocus 
                     variant="contained"
                     disableElevation
-                    color="inherit"
                     sx={{ 
+                        bgcolor: 'var(--color-theme)', 
                         textTransform: 'uppercase', 
                         font: '14pt',
                         fontWeight: 'bold',
-                         
+                        '&:hover': { bgcolor: 'var(--color-theme-hover)' }
                     }}
                 >
                     {confirmText}

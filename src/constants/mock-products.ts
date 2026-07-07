@@ -74,7 +74,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Basic', 'Supima', 'Cotton', 'Tee', 'Everyday'],
     in_popular: true,
     in_stock: true,
-    target_gender: Gender.OTHER,
+    target_gender: Gender.UNISEX,
     max_order_quantity: 5, 
     options_config: {
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
@@ -154,7 +154,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Active', 'Athleisure', 'Hoodie', 'Stretch', 'Dry-EX'],
     in_popular: false,
     in_stock: true,
-    target_gender: Gender.OTHER,
+    target_gender: Gender.UNISEX,
     max_order_quantity: 5,
     options_config: {
       sizes: ["S", "M", "L", "XL"],
@@ -198,7 +198,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Coat', 'Wool', 'Cashmere', 'Outerwear', 'Tailored'],
     in_popular: true,
     in_stock: true,
-    target_gender: Gender.OTHER,
+    target_gender: Gender.UNISEX,
     max_order_quantity: 2,
     options_config: {
       sizes: ["S", "M", "L", "XL"],
@@ -294,7 +294,7 @@ export const mockProducts: Product[] = [
     product_tags: ['Down', 'Vest', 'Layering', 'Warmth', 'Lightweight'],
     in_popular: true,
     in_stock: true,
-    target_gender: Gender.OTHER,
+    target_gender: Gender.UNISEX,
     max_order_quantity: 3,
     options_config: {
       sizes: ["S", "M", "L", "XL"],

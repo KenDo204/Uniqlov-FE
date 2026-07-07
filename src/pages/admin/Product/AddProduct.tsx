@@ -4,7 +4,7 @@ import {
   Button, TextField, Select, MenuItem, FormControl,
   InputLabel, Switch, FormControlLabel, Card,
   Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Radio, IconButton
+  TableHead, TableRow, Paper, Radio, IconButton, CircularProgress
 } from '@mui/material';
 import { Delete, ArrowBack, AddCircle, Refresh } from '@mui/icons-material';
 import { toast } from 'react-toastify';
@@ -12,6 +12,9 @@ import { useProduct } from '@/hooks/useProduct';
 import { useCategory } from '@/hooks/useCategory';
 import ConfirmModal from '@/components/general/ConfirmModal';
 import { Gender } from '@/types/enums/genderType';
+import { uploadService } from '@/services/uploadService';
+import { useUpload } from '@/hooks/useUpload';
+import { CloudUpload } from '@mui/icons-material';
 
 interface TempOption {
   name: string; // e.g. "colorName" or "size"
@@ -48,7 +51,7 @@ export default function AddProduct() {
   const [productSlug, setProductSlug] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
-  const [targetGender, setTargetGender] = useState<Gender>(Gender.OTHER); // Unisex default
+  const [targetGender, setTargetGender] = useState<Gender>(Gender.UNISEX); // Unisex default
   const [maxOrderQuantity, setMaxOrderQuantity] = useState<number>(5);
   const [inPopular, setInPopular] = useState(false);
   const [tagsInput, setTagsInput] = useState('');
@@ -61,7 +64,6 @@ export default function AddProduct() {
 
   // Form State - Images
   const [images, setImages] = useState<ImageInput[]>([]);
-  const [newImageUrl, setNewImageUrl] = useState('');
 
   // Product Type: 'simple' | 'variable'
   const [productType, setProductType] = useState<'simple' | 'variable'>('simple');
@@ -70,11 +72,10 @@ export default function AddProduct() {
   const [simplePrice, setSimplePrice] = useState<string>('0');
   const [simpleCostPrice, setSimpleCostPrice] = useState<string>('0');
   const [simpleStock, setSimpleStock] = useState<string>('10');
-  const [simpleSku, setSimpleSku] = useState<string>('');
 
   // Form State - Variable Product Options Config (Max 2 groups)
   const [options, setOptions] = useState<TempOption[]>([
-    { name: 'colorName', values: [], rawInput: '' },
+    { name: 'color', values: [], rawInput: '' },
     { name: 'size', values: [], rawInput: '' }
   ]);
   const [variants, setVariants] = useState<VariantInput[]>([]);
@@ -136,21 +137,82 @@ export default function AddProduct() {
     setProductSlug(generatedSlug.slice(0, 100));
   };
 
+  const VariantImageCell = ({ imageUrl, onUpdate }: { imageUrl: string; onUpdate: (url: string) => void }) => {
+    const { isUploading, uploadFile } = useUpload(uploadService.uploadProductImage);
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const url = await uploadFile(file);
+      if (url) {
+        onUpdate(url);
+      }
+      e.target.value = '';
+    };
+
+    const handleDelete = () => {
+      // NOTE: If a Backend API for deleting uploaded files is available,
+      // it should be called here. Currently, we only remove it from the Frontend state.
+      onUpdate('');
+    };
+
+    return (
+      <div className="flex items-center gap-1.5">
+        {imageUrl ? (
+          <div className="relative w-10 h-10 border border-gray-200 rounded overflow-hidden shadow-sm shrink-0">
+            <img src={imageUrl} alt="variant" className="w-full h-full object-cover" />
+            {isUploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <CircularProgress size={16} sx={{ color: 'white' }} />
+              </div>
+            )}
+          </div>
+        ) : null}
+        <Button
+          component="label"
+          variant="outlined"
+          size="small"
+          disabled={isUploading}
+          sx={{ minWidth: 0, p: '6px', borderColor: '#e5e7eb', color: '#6b7280', '&:hover': { borderColor: 'theme', color: 'theme', bgcolor: '#f0fdfa' } }}
+          title={imageUrl ? 'Thay đổi ảnh' : 'Tải ảnh lên'}
+        >
+          {isUploading && !imageUrl ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : <CloudUpload fontSize="small" />}
+          <input type="file" hidden accept="image/*" onChange={handleUpload} />
+        </Button>
+        {imageUrl && (
+          <IconButton
+            size="small"
+            color="error"
+            onClick={handleDelete}
+            disabled={isUploading}
+            sx={{ p: '5px', border: '1px solid #fee2e2', borderRadius: '4px', '&:hover': { bgcolor: '#fef2f2' } }}
+            title="Xóa ảnh"
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        )}
+      </div>
+    );
+  };
+
   // Add Image URL helper
-  const handleAddImage = () => {
-    if (!newImageUrl.trim()) return;
-    if (!newImageUrl.startsWith('http://') && !newImageUrl.startsWith('https://')) {
-      toast.warning('Vui lòng nhập đường dẫn hình ảnh hợp lệ (bắt đầu bằng http hoặc https)');
-      return;
+  const { isUploading: isUploadingImage, uploadFile } = useUpload(uploadService.uploadProductImage);
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadFile(file);
+    if (url) {
+      const isFirst = images.length === 0;
+      setImages([...images, {
+        url: url,
+        isThumbnail: isFirst,
+        displayOrder: images.length
+      }]);
+      setIsDirty(true);
+      toast.success('Tải ảnh lên thành công!');
     }
-    const isFirst = images.length === 0;
-    setImages([...images, {
-      url: newImageUrl.trim(),
-      isThumbnail: isFirst, // automatically set first image as thumbnail
-      displayOrder: images.length
-    }]);
-    setNewImageUrl('');
-    setIsDirty(true);
+    event.target.value = '';
   };
 
   // Remove Image helper
@@ -427,7 +489,6 @@ export default function AddProduct() {
         price: Number(simplePrice),
         costPrice: Number(simpleCostPrice),
         variantAttributes: {},
-        skuCode: simpleSku.trim() || undefined,
         stockQuantity: Number(simpleStock),
         variantImage: images.find(img => img.isThumbnail)?.url || images[0]?.url || ''
       }];
@@ -437,7 +498,6 @@ export default function AddProduct() {
         price: v.price,
         costPrice: v.costPrice,
         variantAttributes: v.attributes,
-        skuCode: v.skuCode.trim() || undefined,
         stockQuantity: v.stockQuantity,
         variantImage: v.variantImage.trim() || images.find(img => img.isThumbnail)?.url || images[0]?.url || ''
       }));
@@ -445,7 +505,7 @@ export default function AddProduct() {
       // Prepare optionsConfig JSON object
       // Backend expects size list, color list
       const sizesOpt = options.find(o => o.name === 'size');
-      const colorsOpt = options.find(o => o.name === 'colorName');
+      const colorsOpt = options.find(o => o.name === 'color');
 
       optionsConfigObj = {
         sizes: sizesOpt ? sizesOpt.values : [],
@@ -461,7 +521,7 @@ export default function AddProduct() {
       productDescription,
       inPopular,
       targetGender,
-      maxOrderQuantity,
+      maxOrderQuantity: Number(maxOrderQuantity),
       optionsConfig: JSON.stringify(optionsConfigObj),
       productTags,
       categoryId: Number(categoryId),
@@ -585,7 +645,7 @@ export default function AddProduct() {
                     >
                       <MenuItem value={Gender.MALE}>Nam</MenuItem>
                       <MenuItem value={Gender.FEMALE}>Nữ</MenuItem>
-                      <MenuItem value={Gender.OTHER}>Unisex (Cả hai)</MenuItem>
+                      <MenuItem value={Gender.UNISEX}>Unisex (Cả hai)</MenuItem>
                     </Select>
                   </FormControl>
                 </div>
@@ -722,23 +782,20 @@ export default function AddProduct() {
             </div>
 
             <div className="flex gap-2">
-              <TextField
-                label="Đường dẫn ảnh (URL) *"
-                variant="outlined"
-                fullWidth
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
-                size="small"
-              />
               <Button
-                type="button"
-                onClick={handleAddImage}
+                component="label"
                 variant="outlined"
                 startIcon={<AddCircle />}
+                disabled={isUploadingImage}
                 sx={{ textTransform: 'none', color: 'theme', borderColor: 'theme', '&:hover': { borderColor: '#007c69', bgcolor: 'rgba(0,146,124,0.04)' } }}
               >
-                Thêm
+                {isUploadingImage ? 'Đang tải lên...' : 'Tải ảnh lên'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleFileUpload}
+                />
               </Button>
             </div>
 
@@ -791,7 +848,7 @@ export default function AddProduct() {
                   4. Phân loại & Biến thể
                 </Typography>
                 <Typography variant="body2" className="text-xs text-gray-400 mt-0.5 m-0">
-                  Sản phẩm đơn giản có giá bán chung. Sản phẩm biến thể sẽ sinh giá & kho theo Màu/Size.
+                  Sản phẩm đơn giản có giá bán chung. Sản phẩm biến thể sẽ sinh giá & kho theo Màu/Kích thước.
                 </Typography>
               </div>
 
@@ -799,7 +856,7 @@ export default function AddProduct() {
                 <button
                   type="button"
                   onClick={() => { setProductType('simple'); setIsDirty(true); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${productType === 'simple' ? 'bg-[theme] text-white shadow-sm' : 'text-gray-500 bg-transparent'
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${productType === 'simple' ? 'bg-theme text-white shadow-sm' : 'text-gray-500 bg-transparent'
                     }`}
                 >
                   Sản phẩm đơn giản
@@ -807,7 +864,7 @@ export default function AddProduct() {
                 <button
                   type="button"
                   onClick={() => { setProductType('variable'); setIsDirty(true); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${productType === 'variable' ? 'bg-[theme] text-white shadow-sm' : 'text-gray-500 bg-transparent'
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${productType === 'variable' ? 'bg-theme text-white shadow-sm' : 'text-gray-500 bg-transparent'
                     }`}
                 >
                   Nhiều biến thể
@@ -851,17 +908,7 @@ export default function AddProduct() {
                     value={simpleStock}
                     onChange={(e) => { setSimpleStock(e.target.value); setIsDirty(true); }}
                     error={!!errors.simpleStock}
-                    helperText={errors.simpleStock || '-1 nghĩa là Vô hạn'}
-                    size="small"
-                  />
-                </div>
-                <div>
-                  <TextField
-                    label="Mã SKU (tự sinh nếu bỏ trống)"
-                    variant="outlined"
-                    fullWidth
-                    value={simpleSku}
-                    onChange={(e) => { setSimpleSku(e.target.value); setIsDirty(true); }}
+                    helperText={errors.simpleStock}
                     size="small"
                   />
                 </div>
@@ -898,7 +945,7 @@ export default function AddProduct() {
                           }}
                           placeholder={idx === 0 ? 'colorName' : 'size'}
                           size="small"
-                          helperText="Khuyên dùng 'colorName' cho màu sắc và 'size' cho kích thước"
+                          helperText="Khuyên dùng 'color' cho màu sắc và 'size' cho kích thước"
                           sx={{ mb: 1.5 }}
                         />
 
@@ -952,7 +999,6 @@ export default function AddProduct() {
                             <TableCell className="font-bold text-gray-600 w-44">Giá bán *</TableCell>
                             <TableCell className="font-bold text-gray-600 w-44">Giá vốn *</TableCell>
                             <TableCell className="font-bold text-gray-600 w-28">Tồn kho *</TableCell>
-                            <TableCell className="font-bold text-gray-600">Mã SKU</TableCell>
                             <TableCell className="font-bold text-gray-600">Ảnh URL</TableCell>
                           </TableRow>
                         </TableHead>
@@ -963,7 +1009,7 @@ export default function AddProduct() {
                                 <div className="flex gap-1 flex-wrap">
                                   {Object.entries(v.attributes).map(([key, val]) => (
                                     <span key={key} className="bg-gray-100 border border-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-[10px] font-medium">
-                                      {key === 'colorName' ? 'Màu' : (key === 'size' ? 'Size' : key)}: {val}
+                                      {key === 'color' ? 'Màu' : (key === 'size' ? 'Size' : key)}: {val}
                                     </span>
                                   ))}
                                 </div>
@@ -1002,19 +1048,9 @@ export default function AddProduct() {
                                 />
                               </TableCell>
                               <TableCell>
-                                <TextField
-                                  value={v.skuCode}
-                                  onChange={(e) => handleUpdateVariant(idx, 'skuCode', e.target.value)}
-                                  placeholder="Auto"
-                                  size="small"
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <TextField
-                                  value={v.variantImage}
-                                  onChange={(e) => handleUpdateVariant(idx, 'variantImage', e.target.value)}
-                                  placeholder="Link ảnh"
-                                  size="small"
+                                <VariantImageCell 
+                                  imageUrl={v.variantImage || ''} 
+                                  onUpdate={(url) => handleUpdateVariant(idx, 'variantImage', url)} 
                                 />
                               </TableCell>
                             </TableRow>

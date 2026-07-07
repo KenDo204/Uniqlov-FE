@@ -88,8 +88,6 @@ const CategoryList: React.FC = () => {
           categoryName: category.categoryName,
           categoryStatus: isChecked ? 1 : 0,
           iconUrl: category.iconUrl,
-          targetDemographic: category.targetDemographic,
-          categoryType: category.categoryType,
           displayOrder: category.displayOrder
         });
         toast.success(`Đã cập nhật trạng thái hoạt động: ${category.categoryName}`);
@@ -127,7 +125,16 @@ const CategoryList: React.FC = () => {
                 )}
               </div>
 
-              {level === 0 ? (
+              {category.iconUrl ? (
+                <img 
+                  src={category.iconUrl} 
+                  alt={category.categoryName} 
+                  className="w-8 h-8 rounded object-cover mr-2 border border-gray-100 bg-white shadow-sm"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/100x100?text=No+Image';
+                  }}
+                />
+              ) : level === 0 ? (
                 <FolderOpen className="text-blue-500 mr-2" fontSize="small" />
               ) : level === 1 ? (
                 <Folder className="text-emerald-500 mr-2" fontSize="small" />

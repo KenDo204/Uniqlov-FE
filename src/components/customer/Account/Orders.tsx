@@ -205,12 +205,7 @@ export function Orders() {
                               <span>Tiền sản phẩm:</span>
                               <span className="text-gray-800">{formatVND(details.totalProductMoney)}</span>
                             </div>
-                            {details.shopDiscountAmount > 0 && (
-                              <div className="flex justify-between md:justify-end gap-10 text-red-500">
-                                <span>Giảm giá coupon:</span>
-                                <span>-{formatVND(details.shopDiscountAmount)}</span>
-                              </div>
-                            )}
+
                             <div className="flex justify-between md:justify-end gap-10">
                               <span>Phí giao hàng:</span>
                               <span className="text-gray-800">{details.originalShippingFee === 0 ? 'Miễn phí' : formatVND(details.originalShippingFee)}</span>

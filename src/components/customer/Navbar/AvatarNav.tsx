@@ -85,7 +85,7 @@ const AvatarNav = ({ user }: { user: UserResponse | null }) => {
         <Box sx={{ cursor: "pointer", '&:hover': { opacity: 0.8, boxShadow: "0 0 0 1px #00927c", borderRadius: '50%', transition: "all 0.3s ease-in-out" } }}
           className='relative' onClick={handleClick('bottom-start')}>
           <Avatar
-            src=""
+            src={user?.avatar}
             alt={user?.fullName || user?.email || 'User'}
           >
             {user?.fullName ? user.fullName[0].toUpperCase() : (user?.email ? user.email[0].toUpperCase() : 'U')}

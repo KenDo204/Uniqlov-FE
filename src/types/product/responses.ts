@@ -53,6 +53,15 @@ export interface ProductResponse {
   
   /** Trả về chuẩn ISO 8601 string (VD: '2026-06-23T11:00:00') */
   createdAt: string;
+  updatedAt: string;
+
+  minPrice: number;
+  maxPrice: number;
+  viewCount: number;
+  soldCount: number;
+  ratingAvg: number;
+  ratingCount: number;
+  popularityScore: number;
 
   variants: ProductVariantResponse[];
   images: ProductImageResponse[];

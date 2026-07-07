@@ -81,8 +81,8 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
         className='relative'
         onClick={handleClick('bottom-end')}
       >
-        <Avatar src="" alt={admin?.fullName || admin?.email}>
-          {admin?.fullName ? admin.fullName[0].toUpperCase() : 'A'}
+        <Avatar src={admin?.avatar} alt={admin?.fullName || admin?.email}>
+          {admin?.fullName ? admin.fullName[0].toUpperCase() : (admin?.email ? admin.email[0].toUpperCase() : 'U')}
         </Avatar>
         <ArrowDropDown sx={{ position: "absolute", bottom: -4, right: -4, fontSize: 22, color: "#00927c", bgcolor: 'white', borderRadius: '50%' }} />
       </Box>
@@ -127,11 +127,11 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
 
                 <MenuItem
                   sx={{
-                    background: 'linear-gradient(to right, theme, theme)',
+                    background: 'linear-gradient(to right, #00927c, #00927c)',
                     color: 'white',
                     borderRadius: 1,
                     '&:hover': {
-                      background: 'linear-gradient(to right, theme, theme)',
+                      background: 'linear-gradient(to right, #00927c, #00927c)',
                       color: 'white',
                     }
                   }}

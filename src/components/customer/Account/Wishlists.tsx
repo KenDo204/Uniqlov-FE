@@ -76,13 +76,13 @@ export function Wishlists() {
                   {item.productName}
                 </h3>
                 <p className="text-gray-400 text-[12px] m-0">Trạng thái: {item.inStock ? 'Còn hàng' : 'Hết hàng'}</p>
-                <p className="font-bold text-[15px] m-0 mt-2">{formatVND(item.minPrice)}</p>
+                <p className="font-bold text-[15px] m-0 mt-2 text-theme">{formatVND(item.minPrice)}</p>
               </div>
 
               {/* Nút xem chi tiết */}
               <button
                 onClick={() => navigate(`/product/${item.productSlug}`)}
-                className="w-full mt-4 py-2.5 border border-black text-[12px] font-bold uppercase tracking-wide bg-white text-black hover:bg-black hover:text-white transition-colors cursor-pointer"
+                className="w-full mt-4 py-2.5 border border-theme text-theme text-[12px] font-bold uppercase tracking-wide bg-white text-black hover:bg-theme hover:text-white transition-colors cursor-pointer"
               >
                 Xem chi tiết
               </button>

@@ -1,17 +1,40 @@
-import { mockCategories } from '@/constants/mock-categories';
+import { useEffect } from 'react';
+import { useCategory } from '@/hooks/useCategory';
 
 export function CategorySection() {
+  const { categories, fetchPublicCategories } = useCategory();
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      fetchPublicCategories();
+    }
+  }, [categories.length, fetchPublicCategories]);
+
+  // Lấy 6 danh mục hiển thị
+  const displayCategories = categories.slice(0, 6);
+
   return (
     <section className="max-w-[1200px] mx-auto px-4 py-16 md:py-24">
-      <h3 className="text-xl md:text-2xl font-medium text-center mb-12">Tìm theo danh mục</h3>
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-12 gap-x-4">
-        {mockCategories[0].items.slice(0, 6).map((cat) => (
-          <div key={cat.category_id} className="flex flex-col items-center group cursor-pointer text-center">
-            <div className="w-20 h-20 md:w-28 md:h-28 mb-4 transition-transform duration-300 group-hover:-translate-y-2">
-              <img src={cat.icon_url} alt={cat.category_name} className="w-full h-full object-contain mix-blend-multiply" />
+      <h3 className="text-[22px] md:text-[28px] font-bold text-center mb-14 uppercase tracking-wide text-gray-900">
+        Tìm theo danh mục
+      </h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-12 gap-x-6">
+        {displayCategories.map((cat) => (
+          <div
+            key={cat.categoryId}
+            className="flex flex-col items-center group cursor-pointer text-center"
+          >
+            {/* Vùng chứa ảnh: kích thước to hơn, bo tròn mềm mại và hover effect */}
+            <div className="w-32 h-32 md:w-40 md:h-40 mb-6 transition-all duration-300 transform group-hover:-translate-y-2 group-hover:shadow-lg bg-gray-50 rounded-full flex items-center justify-center p-6 border border-gray-100 group-hover:border-[var(--color-theme)]">
+              <img
+                src={cat.iconUrl || 'https://via.placeholder.com/150'}
+                alt={cat.categoryName}
+                className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
+              />
             </div>
-            <span className="text-[11px] md:text-xs font-medium uppercase text-gray-700 group-hover:text-black tracking-wide leading-snug">
-              {cat.category_name}
+            {/* Tên danh mục: chữ to hơn, hiện đại */}
+            <span className="text-[14px] md:text-[15px] font-bold uppercase text-gray-700 group-hover:text-[var(--color-theme)] tracking-wider leading-snug transition-colors">
+              {cat.categoryName}
             </span>
           </div>
         ))}

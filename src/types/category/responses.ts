@@ -13,9 +13,7 @@ export interface CategoryResponse {
   parentId?: number;
   
   iconUrl?: string;
-  targetDemographic?: number;
-  categoryType?: string;
   displayOrder?: number;
-
+  updatedAt?: string;
   children: CategoryResponse[];
 }

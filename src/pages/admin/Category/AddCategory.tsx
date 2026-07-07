@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
-  TextField, Button, CircularProgress, Box, MenuItem
+  TextField, Button, CircularProgress, Box
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ArrowBack, KeyboardArrowRight, Save } from '@mui/icons-material';
 import { useCategory } from '@/hooks/useCategory';
 import { toast } from 'react-toastify';
 import ParentCategoryPicker from '@/components/admin/Category/ParentCategoryPicker';
+import { useUpload } from '@/hooks/useUpload';
+import { uploadService } from '@/services/uploadService';
 
 const AddCategory: React.FC = () => {
   const navigate = useNavigate();
@@ -18,8 +20,8 @@ const AddCategory: React.FC = () => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const [iconUrl, setIconUrl] = useState('');
-  const [categoryType, setCategoryType] = useState('');
-  const [targetDemographic, setTargetDemographic] = useState<number>(0);
+  const { isUploading, uploadFile } = useUpload(uploadService.uploadCategoryIcon);
+
   const [displayOrder, setDisplayOrder] = useState<number>(0);
 
   useEffect(() => {
@@ -29,6 +31,19 @@ const AddCategory: React.FC = () => {
       });
     }
   }, [categories, fetchAdminCategories]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const url = await uploadFile(file);
+    if (url) {
+      setIconUrl(url);
+      toast.success('Tải ảnh lên thành công!');
+    }
+    // Reset file input value to allow selecting the same file again
+    e.target.value = '';
+  };
 
   const handleConfirmParent = (selectedId: number | null, pathText: string) => {
     setParentId(selectedId);
@@ -48,8 +63,6 @@ const AddCategory: React.FC = () => {
         categoryName: categoryName.trim(),
         parentId: parentId ?? undefined,
         iconUrl: iconUrl.trim() || undefined,
-        targetDemographic: targetDemographic || undefined,
-        categoryType: categoryType.trim() || undefined,
         displayOrder: displayOrder || undefined,
       });
 
@@ -116,55 +129,7 @@ const AddCategory: React.FC = () => {
               <p className="text-xs text-gray-400 mt-2 ml-1">Nhấp vào khung trên để mở bảng chọn danh mục cha.</p>
             </Box>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Box>
-                <TextField
-                  fullWidth
-                  label="Loại danh mục (Type)"
-                  variant="outlined"
-                  value={categoryType}
-                  onChange={(e) => setCategoryType(e.target.value)}
-                  placeholder="VD: PHYSICAL, DIGITAL..."
-                  sx={{
-                    backgroundColor: 'white',
-                    borderRadius: '0.75rem',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '0.75rem',
-                      transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: 'theme' },
-                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
-                  }}
-                />
-              </Box>
 
-              <Box>
-                <TextField
-                  fullWidth
-                  select
-                  label="Nhóm khách hàng (Demographic)"
-                  value={targetDemographic}
-                  onChange={(e) => setTargetDemographic(Number(e.target.value))}
-                  sx={{
-                    backgroundColor: 'white',
-                    borderRadius: '0.75rem',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '0.75rem',
-                      transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: 'theme' },
-                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
-                  }}
-                >
-                  <MenuItem value={0}>Tất cả</MenuItem>
-                  <MenuItem value={1}>Nam</MenuItem>
-                  <MenuItem value={2}>Nữ</MenuItem>
-                  <MenuItem value={3}>Trẻ em</MenuItem>
-                </TextField>
-              </Box>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Box>
@@ -191,25 +156,57 @@ const AddCategory: React.FC = () => {
               </Box>
 
               <Box>
-                <TextField
-                  fullWidth
-                  label="Đường dẫn Icon (URL)"
-                  variant="outlined"
-                  value={iconUrl}
-                  onChange={(e) => setIconUrl(e.target.value)}
-                  placeholder="VD: https://example.com/icon.png"
-                  sx={{
-                    backgroundColor: 'white',
-                    borderRadius: '0.75rem',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '0.75rem',
-                      transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: 'theme' },
-                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
-                  }}
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Icon Danh mục</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-16 h-16 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 flex-shrink-0">
+                    {isUploading ? (
+                      <CircularProgress size={24} sx={{ color: 'theme' }} />
+                    ) : iconUrl ? (
+                      <img src={iconUrl} alt="Icon preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] text-gray-400 text-center">Trống</span>
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      value={iconUrl}
+                      onChange={(e) => setIconUrl(e.target.value)}
+                      placeholder="Nhập URL hoặc tải ảnh lên"
+                      size="small"
+                      sx={{
+                        backgroundColor: 'white',
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '0.5rem',
+                          '&:hover fieldset': { borderColor: 'theme' },
+                          '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '1px' },
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      disabled={isUploading}
+                      size="small"
+                      sx={{
+                        color: 'theme',
+                        borderColor: 'theme',
+                        textTransform: 'none',
+                        borderRadius: '0.5rem',
+                        '&:hover': { borderColor: 'theme', backgroundColor: '#f0fdfa' }
+                      }}
+                    >
+                      {isUploading ? 'Đang tải...' : 'Chọn ảnh tải lên'}
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={handleFileChange}
+                      />
+                    </Button>
+                  </div>
+                </div>
               </Box>
             </div>
 
