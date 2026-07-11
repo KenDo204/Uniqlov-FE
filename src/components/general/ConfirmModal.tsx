@@ -1,21 +1,24 @@
-import { type Dispatch, type SetStateAction } from 'react';
+import { type Dispatch, type SetStateAction, type ReactNode } from 'react';
 import {
     Dialog,
     DialogTitle,
     DialogContent,
     DialogContentText,
     DialogActions,
-    Button
+    Button,
+    Box
 } from '@mui/material';
 
 interface ConfirmModalProps {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
     title: string;
-    content: string;
+    content: ReactNode | string;
     onConfirm: () => void;
     confirmText?: string;
     cancelText?: string;
+    confirmDisabled?: boolean;
+    maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false;
 }
 
 const ConfirmModal = ({ 
@@ -25,7 +28,9 @@ const ConfirmModal = ({
     content, 
     onConfirm, 
     confirmText = "Xác nhận", 
-    cancelText = "Hủy" 
+    cancelText = "Hủy",
+    confirmDisabled = false,
+    maxWidth = "xs"
 }: ConfirmModalProps) => {
 
     const handleClose = () => {
@@ -43,25 +48,32 @@ const ConfirmModal = ({
             onClose={handleClose}
             aria-labelledby="confirm-dialog-title"
             aria-describedby="confirm-dialog-description"
-            maxWidth="xs"
+            maxWidth={maxWidth}
             fullWidth
         >
             <DialogTitle id="confirm-dialog-title" sx={{ fontWeight: 'bold' }}>
                 {title}
             </DialogTitle>
-            <DialogContent>
-                <DialogContentText id="confirm-dialog-description">
-                    {content}
-                </DialogContentText>
+            <DialogContent sx={{ pb: typeof content === 'string' ? undefined : 0 }}>
+                {typeof content === 'string' ? (
+                    <DialogContentText id="confirm-dialog-description">
+                        {content}
+                    </DialogContentText>
+                ) : (
+                    <Box id="confirm-dialog-description">
+                        {content}
+                    </Box>
+                )}
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
+            <DialogActions sx={{ px: 3, pb: 2, pt: 1 }}>
                 <Button 
                     onClick={handleClose} 
                     sx={{ 
                         bgcolor: 'var(--color-cancel)', 
-                        font: '14pt',
+                        fontSize: '14px',
                         fontWeight: 'bold',
                         textTransform: 'uppercase',
+                        color: 'white',
                         '&:hover': { bgcolor: 'var(--color-cancel-hover)' }
                     }}
                 >
@@ -69,13 +81,14 @@ const ConfirmModal = ({
                 </Button>
                 <Button 
                     onClick={handleConfirm} 
+                    disabled={confirmDisabled}
                     autoFocus 
                     variant="contained"
                     disableElevation
                     sx={{ 
                         bgcolor: 'var(--color-theme)', 
                         textTransform: 'uppercase', 
-                        font: '14pt',
+                        fontSize: '14px',
                         fontWeight: 'bold',
                         '&:hover': { bgcolor: 'var(--color-theme-hover)' }
                     }}

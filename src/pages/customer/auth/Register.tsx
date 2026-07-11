@@ -208,6 +208,7 @@ export function Register() {
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
                       timer={30}
+                      timerKey="register_otp"
                     />
                   )}
                 />

@@ -44,7 +44,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           ) : (
             cartItems.map((item) => (
               <div key={item.id} className="flex gap-3 items-center text-xs border-b border-unilo-border dark:border-gray-850 pb-3 text-left transition-all duration-300">
-                <img src={item.image} alt={item.name} className="w-12 h-16 object-cover rounded-lg shrink-0" />
+                <img src={item.variantImage} alt={item.name} className="w-12 h-16 object-cover rounded-lg shrink-0" />
                 <div className="min-w-0 flex-1">
                   <h4 className="font-heading font-bold text-gray-955 dark:text-white truncate m-0 leading-tight">
                     {item.name}

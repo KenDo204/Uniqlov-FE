@@ -3,7 +3,6 @@ import { useCartStore } from '@/stores/useCartStore';
 import { mockProducts } from '@/features/products';
 import { toast } from 'react-toastify';
 import { useAppSelector } from '@/stores/hooks';
-import { useCoupon } from '@/hooks/useCoupon';
 import { useCart } from '@/hooks/useCart';
 import { useProduct } from '@/hooks/useProduct';
 import BackHome from '@/components/general/BackHomeButton';
@@ -19,15 +18,7 @@ export function Cart() {
   const { items, removeItem, updateQuantity } = useCartStore();
   const { fetchCart, changeVariant } = useCart();
   const { fetchProductVariants, products, fetchPublicProducts } = useProduct();
-  const { previewApplyCoupon } = useCoupon();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-
-  const [couponCode, setCouponCode] = useState('');
-  const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FIXED_AMOUNT' | null>(null);
-  const [discountValue, setDiscountValue] = useState<number>(0);
-  const [couponSuccess, setCouponSuccess] = useState(false);
-  const [couponDescription, setCouponDescription] = useState('');
-  const [isCouponOpen, setIsCouponOpen] = useState(false);
 
   // States for changing variants
   const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
@@ -165,37 +156,7 @@ export function Cart() {
   // Financial calculations
   const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const discountAmount = useMemo(() => {
-    if (discountType === 'PERCENTAGE') return Math.round(rawSubtotal * (discountValue / 100));
-    if (discountType === 'FIXED_AMOUNT') return discountValue;
-    return 0;
-  }, [rawSubtotal, discountType, discountValue]);
-
-  // FIX: Restore the calculation for total
-  const total = Math.max(0, rawSubtotal - discountAmount);
-
-  const handleApplyCoupon = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const code = couponCode.trim().toUpperCase();
-    if (!code) return;
-
-    if (isAuthenticated) {
-      try {
-        const result = await previewApplyCoupon({ couponCode: code, orderAmount: rawSubtotal });
-        if (result) {
-          setDiscountType('FIXED_AMOUNT');
-          setDiscountValue(result.discountAmount);
-          setCouponSuccess(true);
-          setCouponDescription(result.description || `Mã giảm giá ${code} đã được áp dụng`);
-          toast.success(`Áp dụng mã thành công: ${result.description || code}`);
-        }
-      } catch (err: any) {
-        toast.error(err || 'Mã giảm giá không hợp lệ cho đơn hàng này.');
-      }
-    } else {
-      toast.info('Vui lòng đăng nhập để sử dụng mã giảm giá.');
-    }
-  };
+  const total = rawSubtotal;
 
   // Cross-sell recommendations
   const crossSellItems = useMemo(() => {
@@ -251,15 +212,7 @@ export function Cart() {
             <OrderSummary
               itemCount={items.length}
               rawSubtotal={rawSubtotal}
-              discountAmount={discountAmount}
               total={total}
-              isCouponOpen={isCouponOpen}
-              setIsCouponOpen={setIsCouponOpen}
-              couponCode={couponCode}
-              setCouponCode={setCouponCode}
-              handleApplyCoupon={handleApplyCoupon}
-              couponSuccess={couponSuccess}
-              couponDescription={couponDescription}
             />
           </div>
         )}

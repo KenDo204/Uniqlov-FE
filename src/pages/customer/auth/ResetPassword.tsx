@@ -111,6 +111,7 @@ export function ResetPassword() {
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                   timer={30}
+                  timerKey="forgot_pw_otp"
                 />
               )}
             />

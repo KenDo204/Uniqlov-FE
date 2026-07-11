@@ -22,7 +22,7 @@ const AddCategory: React.FC = () => {
   const [iconUrl, setIconUrl] = useState('');
   const { isUploading, uploadFile } = useUpload(uploadService.uploadCategoryIcon);
 
-  const [displayOrder, setDisplayOrder] = useState<number>(0);
+  const [displayOrder] = useState<number>(0);
 
   useEffect(() => {
     if (!categories || categories.length === 0) {
@@ -132,7 +132,7 @@ const AddCategory: React.FC = () => {
 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Box>
+              {/* <Box>
                 <TextField
                   fullWidth
                   label="Thứ tự hiển thị"
@@ -153,7 +153,7 @@ const AddCategory: React.FC = () => {
                     '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
-              </Box>
+              </Box> */}
 
               <Box>
                 <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Icon Danh mục</label>

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { CreditCard, ArrowRight, CheckCircle2 } from '@/components/ui/icons';
+import { useNavigate } from 'react-router-dom';
+import { CreditCard, ArrowRight, ChevronLeft, Ticket, CheckCircle2 } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
 import BackHome from '@/components/general/BackHomeButton';
 import { formatVND } from '../../utils/formatters';
@@ -13,13 +13,16 @@ import { useGhn } from '@/hooks/useGhn';
 import { useProduct } from '@/hooks/useProduct';
 import type { AddressResponse } from '@/types/address';
 import AddressSelectionModal from '@/components/customer/Account/AddressSelectionModal';
-
+import CreateAddressModal from '@/components/customer/Account/createAdressModal';
+import OrderSuccess from '@/components/customer/Checkout/OrderSuccess';
+import { getOptimalCoupon } from '@/utils/couponUtils';
+import type { CouponResponse } from '@/types/coupon/responses';
 
 export function Checkout() {
   const navigate = useNavigate();
   const { items, clearCart } = useCart();
   const { checkout } = useOrder();
-  const { previewApplyCoupon } = useCoupon();
+  const { previewApplyCoupon, coupons, fetchAllCoupons } = useCoupon();
   const { user, isAuthenticated } = useAuth();
   const { addresses, fetchAddresses } = useAddress();
   const { shippingFee, calculateShippingFee } = useGhn();
@@ -34,6 +37,7 @@ export function Checkout() {
 
   const [selectedAddress, setSelectedAddress] = useState<AddressResponse | null>(null);
   const [isAddressListOpen, setIsAddressListOpen] = useState(false);
+  const [isCreateAddressOpen, setIsCreateAddressOpen] = useState(false);
 
   React.useEffect(() => {
     if (user) {
@@ -47,6 +51,8 @@ export function Checkout() {
         if (addrs && addrs.length > 0) {
           const def = addrs.find(a => a.isDefault) || addrs[0];
           setSelectedAddress(def);
+        } else {
+          setSelectedAddress(null);
         }
       }).catch(err => {
         console.error('Error fetching addresses:', err);
@@ -72,8 +78,16 @@ export function Checkout() {
       const last = nameParts.slice(0, nameParts.length - 1).join(' ') || '';
       setFirstName(first);
       setLastName(last);
+    } else {
+      // Clear if no address
+      if (!user) {
+        setPhone('');
+        setAddress('');
+        setFirstName('');
+        setLastName('');
+      }
     }
-  }, [selectedAddress]);
+  }, [selectedAddress, user]);
 
   // Helper to calculate shipping fee via GHN
   const calculateFeeForAddress = React.useCallback(async (addr: AddressResponse) => {
@@ -107,9 +121,12 @@ export function Checkout() {
   }, [selectedAddress, items, products, calculateFeeForAddress]);
   
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'vnpay' | 'momo'>('cod');
-  const [coupon, setCoupon] = useState('');
-  const [discountPercent, setDiscountPercent] = useState(0);
-  const [fixedDiscount, setFixedDiscount] = useState(0);
+  const [selectedCoupon, setSelectedCoupon] = useState<CouponResponse | null>(null);
+  const [appliedDiscountAmount, setAppliedDiscountAmount] = useState(0);
+  const [manualCouponCode, setManualCouponCode] = useState('');
+  const [isAutoApplied, setIsAutoApplied] = useState(false);
+  const [hasUserInteractedWithCoupon, setHasUserInteractedWithCoupon] = useState(false);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
@@ -121,17 +138,63 @@ export function Checkout() {
     }
   }, [isAuthenticated, navigate]);
 
+  // Fetch all coupons on mount if authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      fetchAllCoupons(0, 100).catch(err => console.error('Error fetching coupons:', err));
+    }
+  }, [isAuthenticated, fetchAllCoupons]);
 
+  // Financial calculations
+  const rawSubtotal = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items]);
 
-  const handleApplyCoupon = async () => {
-    const code = coupon.trim().toUpperCase();
+  // Auto-suggest optimal coupon
+  React.useEffect(() => {
+    if (coupons.length > 0 && rawSubtotal > 0 && !hasUserInteractedWithCoupon) {
+      const { coupon, discountAmount } = getOptimalCoupon(coupons, rawSubtotal);
+      if (coupon) {
+        setSelectedCoupon(coupon);
+        setAppliedDiscountAmount(discountAmount);
+        setIsAutoApplied(true);
+      } else {
+        setSelectedCoupon(null);
+        setAppliedDiscountAmount(0);
+        setIsAutoApplied(false);
+      }
+    }
+  }, [coupons, rawSubtotal, hasUserInteractedWithCoupon]);
+
+  const handleApplyManualCoupon = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const code = manualCouponCode.trim().toUpperCase();
     if (!code) return;
 
     try {
       const result = await previewApplyCoupon({ couponCode: code, orderAmount: rawSubtotal });
       if (result) {
-        setFixedDiscount(result.discountAmount);
-        setDiscountPercent(0);
+        // Find if it exists in list to show details, or just construct a mock CouponResponse
+        const matchedCoupon = coupons.find(c => c.code === code);
+        
+        if (matchedCoupon) {
+          setSelectedCoupon(matchedCoupon);
+        } else {
+          // If not in list (hidden/private coupon), mock it for UI
+          setSelectedCoupon({
+            couponId: 0,
+            code: code,
+            discountType: 'FIXED_AMOUNT',
+            discountValue: result.discountAmount,
+            description: result.description || `Mã ${code}`,
+            isActive: true,
+            startDate: new Date().toISOString(),
+            endDate: new Date(Date.now() + 86400000).toISOString()
+          } as CouponResponse);
+        }
+        
+        setAppliedDiscountAmount(result.discountAmount);
+        setHasUserInteractedWithCoupon(true);
+        setIsAutoApplied(false);
+        setManualCouponCode('');
         toast.success(`Áp dụng thành công mã: ${result.description || code}`);
       }
     } catch (err: any) {
@@ -139,15 +202,29 @@ export function Checkout() {
     }
   };
 
-  // Financial calculations
-  const rawSubtotal = useMemo(() => items.reduce((sum, item) => sum + item.price * item.quantity, 0), [items]);
-  
-  const discountAmount = useMemo(() => {
-    if (fixedDiscount > 0) return fixedDiscount;
-    return Math.round(rawSubtotal * discountPercent);
-  }, [rawSubtotal, discountPercent, fixedDiscount]);
+  const handleSelectCoupon = (coupon: CouponResponse) => {
+    if (coupon.minOrderAmount && rawSubtotal < coupon.minOrderAmount) {
+      toast.error(`Đơn hàng chưa đạt giá trị tối thiểu ${formatVND(coupon.minOrderAmount)}`);
+      return;
+    }
+    
+    // Recalculate discount
+    const { discountAmount } = getOptimalCoupon([coupon], rawSubtotal);
+    setSelectedCoupon(coupon);
+    setAppliedDiscountAmount(discountAmount);
+    setHasUserInteractedWithCoupon(true);
+    setIsAutoApplied(false);
+    toast.success(`Đã chọn mã: ${coupon.code}`);
+  };
 
-  const subtotal = Math.max(0, rawSubtotal - discountAmount);
+  const handleCancelCoupon = () => {
+    setSelectedCoupon(null);
+    setAppliedDiscountAmount(0);
+    setHasUserInteractedWithCoupon(true);
+    setIsAutoApplied(false);
+  };
+
+  const subtotal = Math.max(0, rawSubtotal - appliedDiscountAmount);
   const shippingCost = useMemo(() => {
     if (rawSubtotal >= 1500000 || rawSubtotal === 0) return 0;
     return shippingFee?.total || 35000;
@@ -177,7 +254,7 @@ export function Checkout() {
       const payload = {
         cartItemIds,
         addressId: selectedAddress.addressId,
-        couponCode: coupon.trim() || undefined,
+        couponCode: selectedCoupon?.code || undefined,
         paymentMethod: paymentMethod.toUpperCase() as any, // 'COD' | 'VNPAY' | 'MOMO'
         shippingMethod: 'STANDARD' as const,
         note: `Tên: ${lastName} ${firstName}. Địa chỉ: ${address}, ${city}`
@@ -223,22 +300,21 @@ export function Checkout() {
         
         {/* Title & Secure Connection */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-8 gap-4">
-          <h1 className="text-[28px] md:text-[32px] font-medium m-0 tracking-tight">Thanh toán</h1>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => navigate('/cart')}
+              className="bg-transparent border-none p-0 cursor-pointer text-gray-500 hover:text-theme transition-colors flex items-center"
+              title="Quay lại giỏ hàng"
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </button>
+            <h1 className="text-[28px] md:text-[32px] font-medium m-0 tracking-tight">Thanh toán</h1>
+          </div>
         </div>
 
         {orderSuccess ? (
-          <div className="max-w-md mx-auto bg-white border border-gray-200 p-8 rounded-[4px] text-center space-y-6 shadow-sm animate-fade-in">
-            <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto animate-bounce" />
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-gray-900 m-0">Cảm ơn bạn đã đặt hàng!</h2>
-              <p className="text-sm text-gray-500 font-light leading-relaxed">
-                Xác nhận đơn hàng đã được gửi tới địa chỉ email của bạn. Thời gian giao hàng dự kiến từ 2-4 ngày làm việc.
-              </p>
-            </div>
-            <div className="flex justify-center w-full">
-              <BackHome className="w-full justify-center !py-3 !rounded-full bg-theme hover:bg-theme-hover text-white transition-colors border-none cursor-pointer font-bold" />
-            </div>
-          </div>
+          <OrderSuccess />
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-10 lg:gap-12 items-start">
             
@@ -315,19 +391,35 @@ export function Checkout() {
                     />
                   </div>
                 ) : (
-                  <div className="p-4 border border-red-200 bg-red-50 text-red-700 text-sm rounded-[4px] text-center font-medium">
-                    Bạn chưa có địa chỉ nhận hàng nào được lưu.
+                  <div className="p-5 border border-red-200 bg-red-50 text-red-700 text-sm rounded-[4px] flex flex-col items-center gap-3">
+                    <span className="font-medium">Bạn chưa có địa chỉ nhận hàng nào được lưu.</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateAddressOpen(true)}
+                      className="px-5 py-2 bg-theme text-white text-xs font-bold rounded-full hover:bg-theme-hover transition-colors border-none cursor-pointer uppercase"
+                    >
+                      + Thêm địa chỉ mới
+                    </button>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-2">
-                  <Link 
-                    to="/account/addresses" 
-                    className="text-theme font-medium text-xs hover:underline inline-flex items-center gap-1"
-                  >
-                    Quản lý sổ địa chỉ / Thêm địa chỉ mới
-                  </Link>
-                </div>
+                {selectedAddress && (
+                  <div className="flex justify-between items-center pt-2">
+                    <button 
+                      type="button"
+                      onClick={() => setIsAddressListOpen(true)}
+                      className="text-theme font-medium text-xs hover:underline inline-flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer"
+                    >
+                      Quản lý sổ địa chỉ / Thêm địa chỉ mới
+                    </button>
+                  </div>
+                )}
+                
+                {/* For handling "Thêm địa chỉ mới" directly from the empty state */}
+                <CreateAddressModal 
+                  open={isCreateAddressOpen} 
+                  setOpen={setIsCreateAddressOpen} 
+                />
               </div>
 
               {/* Step 3: Payment Options */}
@@ -375,33 +467,127 @@ export function Checkout() {
                     <span className="font-heading font-black text-sm text-blue-600">VNPay</span>
                     {/* Added transition and group-hover to target the text */}
                     <span className={`transition-colors ${paymentMethod !== 'vnpay' ? 'group-hover:text-theme' : ''}`}>
-                      VNPay / Thẻ
-                    </span>
-                  </button>
-
-                  {/* MoMo Button */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('momo')}
-                    // Added 'group' here
-                    className={`group py-4 px-2 rounded-[4px] text-[13px] font-bold border cursor-pointer transition-all flex flex-col items-center gap-2 bg-white ${
-                      paymentMethod === 'momo'
-                        ? 'border-theme border-[2px] text-theme font-extrabold shadow-sm'
-                        : 'border-gray-300 text-gray-500 hover:border-theme' // Changed hover to border-theme for consistency
-                    }`}
-                  >
-                    <span className="font-heading font-black text-sm text-pink-600">MoMo</span>
-                    {/* Added transition and group-hover to target the text */}
-                    <span className={`transition-colors ${paymentMethod !== 'momo' ? 'group-hover:text-theme' : ''}`}>
-                      Ví MoMo
+                      VNPay
                     </span>
                   </button>
                 </div>
                 <div className="p-4 bg-gray-50 border border-gray-200 rounded-[4px] text-center text-xs text-gray-600 font-light py-5">
                   {paymentMethod === 'cod'
                     ? 'Thanh toán trực tiếp bằng tiền mặt khi nhận hàng (COD).'
-                    : 'Xác thực thanh toán qua ứng dụng quét mã bảo mật sau khi bấm nút Đặt Hàng.'}
+                    : 'Xác thực thanh toán qua ứng dụng VNPAY sau khi bấm nút Đặt Hàng.'}
                 </div>
+              </div>
+
+              {/* Step 4: Mã giảm giá */}
+              <div className="bg-white border border-gray-200 p-6 rounded-[4px] space-y-5 shadow-sm">
+                <h3 className="text-base font-bold uppercase tracking-wider text-gray-800 m-0 border-b border-gray-100 pb-3 flex items-center gap-2">
+                  4. Mã giảm giá
+                </h3>
+                
+                {/* Auto Suggest Message */}
+                {isAutoApplied && selectedCoupon && (
+                  <div className="bg-green-50 border border-green-200 text-green-800 p-3 rounded-[4px] text-sm flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                    <span>
+                      🎉 Đã tự động chọn mã giảm giá <strong>{selectedCoupon.code}</strong> giúp bạn tiết kiệm nhiều nhất ({formatVND(appliedDiscountAmount)}).
+                    </span>
+                  </div>
+                )}
+
+                {/* Selected Coupon Info */}
+                {selectedCoupon ? (
+                  <div className="border border-theme bg-[rgba(0,146,124,0.05)] rounded-[4px] p-4 relative flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Ticket className="w-4 h-4 text-theme" />
+                        <span className="font-bold text-gray-900 uppercase">{selectedCoupon.code}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 m-0">{selectedCoupon.description}</p>
+                      <p className="text-xs font-bold text-theme m-0 mt-2">Giảm {formatVND(appliedDiscountAmount)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCancelCoupon}
+                      className="text-xs font-medium text-gray-500 hover:text-red-600 bg-transparent border-none p-1 cursor-pointer transition-colors"
+                    >
+                      Hủy bỏ
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic m-0">Bạn chưa chọn mã giảm giá nào.</p>
+                )}
+
+                {/* Manual input */}
+                <div className="flex gap-2 pt-2">
+                  <input
+                    type="text"
+                    placeholder="Nhập mã giảm giá (nếu có)"
+                    value={manualCouponCode}
+                    onChange={(e) => setManualCouponCode(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-[4px] text-sm focus:outline-none focus:border-black uppercase"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyManualCoupon}
+                    disabled={!manualCouponCode.trim()}
+                    className="px-4 py-2 bg-gray-900 text-white font-bold text-sm rounded-[4px] hover:bg-black transition-colors cursor-pointer border-none disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Áp dụng
+                  </button>
+                </div>
+
+                {/* Available coupons list */}
+                {coupons.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-bold text-gray-800 mb-3">Mã khả dụng cho bạn:</h4>
+                    <div className="max-h-60 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                      {coupons.filter(c => c.isActive).map(coupon => {
+                        const isApplicable = !coupon.minOrderAmount || rawSubtotal >= coupon.minOrderAmount;
+                        const isSelected = selectedCoupon?.couponId === coupon.couponId;
+                        
+                        return (
+                          <div 
+                            key={coupon.couponId} 
+                            className={`border rounded-[4px] p-3 transition-colors ${
+                              isSelected ? 'border-theme bg-[rgba(0,146,124,0.02)]' :
+                              isApplicable ? 'border-gray-200 bg-white hover:border-gray-400' : 
+                              'border-gray-100 bg-gray-50 opacity-60'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Ticket className={`w-4 h-4 ${isApplicable ? 'text-gray-700' : 'text-gray-400'}`} />
+                                  <span className={`font-bold ${isApplicable ? 'text-gray-900' : 'text-gray-500'} uppercase`}>{coupon.code}</span>
+                                </div>
+                                <p className={`text-xs ${isApplicable ? 'text-gray-600' : 'text-gray-400'} m-0 leading-snug`}>{coupon.description}</p>
+                                
+                                {coupon.minOrderAmount && !isApplicable && (
+                                  <p className="text-[11px] text-red-500 m-0 mt-1.5">
+                                    Cần mua thêm {formatVND(coupon.minOrderAmount - rawSubtotal)} để sử dụng
+                                  </p>
+                                )}
+                              </div>
+                              
+                              <button
+                                type="button"
+                                onClick={() => handleSelectCoupon(coupon)}
+                                disabled={!isApplicable || isSelected}
+                                className={`shrink-0 px-3 py-1.5 rounded-[4px] text-[11px] font-bold uppercase transition-colors border-none ${
+                                  isSelected ? 'bg-theme text-white' :
+                                  isApplicable ? 'bg-gray-900 text-white cursor-pointer hover:bg-black' :
+                                  'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                }`}
+                              >
+                                {isSelected ? 'Đang dùng' : 'Chọn'}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -416,7 +602,7 @@ export function Checkout() {
                 <div className="max-h-72 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-4 py-2 border-b border-gray-300 last:border-none">
-                      <img src={item.image} alt={item.name} className="w-14 h-18 object-cover bg-white border border-gray-300 shrink-0" />
+                      <img src={item.variantImage} alt={item.name} className="w-14 h-18 object-cover bg-white border border-gray-300 shrink-0" />
                       <div className="min-w-0 flex-1 flex flex-col justify-between">
                         <div>
                           <h4 className="font-medium text-[13px] text-gray-900 truncate m-0 leading-snug">{item.name}</h4>
@@ -440,34 +626,16 @@ export function Checkout() {
                   ))}
                 </div>
 
-                {/* Promo Code Input */}
-                <div className="flex gap-2 pt-2 border-t border-gray-300">
-                  <input
-                    type="text"
-                    placeholder="Mã giảm giá"
-                    value={coupon}
-                    onChange={(e) => setCoupon(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-[4px] text-xs focus:outline-none focus:border-black uppercase"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyCoupon}
-                    className="px-4 py-2 bg-theme text-white font-bold text-xs rounded-[4px] hover:bg-theme-hover transition-colors cursor-pointer border-none"
-                  >
-                    Áp dụng
-                  </button>
-                </div>
-
                 {/* Pricing summary details */}
                 <div className="space-y-3 text-xs md:text-sm border-t border-gray-300 pt-4">
                   <div className="flex justify-between items-center text-gray-750">
                     <span>Tạm tính</span>
                     <span>{formatVND(rawSubtotal)}</span>
                   </div>
-                  {discountAmount > 0 && (
+                  {appliedDiscountAmount > 0 && (
                     <div className="flex justify-between items-center text-red-650 font-medium">
                       <span>Mã giảm giá</span>
-                      <span>-{formatVND(discountAmount)}</span>
+                      <span>-{formatVND(appliedDiscountAmount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center text-gray-750">

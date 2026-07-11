@@ -13,7 +13,6 @@ import {
   About,
   Sustainability,
   Help,
-  Contact,
   Blog,
   BlogArticle,
   NotFound,
@@ -27,6 +26,8 @@ import {
   ResetPassword
 } from '../pages/customer';
 import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
+import ContactPage from '../pages/customer/Contact/ContactPage';
+import MyContactHistory from '../pages/customer/Contact/MyContactHistory';
 import { GuestGuard } from './GuestGuard';
 
 export const customerRoutes: RouteObject = {
@@ -72,12 +73,13 @@ export const customerRoutes: RouteObject = {
         { path: 'profile', element: <ProfileDetails /> },
         { path: 'addresses', element: <Addresses /> },
         { path: 'password', element: <ChangePassword /> },
+        { path: 'contacts', element: <MyContactHistory /> },
       ]
     },
     { path: 'about', element: <About /> },
     { path: 'sustainability', element: <Sustainability /> },
     { path: 'help', element: <Help /> },
-    { path: 'contact', element: <Contact /> },
+    { path: 'contact', element: <ContactPage /> },
     { path: 'blog', element: <Blog /> },
     { path: 'blog/:id', element: <BlogArticle /> },
     { path: '*', element: <NotFound /> }

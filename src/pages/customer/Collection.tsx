@@ -115,7 +115,7 @@ export function Collection() {
       id: `${product.product_id}-${activeColor}-${size}`,
       name: `${product.product_name} (${activeColor} / ${size})`,
       price: price,
-      image: image
+      variantImage: image
     }, 1);
 
     toast.success(`Đã thêm ${product.product_name} vào giỏ hàng.`);

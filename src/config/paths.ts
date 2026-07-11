@@ -2,7 +2,7 @@ export const paths = {
   home: '/',
   admin: {
     dashboard: '/admin/dashboard',
-    banners: '/admin/banners',
+    sliders: '/admin/sliders',
     brands: '/admin/brands',
     categories: '/admin/categories',
     products: '/admin/products',
@@ -11,6 +11,7 @@ export const paths = {
     permissions: '/admin/permissions',
     orders: '/admin/orders',
     coupons: '/admin/coupons',
+    contacts: '/admin/contacts',
   },
   owner: {
     dashboard: '/owner/dashboard',

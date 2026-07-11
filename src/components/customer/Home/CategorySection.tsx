@@ -14,8 +14,8 @@ export function CategorySection() {
   const displayCategories = categories.slice(0, 6);
 
   return (
-    <section className="max-w-[1200px] mx-auto px-4 py-16 md:py-24">
-      <h3 className="text-[22px] md:text-[28px] font-bold text-center mb-14 uppercase tracking-wide text-gray-900">
+    <section className="max-w-[1200px] mx-auto px-4 py-12 md:py-18">
+      <h3 className="text-[22px] md:text-[28px] font-bold text-center mb-10 uppercase tracking-wide text-gray-900">
         Tìm theo danh mục
       </h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-12 gap-x-6">

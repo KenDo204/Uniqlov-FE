@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ShoppingBag } from '@/components/ui/icons';
+import { Heart, ShoppingBag, Star } from '@/components/ui/icons';
 import { cn } from "@/lib/utils";
 import { formatVND } from '@/utils/formatters';
 import { paths } from '@/config/paths';
@@ -73,7 +73,7 @@ export function ProductCard({
   }, [product]);
   const isOutOfStock = !product.in_stock || totalStock === 0;
 
-  // Extract prices safely from the model (active variant or fallback to product)
+  // Extract prices safely from the model
   const salePrice = activeVariant?.price || product.variants?.[0]?.price || (product as any)?.price || 0;
   const originalPrice = 
     (activeVariant as any)?.originalPrice || 
@@ -92,21 +92,30 @@ export function ProductCard({
 
   const showDiscount = hasDiscount && discountPercent > 0;
 
+  // Calculate Ratings
+  const reviewCount = product.reviews?.length || 0;
+  const ratingAvg = reviewCount > 0 
+    ? (product.reviews.reduce((acc, r) => acc + r.rating, 0) / reviewCount).toFixed(1)
+    : 0;
+
+  const isBestSeller = product.in_popular;
+
   const productUrl = paths.customer.productDetail.replace(':id', product.product_slug);
 
   return (
     <div
-      className="group cursor-pointer text-left flex flex-col h-full bg-transparent"
+      className="group cursor-pointer text-left flex flex-col h-full bg-white transition-all duration-300 rounded-[4px] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
       onClick={() => navigate(productUrl)}
     >
       {/* Image Container */}
-      <div className="w-full aspect-[3/4] bg-gray-100 dark:bg-gray-800 overflow-hidden mb-4 relative">
+      <div className="w-full aspect-[3/4] bg-[#f7f7f7] rounded-t-[4px] overflow-hidden relative">
         {/* Main Image */}
         <img
           src={activeImage}
           alt={product.product_name}
+          loading="lazy"
           className={cn(
-            "w-full h-full object-cover transition-all duration-700 group-hover:scale-105",
+            "w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105",
             secondaryImage ? "group-hover:opacity-0" : ""
           )}
         />
@@ -115,74 +124,86 @@ export function ProductCard({
           <img
             src={secondaryImage}
             alt={`${product.product_name} secondary`}
-            className="absolute inset-0 w-full h-full object-cover transition-all duration-700 opacity-0 group-hover:opacity-100 group-hover:scale-105"
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out opacity-0 group-hover:opacity-100 group-hover:scale-105"
           />
         )}
 
-        {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
-          {isNewArrival && (
-            <span className="px-2 py-0.5 bg-black dark:bg-white text-white dark:text-black text-[9px] font-bold uppercase tracking-wider">
+        {/* Badges Overlay */}
+        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
+          {isOutOfStock && (
+            <span className="px-2 py-1 bg-gray-900/80 text-white text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm">
+              Hết hàng
+            </span>
+          )}
+          {!isOutOfStock && isNewArrival && (
+            <span className="px-2 py-1 bg-white/90 text-gray-900 text-[10px] font-bold uppercase tracking-widest border border-gray-200/50 shadow-sm backdrop-blur-sm">
               Mới
             </span>
           )}
-          {showDiscount && (
-            <span className="px-2 py-0.5 bg-red-600 text-white text-[9px] font-bold uppercase tracking-wider">
-              -{discountPercent}%
+          {!isOutOfStock && isBestSeller && !isNewArrival && (
+            <span className="px-2 py-1 bg-gray-100 text-gray-800 text-[10px] font-bold uppercase tracking-widest shadow-sm">
+              Bán chạy
             </span>
           )}
-          {isOutOfStock && (
-            <span className="px-2 py-0.5 bg-gray-500 text-white text-[9px] font-bold uppercase tracking-wider">
-              Hết hàng
+          {!isOutOfStock && showDiscount && (
+            <span className="px-2 py-1 bg-red-600/90 text-white text-[10px] font-bold uppercase tracking-widest shadow-sm backdrop-blur-sm">
+              -{discountPercent}%
             </span>
           )}
         </div>
 
-        {/* Action overlay buttons (Wishlist & Add to Cart) */}
-        <div className="absolute top-2.5 right-2.5 flex flex-col gap-2 z-10">
+        {/* Action overlay buttons */}
+        <div className="absolute bottom-3 right-3 flex flex-col gap-2 z-10 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
           <button
             onClick={handleToggleWishlist}
-            className={`p-1.5 bg-white/95 dark:bg-black/75 hover:bg-white dark:hover:bg-black rounded-full transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 border-none cursor-pointer shadow-sm flex items-center justify-center
-              ${isInWishlist ? 'text-red-500' : 'text-gray-700 dark:text-gray-300 hover:text-red-500'}`}
+            className={`w-9 h-9 flex items-center justify-center bg-white hover:bg-gray-50 rounded-full transition-colors border border-gray-100 shadow-sm
+              ${isInWishlist ? 'text-red-500' : 'text-gray-700 hover:text-red-500'}`}
             title="Yêu thích"
           >
-            <Heart className={`w-3.5 h-3.5 ${isInWishlist ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-current' : ''}`} />
           </button>
 
-          {onAddToCart && (
+          {onAddToCart && !isOutOfStock && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (!isOutOfStock) {
-                  onAddToCart(product, e, selectedColor);
-                }
+                onAddToCart(product, e, selectedColor);
               }}
-              disabled={isOutOfStock}
-              className={cn(
-                "p-1.5 bg-white/95 dark:bg-black/75 hover:bg-white dark:hover:bg-black text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 md:opacity-0 md:group-hover:opacity-100 border-none shadow-sm flex items-center justify-center",
-                isOutOfStock ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:text-theme dark:hover:text-white"
-              )}
-              title={isOutOfStock ? "Hết hàng" : "Mua nhanh"}
+              className="w-9 h-9 flex items-center justify-center bg-gray-900 hover:bg-black text-white rounded-full transition-colors shadow-sm"
+              title="Thêm vào giỏ"
             >
-              <ShoppingBag className="w-3.5 h-3.5" />
+              <ShoppingBag className="w-4 h-4" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Product Name */}
-      <h4 className="text-[13px] font-medium text-gray-800 dark:text-gray-200 leading-snug mb-2 group-hover:text-black dark:group-hover:text-white transition-colors line-clamp-2 hover:text-theme">
-        {product.product_name}
-      </h4>
+      {/* Product Info */}
+      <div className="p-4 flex flex-col flex-1 gap-2">
+        {/* Name */}
+        <h4 className="text-[13px] md:text-[14px] font-medium text-gray-700 leading-snug m-0 group-hover:text-black transition-colors line-clamp-2">
+          {product.product_name}
+        </h4>
 
-      {/* Pricing and Colors */}
-      <div className="flex flex-col gap-1.5 mt-auto">
-        <div className="flex items-center gap-2">
-          <span className="text-[15px] font-bold text-theme dark:text-white">
+        {/* Rating & Reviews */}
+        {reviewCount > 0 && (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="flex items-center text-amber-400">
+              <Star className="w-3 h-3 fill-current" />
+            </div>
+            <span className="text-[12px] font-medium text-gray-700">{ratingAvg}</span>
+            <span className="text-[12px] text-gray-400">({reviewCount})</span>
+          </div>
+        )}
+
+        {/* Pricing */}
+        <div className="flex items-end gap-2 mt-auto pt-1">
+          <span className="text-[15px] font-bold text-gray-900 tracking-tight">
             {formatVND(salePrice)}
           </span>
           {showDiscount && (
-            <span className="text-[11px] text-gray-400 dark:text-gray-500 line-through">
+            <span className="text-[12px] text-gray-400 line-through mb-0.5">
               {formatVND(originalPrice)}
             </span>
           )}
@@ -190,17 +211,17 @@ export function ProductCard({
 
         {/* Color Swatches */}
         {product.options_config?.colors?.length > 0 && (
-          <div className="flex gap-1.5 pt-0.5" onClick={(e) => e.stopPropagation()}>
+          <div className="flex gap-1.5 pt-2" onClick={(e) => e.stopPropagation()}>
             {product.options_config.colors.map((color) => (
               <button
                 key={color.colorName}
                 onClick={() => setSelectedColor(color.colorName)}
                 style={{ backgroundColor: color.colorCode }}
                 className={cn(
-                  "w-3 h-3 rounded-full border cursor-pointer hover:scale-110 transition-all duration-200",
+                  "w-3.5 h-3.5 rounded-full border border-gray-300 cursor-pointer transition-all duration-200 outline-none",
                   selectedColor.toLowerCase() === color.colorName.toLowerCase()
-                    ? "border-theme dark:border-white ring-1 ring-black/20 dark:ring-white/20 scale-110"
-                    : "border-gray-200 dark:border-gray-800"
+                    ? "ring-1 ring-offset-2 ring-gray-900 scale-110"
+                    : "hover:scale-110"
                 )}
                 title={color.colorName}
               />

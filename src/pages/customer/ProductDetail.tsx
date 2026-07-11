@@ -154,7 +154,7 @@ export function ProductDetail() {
         variantId: activeVariant.variant_id,
         name: product.product_name,
         price: itemPrice,
-        image: itemImage,
+        variantImage: itemImage,
         color: selectedColor,
         size: selectedSize,
         variantAttributes: {
@@ -187,7 +187,7 @@ export function ProductDetail() {
         variantId: activeVar.variant_id,
         name: prod.product_name,
         price: price,
-        image: image,
+        variantImage: image,
         color: activeColor,
         size: size,
         variantAttributes: {

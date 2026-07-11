@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
-import { EyeOff, Eye, Lock } from '@/components/ui/icons';
+import { EyeOff, Eye } from '@/components/ui/icons';
+import { useOtpTimer } from '@/hooks/useOtpTimer';
 
 const resetSchema = z.object({
   otp: z.string().min(6, 'Mã OTP phải đủ 6 ký tự').max(6, 'Mã OTP không quá 6 ký tự'),
@@ -26,21 +27,21 @@ export function ChangePassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const { timeLeft, startTimer, clearTimer } = useOtpTimer('change_pwd_otp', 60);
+
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ResetFormValues>({
     resolver: zodResolver(resetSchema),
     defaultValues: { otp: '', newPassword: '', confirmPassword: '' }
   });
 
   const handleSendOtp = async () => {
-    if (!user?.email) {
-      toast.error('Không tìm thấy email của bạn.');
-      return;
-    }
+    if (!user?.email || timeLeft > 0) return;
     
     setIsSendingOtp(true);
     try {
       await forgotPassword({ email: user.email });
       toast.success(`Mã OTP đã được gửi đến email ${user.email}`, { position: 'top-right' });
+      startTimer(60);
       setStep(2);
     } catch (err: any) {
       toast.error(err || 'Gửi yêu cầu thất bại.', { position: 'top-right' });
@@ -61,6 +62,7 @@ export function ChangePassword() {
       });
       toast.success('Đổi mật khẩu thành công!', { position: 'top-right' });
       reset();
+      clearTimer();
       setStep(1); // Quay lại bước gửi OTP hoặc để yên tùy nghiệp vụ
     } catch (err: any) {
       toast.error(err || 'Đổi mật khẩu thất bại.', { position: 'top-right' });
@@ -89,21 +91,33 @@ export function ChangePassword() {
           <button 
             type="button" 
             onClick={handleSendOtp}
-            disabled={isSendingOtp || !user?.email}
-            className="px-8 py-3 bg-black text-white text-[14px] uppercase border-none cursor-pointer hover:bg-gray-800 transition-colors w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={isSendingOtp || !user?.email || timeLeft > 0}
+            className="px-8 py-3 bg-[var(--color-theme)] text-white text-[14px] uppercase border-none cursor-pointer hover:bg-[var(--color-theme-hover)] transition-colors duration-200 w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isSendingOtp ? 'ĐANG GỬI MÃ...' : 'GỬI MÃ XÁC THỰC'}
+            {isSendingOtp ? 'ĐANG GỬI MÃ...' : timeLeft > 0 ? `VUI LÒNG ĐỢI ${timeLeft}S...` : 'GỬI MÃ XÁC THỰC'}
           </button>
         </div>
       ) : (
         <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex justify-between items-end mb-4">
             <h3 className="text-[18px] font-medium m-0">Xác thực và Đổi mật khẩu</h3>
-            <span className="text-[13px] text-theme">Bắt buộc <span className="text-theme">*</span></span>
+            <span className="text-[13px] text-[var(--color-theme)]">Bắt buộc <span className="text-[var(--color-theme)]">*</span></span>
           </div>
 
-          <div className="bg-green-50 text-green-700 p-3 rounded text-sm mb-4">
-            Mã OTP đã được gửi đến <b>{user?.email}</b>. Vui lòng kiểm tra hộp thư của bạn.
+          <div className="bg-green-50 text-green-700 p-3 rounded text-sm mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+            <span>Mã OTP đã được gửi đến <b>{user?.email}</b>. Vui lòng kiểm tra hộp thư.</span>
+            {timeLeft > 0 ? (
+              <span className="text-sm font-medium whitespace-nowrap text-gray-500">Gửi lại sau {timeLeft}s</span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={isSendingOtp}
+                className="text-sm font-semibold text-[var(--color-theme)] hover:underline border-none bg-transparent cursor-pointer p-0 text-left whitespace-nowrap"
+              >
+                {isSendingOtp ? 'Đang gửi...' : 'Gửi lại mã OTP'}
+              </button>
+            )}
           </div>
 
           {/* OTP */}
@@ -131,12 +145,12 @@ export function ChangePassword() {
                 type={showNewPassword ? "text" : "password"}
                 {...register('newPassword')}
                 placeholder="Vui lòng nhập mật khẩu mới."
-                className={`w-full px-4 py-3 border text-[14px] focus:outline-none pr-10 transition-colors ${errors.newPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-black'}`}
+                className={`w-full px-4 py-3 border text-[14px] outline-none pr-10 transition-colors duration-200 ${errors.newPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[var(--color-theme)]'}`}
               />
               <button 
                 type="button" 
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black bg-transparent border-none cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-theme)] hover:text-[var(--color-theme-hover)] bg-transparent border-none cursor-pointer transition-colors duration-200"
               >
                 {showNewPassword ? <Eye size={18} /> : <EyeOff size={18} />}
               </button>
@@ -154,12 +168,12 @@ export function ChangePassword() {
                 type={showConfirmPassword ? "text" : "password"}
                 {...register('confirmPassword')}
                 placeholder="Xác nhận lại mật khẩu mới."
-                className={`w-full px-4 py-3 border text-[14px] focus:outline-none pr-10 transition-colors ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-black'}`}
+                className={`w-full px-4 py-3 border text-[14px] outline-none pr-10 transition-colors duration-200 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[var(--color-theme)]'}`}
               />
               <button 
                 type="button" 
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black bg-transparent border-none cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-theme)] hover:text-[var(--color-theme-hover)] bg-transparent border-none cursor-pointer transition-colors duration-200"
               >
                 {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
               </button>
@@ -172,27 +186,20 @@ export function ChangePassword() {
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="px-8 py-3 bg-black text-white text-[14px] uppercase border-none cursor-pointer hover:bg-gray-800 transition-colors w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-8 py-3 bg-[var(--color-theme)] text-white text-[14px] uppercase border-none cursor-pointer hover:bg-[var(--color-theme-hover)] transition-colors duration-200 w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'ĐANG LƯU...' : 'LƯU MẬT KHẨU MỚI'}
             </button>
             <button 
               type="button"
               onClick={() => setStep(1)}
-              className="px-8 py-3 bg-white text-black text-[14px] uppercase border border-black cursor-pointer hover:bg-gray-50 transition-colors w-full sm:w-auto"
+              className="px-8 py-3 bg-transparent text-[var(--color-theme)] text-[14px] uppercase border border-[var(--color-theme)] cursor-pointer hover:bg-[var(--color-theme)] hover:text-white transition-colors duration-200 w-full sm:w-auto"
             >
               HỦY VÀ TRỞ LẠI
             </button>
           </div>
         </form>
       )}
-
-      <div className="mt-8 flex items-start gap-2 text-[12px] text-gray-600">
-        <Lock size={14} className="mt-0.5 shrink-0" />
-        <p className="m-0">
-          Chúng tôi mã hóa tất cả thông tin cá nhân của bạn bằng công nghệ mã hóa TLS (Bảo mật lớp truyền tải).
-        </p>
-      </div>
     </div>
   );
 }

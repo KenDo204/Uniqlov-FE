@@ -29,7 +29,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
       {/* Hình ảnh to, vuông vức */}
       <div className="w-[120px] h-[150px] md:w-[150px] md:h-[180px] shrink-0 bg-gray-50">
         <Link to={`/product/${item.id}`}>
-          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+          <img src={item.variantImage} alt={item.name} className="w-full h-full object-cover" />
         </Link>
       </div>
 

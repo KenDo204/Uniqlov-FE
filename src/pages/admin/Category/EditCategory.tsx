@@ -185,7 +185,7 @@ const EditCategory: React.FC = () => {
 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Box>
+              {/* <Box>
                 <TextField
                   fullWidth
                   label="Thứ tự hiển thị"
@@ -206,7 +206,7 @@ const EditCategory: React.FC = () => {
                     '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
                   }}
                 />
-              </Box>
+              </Box> */}
 
               <Box>
                 <label className="block text-sm font-medium text-gray-700 mb-1 ml-1">Icon Danh mục</label>

@@ -10,7 +10,10 @@ import PermissionList from '../pages/admin/Permission/PermissionList';
 import AdminProductList from '../pages/admin/Product/AdminProductList';
 import AddProduct from '../pages/admin/Product/AddProduct';
 import EditProduct from '../pages/admin/Product/EditProduct';
-import AdminSliderManager from '../pages/admin/Slider/AdminSliderManager';
+import SliderList from '../pages/admin/Slider/SliderList';
+import AddSlider from '../pages/admin/Slider/AddSlider';
+import EditSlider from '../pages/admin/Slider/EditSlider';
+import ContactManagement from '../pages/admin/Contact/ContactManagement';
 import CouponList from '../pages/admin/Coupon/CouponList';
 import OrderList from '../pages/admin/Order/OrderList';
 import { RoleGuard } from './RoleGuard';
@@ -25,7 +28,14 @@ export const adminRoutes: RouteObject = {
       children: [
         { path: '', element: <AdminDashboard /> },
         { path: 'dashboard', element: <AdminDashboard /> },
-        { path: 'banners', element: <AdminSliderManager /> },
+        {
+          path: 'sliders',
+          children: [
+            { path: '', element: <SliderList /> },
+            { path: 'add', element: <AddSlider /> },
+            { path: 'edit/:sliderId', element: <EditSlider /> },
+          ],
+        },
         { path: 'brands', element: <AdminBrands /> },
         {
           path: 'categories',
@@ -46,6 +56,7 @@ export const adminRoutes: RouteObject = {
             { path: 'edit/:productId', element: <EditProduct /> },
           ],
         },
+        { path: 'contacts', element: <ContactManagement /> },
         { path: 'orders', element: <OrderList /> },
         { path: 'coupons', element: <CouponList /> },
       ],

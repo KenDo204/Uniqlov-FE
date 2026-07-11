@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, LayoutDashboard, Users, FolderTree, LogOut, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket } from '@/components/ui/icons';
+import { Menu, LayoutDashboard, Users, FolderTree, LogOut, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket, MessageSquare, Image } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 import { BRAND } from '@/constants/brand';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,11 +18,11 @@ export default function AdminLayout() {
 
   const menuItems = [
     { label: 'Tổng quan', path: paths.admin.dashboard, icon: LayoutDashboard },
-    // { label: 'Quản lý Banners', path: paths.admin.banners, icon: Image },
-    // { label: 'Quản lý Thương hiệu', path: paths.admin.brands, icon: Settings },
+    { label: 'Quản lý Slider', path: paths.admin.sliders, icon: Image },
     { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree },
     { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom },
     { label: 'Quản lý Đơn hàng', path: paths.admin.orders, icon: ShoppingBag },
+    { label: 'Quản lý Liên hệ', path: paths.admin.contacts, icon: MessageSquare },
     { label: 'Quản lý Mã giảm giá', path: paths.admin.coupons, icon: Ticket },
     { label: 'Quản lý Người dùng', path: paths.admin.users, icon: Users },
     { label: 'Quản lý Vai trò', path: paths.admin.roles, icon: ShieldCheck },

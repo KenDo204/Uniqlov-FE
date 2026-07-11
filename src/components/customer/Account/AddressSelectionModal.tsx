@@ -1,21 +1,12 @@
-import React from 'react';
-import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemText,
-    Typography,
-    Radio,
-    Box,
-    CircularProgress,
-    Divider
-} from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import type { AddressResponse } from '@/types/address';
+import ConfirmModal from '@/components/general/ConfirmModal';
+import AddressCard from './AddressCard';
+import CreateAddressModal from './createAdressModal';
+import UpdateAddressModal from './updateAddressModal';
+import { useAddress } from '@/hooks/useAddress';
+import { toast } from 'react-toastify';
 
 interface AddressSelectionModalProps {
     open: boolean;
@@ -34,8 +25,13 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
     onSelect,
     loading = false
 }) => {
-    // state to keep track of the selected address before confirming
+    const { fetchAddresses, deleteAddress, setDefaultAddress } = useAddress();
     const [tempSelected, setTempSelected] = React.useState<AddressResponse | null>(null);
+
+    // Edit Modal state
+    const [createOpen, setCreateOpen] = useState(false);
+    const [updateOpen, setUpdateOpen] = useState(false);
+    const [addressToEdit, setAddressToEdit] = useState<AddressResponse | null>(null);
 
     React.useEffect(() => {
         if (open) {
@@ -48,109 +44,94 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
         if (tempSelected) {
             onSelect(tempSelected);
         }
-        onClose();
     };
 
-    return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>
-                Địa Chỉ Của Tôi
-            </DialogTitle>
-            <DialogContent sx={{ p: 0 }}>
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                        <CircularProgress size={30} sx={{ color: 'theme' }} />
-                    </Box>
-                ) : addresses.length === 0 ? (
-                    <Box sx={{ p: 4, textAlign: 'center' }}>
-                        <Typography color="textSecondary">Bạn chưa có địa chỉ nào.</Typography>
-                    </Box>
-                ) : (
-                    <List sx={{ pt: 0, maxHeight: 400, overflowY: 'auto' }}>
-                        {addresses.map((address) => (
-                            <React.Fragment key={address.addressId}>
-                                <ListItem disablePadding>
-                                    <ListItemButton 
-                                        onClick={() => setTempSelected(address)}
-                                        sx={{ 
-                                            py: 2, 
-                                            px: 3,
-                                            '&:hover': { bgcolor: 'rgba(0,146,124,0.04)' }
-                                        }}
-                                    >
-                                        <Radio
-                                            checked={tempSelected?.addressId === address.addressId}
-                                            sx={{
-                                                color: 'theme',
-                                                '&.Mui-checked': { color: 'theme' },
-                                                mr: 1,
-                                                ml: -1
-                                            }}
-                                        />
-                                        <ListItemText
-                                            primary={
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <Typography sx={{ fontWeight: 'bold' }} variant="body1">
-                                                        {address.recipientName}
-                                                    </Typography>
-                                                    <Divider orientation="vertical" flexItem sx={{ height: 14, my: 'auto' }} />
-                                                    <Typography variant="body2" color="textSecondary">
-                                                        {address.phone}
-                                                    </Typography>
-                                                </Box>
-                                            }
-                                            secondary={
-                                                <Box sx={{ mt: 0.5 }}>
-                                                    <Typography variant="body2" color="textSecondary">
-                                                        {address.streetNumber}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="textSecondary">
-                                                        {address.fullAddress}
-                                                    </Typography>
-                                                    {address.isDefault && (
-                                                        <Box 
-                                                            component="span" 
-                                                            sx={{ 
-                                                                mt: 1, 
-                                                                display: 'inline-block',
-                                                                border: '1px solid theme', 
-                                                                color: 'theme', 
-                                                                fontSize: '10px', 
-                                                                px: 0.5, 
-                                                                borderRadius: '2px' 
-                                                            }}
-                                                        >
-                                                            Mặc Định
-                                                        </Box>
-                                                    )}
-                                                </Box>
-                                            }
-                                        />
-                                    </ListItemButton>
-                                </ListItem>
-                                <Divider />
-                            </React.Fragment>
-                        ))}
-                    </List>
-                )}
-            </DialogContent>
-            <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
-                <Button onClick={onClose} variant="outlined" sx={{ 
-                    color: '#000', borderColor: '#d1d5db', px: 3, fontWeight: 'bold', fontSize: '14px',
-                    '&:hover': { bgcolor: "#f3f4f6", borderColor: '#d1d5db' } }}>
-                    Hủy
-                </Button>
-                <Button 
-                    onClick={handleConfirm} 
-                    variant="contained" 
-                    disabled={!tempSelected}
-                    sx={{ bgcolor: 'theme', px: 3, fontWeight: 'bold', '&:hover': { bgcolor: '#007a68' } }}
+    const handleDelete = async (id: number) => {
+        if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+            try {
+                await deleteAddress(id);
+                toast.success("Xóa địa chỉ thành công!");
+                fetchAddresses();
+                if (tempSelected?.addressId === id) setTempSelected(null);
+            } catch (err: any) {
+                toast.error(err || "Lỗi khi xóa địa chỉ");
+            }
+        }
+    };
+
+    const handleSetDefault = async (id: number) => {
+        try {
+            await setDefaultAddress(id);
+            toast.success("Đặt địa chỉ mặc định thành công!");
+            fetchAddresses();
+        } catch (err: any) {
+            toast.error(err || "Lỗi khi đặt địa chỉ mặc định");
+        }
+    };
+
+    const handleOpenUpdate = (addr: AddressResponse) => {
+        setAddressToEdit(addr);
+        setUpdateOpen(true);
+    };
+
+    const modalContent = (
+        <Box sx={{ mt: 1 }}>
+            {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                    <CircularProgress size={30} sx={{ color: 'var(--color-theme)' }} />
+                </Box>
+            ) : addresses.length === 0 ? (
+                <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography color="textSecondary">Bạn chưa có địa chỉ nào.</Typography>
+                </Box>
+            ) : (
+                <div className="flex flex-col gap-4 max-h-[50vh] overflow-y-auto pr-1 pb-2 scrollbar-thin">
+                    {addresses.map((address) => (
+                        <AddressCard
+                            key={address.addressId}
+                            address={address}
+                            selectedValue={tempSelected?.addressId}
+                            onSelect={(addr) => setTempSelected(addr)}
+                            onEdit={handleOpenUpdate}
+                            onDelete={handleDelete}
+                            onSetDefault={handleSetDefault}
+                            showActions={true}
+                        />
+                    ))}
+                </div>
+            )}
+            
+            <div className="mt-4 pt-4 border-t border-gray-200">
+                <button 
+                    type="button"
+                    onClick={() => setCreateOpen(true)}
+                    className="w-full py-3 bg-white border border-dashed border-theme text-theme font-medium rounded-[4px] hover:bg-[rgba(0,146,124,0.05)] transition-colors cursor-pointer"
                 >
-                    Xác nhận
-                </Button>
-            </DialogActions>
-        </Dialog>
+                    + Thêm địa chỉ mới
+                </button>
+            </div>
+            
+            <CreateAddressModal open={createOpen} setOpen={setCreateOpen} />
+            <UpdateAddressModal open={updateOpen} setOpen={setUpdateOpen} address={addressToEdit} />
+        </Box>
+    );
+
+    return (
+        <ConfirmModal
+            open={open}
+            setOpen={(val) => {
+                if (!val) onClose();
+            }}
+            title="Địa Chỉ Của Tôi"
+            content={modalContent}
+            onConfirm={handleConfirm}
+            confirmText="Xác nhận"
+            cancelText="Hủy"
+            confirmDisabled={!tempSelected}
+            maxWidth="sm"
+        />
     );
 };
 
 export default AddressSelectionModal;
+

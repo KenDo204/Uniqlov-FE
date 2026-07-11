@@ -9,7 +9,7 @@ export interface CartItem {
   id: string; // For guest: variantId or slug-attribute combination. For DB: stringified variantId.
   name: string;
   price: number;
-  image?: string;
+  variantImage?: string;
   color?: string;
   size?: string;
   quantity: number;
@@ -57,7 +57,7 @@ const mapDbItemToLocal = (dbItem: CartItemResponse): CartItem => {
     id: `${dbItem.variantId}`,
     name: dbItem.productName,
     price: dbItem.price,
-    image: dbItem.variantImage,
+    variantImage: dbItem.variantImage,
     color,
     size,
     quantity: dbItem.quantity,
@@ -233,7 +233,7 @@ const cartSlice = createSlice({
           item.id = `${newVariant.variantId}`;
           item.variantId = newVariant.variantId;
           item.price = newVariant.price;
-          item.image = newVariant.variantImage === 'null' || !newVariant.variantImage ? item.image : newVariant.variantImage;
+          item.variantImage = newVariant.variantImage === 'null' || !newVariant.variantImage ? item.variantImage : newVariant.variantImage;
           if (color) item.color = color;
           if (size) item.size = size;
           item.variantAttributes = newVariant.variantAttributes;

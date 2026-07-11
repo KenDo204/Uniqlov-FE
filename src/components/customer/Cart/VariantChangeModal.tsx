@@ -58,7 +58,7 @@ export const VariantChangeModal: React.FC<VariantChangeModalProps> = ({
             {/* Product Info */}
             <div className="flex gap-4 items-start border-b border-gray-150 pb-4">
               <img
-                src={matchingVariant?.variantImage || selectedCartItem.image}
+                src={matchingVariant?.variantImage || selectedCartItem.variantImage}
                 alt={selectedCartItem.name}
                 className="w-20 h-24 object-cover bg-gray-50"
               />

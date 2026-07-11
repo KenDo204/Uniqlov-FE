@@ -1,4 +1,4 @@
-import React, { type ChangeEvent, type KeyboardEvent, type ClipboardEvent, useState, useEffect } from 'react';
+import React, { type ChangeEvent, type KeyboardEvent, type ClipboardEvent } from 'react';
 
 interface OTPInputProps {
     id: string;
@@ -6,9 +6,9 @@ interface OTPInputProps {
     otp: string;
     setOtp: (otp: string) => void;
     onChange: (otp: string) => void;
-    onResend?: () => Promise<void>;
+    onResend?: () => void;
     error?: boolean;
-    timer?: number; 
+    timeLeft?: number; 
 }
 
 const OTPInput: React.FC<OTPInputProps> = ({ 
@@ -19,65 +19,8 @@ const OTPInput: React.FC<OTPInputProps> = ({
     onChange, 
     onResend, 
     error = false, 
-    timer = 60 // Đặt mặc định là 60s luôn cho chắc cú
+    timeLeft = 0
 }) => {
-    const [localTimer, setLocalTimer] = useState(0);
-    const storageKey = `otp_timestamp_${id}`;
-
-    // ── XỬ LÝ KHI VỪA RENDER (Lần đầu tiên HOẶC sau khi F5) ─────────────────
-    useEffect(() => {
-        const savedTimeStr = localStorage.getItem(storageKey);
-        
-        if (savedTimeStr) {
-            // KỊCH BẢN 1: Đã có lịch sử (F5 tải lại trang)
-            const savedTimestamp = parseInt(savedTimeStr, 10);
-            const now = Date.now();
-            const diffSeconds = Math.floor((now - savedTimestamp) / 1000);
-
-            if (diffSeconds < timer) {
-                setLocalTimer(timer - diffSeconds);
-            } else {
-                setLocalTimer(0);
-                localStorage.removeItem(storageKey);
-            }
-        } else if (timer > 0) {
-            // KỊCH BẢN 2: Lần đầu tiên xuất hiện (chưa có lịch sử)
-            // -> Tự động bắt đầu đếm ngược và ghi nhận mốc thời gian
-            setLocalTimer(timer);
-            localStorage.setItem(storageKey, Date.now().toString());
-        }
-    }, [id, timer, storageKey]);
-
-    // ── BỘ CHẠY ĐẾM NGƯỢC TỰ ĐỘNG ───────────────────────────────────────────
-    useEffect(() => {
-        let interval: ReturnType<typeof setInterval>;
-        if (localTimer > 0) {
-            interval = setInterval(() => {
-                setLocalTimer((prev) => {
-                    if (prev <= 1) {
-                        localStorage.removeItem(storageKey);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [localTimer, storageKey]);
-
-    // ── XỬ LÝ KHI BẤM NÚT GỬI LẠI ───────────────────────────────────────────
-    const handleResend = async () => {
-        if (localTimer > 0 || !onResend) return;
-
-        try {
-            await onResend();
-            localStorage.setItem(storageKey, Date.now().toString());
-            setLocalTimer(timer);
-        } catch (err: any) {
-            console.error("Lỗi gửi lại mã OTP:", err);
-        }
-    };
-
     // Tạo mảng hiển thị các ô input
     const otpArray = otp.padEnd(length, ' ').split('').slice(0, length);
 
@@ -139,14 +82,14 @@ const OTPInput: React.FC<OTPInputProps> = ({
 
             {onResend && (
                 <div className="text-xs text-center">
-                    {localTimer > 0 ? (
+                    {timeLeft > 0 ? (
                         <p className="text-gray-500 m-0">
-                            Gửi lại mã sau <span className="font-bold text-theme">{localTimer}s</span>
+                            Gửi lại mã sau <span className="font-bold text-theme">{timeLeft}s</span>
                         </p>
                     ) : (
                         <button
                             type="button"
-                            onClick={handleResend}
+                            onClick={onResend}
                             className="text-theme font-semibold hover:text-theme-hover transition-colors border-none bg-transparent cursor-pointer p-0 underline underline-offset-2"
                         >
                             Gửi lại mã OTP

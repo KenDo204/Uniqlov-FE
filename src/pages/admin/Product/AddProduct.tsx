@@ -79,6 +79,9 @@ export default function AddProduct() {
     { name: 'size', values: [], rawInput: '' }
   ]);
   const [variants, setVariants] = useState<VariantInput[]>([]);
+  
+  // Form State - Color Images
+  const [colorImages, setColorImages] = useState<Record<string, string>>({});
 
   // Validation Errors state
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -284,13 +287,14 @@ export default function AddProduct() {
         Object.entries(combo).every(([k, val]) => v.attributes[k] === val)
       );
 
+      const vColor = combo['color'] || combo['colorName'];
       return {
         attributes: combo,
         price: existing?.price || Number(simplePrice) || 500000,
         costPrice: existing?.costPrice || Number(simpleCostPrice) || 300000,
         stockQuantity: existing?.stockQuantity !== undefined ? existing.stockQuantity : 10,
         skuCode: existing?.skuCode || '',
-        variantImage: existing?.variantImage || (images[0]?.url || '')
+        variantImage: existing?.variantImage || (vColor && colorImages[vColor]) || (images[0]?.url || '')
       };
     });
 
@@ -300,7 +304,6 @@ export default function AddProduct() {
     toast.success(`Sinh tự động thành công ${newVariants.length} biến thể.`);
   };
 
-  // Update variant field
   const handleUpdateVariant = (index: number, field: keyof VariantInput, value: any) => {
     const updated = [...variants];
     updated[index] = {
@@ -308,6 +311,29 @@ export default function AddProduct() {
       [field]: value
     };
     setVariants(updated);
+    setIsDirty(true);
+  };
+
+  // Derived unique colors from variants
+  const uniqueColors = useMemo(() => {
+    const colors = new Set<string>();
+    variants.forEach(v => {
+      const color = v.attributes['color'] || v.attributes['colorName'];
+      if (color) colors.add(color);
+    });
+    return Array.from(colors);
+  }, [variants]);
+
+  const handleColorImageUpdate = (color: string, url: string) => {
+    setColorImages(prev => ({ ...prev, [color]: url }));
+    // Auto update variants that match this color
+    setVariants(prev => prev.map(v => {
+      const vColor = v.attributes['color'] || v.attributes['colorName'];
+      if (vColor === color) {
+        return { ...v, variantImage: url };
+      }
+      return v;
+    }));
     setIsDirty(true);
   };
 
@@ -522,7 +548,7 @@ export default function AddProduct() {
       inPopular,
       targetGender,
       maxOrderQuantity: Number(maxOrderQuantity),
-      optionsConfig: JSON.stringify(optionsConfigObj),
+      optionsConfig: optionsConfigObj,
       productTags,
       categoryId: Number(categoryId),
       weightKg: Number(weightKg),
@@ -984,6 +1010,54 @@ export default function AddProduct() {
                   <Typography className="text-red-500 text-xs" sx={{ mb: 1.5 }}>{errors.variants}</Typography>
                 )}
 
+                {/* Color Images Setup */}
+                {uniqueColors.length > 0 && (
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-150 space-y-4">
+                    <div>
+                      <Typography variant="subtitle2" className="font-bold text-gray-700 m-0">
+                        Hình ảnh theo màu sắc
+                      </Typography>
+                      <Typography variant="body2" className="text-xs text-gray-400 mt-0.5 m-0">
+                        Tải lên một ảnh cho mỗi màu. Hệ thống sẽ tự động áp dụng ảnh này cho tất cả biến thể của màu tương ứng.
+                      </Typography>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {uniqueColors.map(color => {
+                        const sizes = variants
+                          .filter(v => (v.attributes['color'] || v.attributes['colorName']) === color && v.attributes['size'])
+                          .map(v => v.attributes['size']);
+                        
+                        return (
+                          <div key={color} className="p-3 bg-white border border-gray-200 rounded-xl space-y-3 flex flex-col items-center text-center">
+                            <Typography variant="subtitle2" className="font-bold text-gray-800">
+                              Màu {color}
+                            </Typography>
+                            
+                            <VariantImageCell 
+                              imageUrl={colorImages[color] || ''} 
+                              onUpdate={(url) => handleColorImageUpdate(color, url)} 
+                            />
+
+                            {sizes.length > 0 && (
+                              <div className="text-[11px] text-gray-500 bg-gray-50 px-2 py-1.5 rounded w-full">
+                                <span className="block font-semibold mb-1">Áp dụng cho:</span>
+                                <div className="flex flex-wrap gap-1 justify-center">
+                                  {sizes.map(s => (
+                                    <span key={s} className="bg-white border border-gray-200 px-1 rounded text-[10px]">
+                                      ✓ {s}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Variants List Table */}
                 {variants.length > 0 && (
                   <div className="space-y-2">
@@ -999,7 +1073,6 @@ export default function AddProduct() {
                             <TableCell className="font-bold text-gray-600 w-44">Giá bán *</TableCell>
                             <TableCell className="font-bold text-gray-600 w-44">Giá vốn *</TableCell>
                             <TableCell className="font-bold text-gray-600 w-28">Tồn kho *</TableCell>
-                            <TableCell className="font-bold text-gray-600">Ảnh URL</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -1045,12 +1118,6 @@ export default function AddProduct() {
                                   helperText={errors[`variant_stock_${idx}`] || '>= -1'}
                                   size="small"
                                   slotProps={{ htmlInput: { min: -1 } }}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <VariantImageCell 
-                                  imageUrl={v.variantImage || ''} 
-                                  onUpdate={(url) => handleUpdateVariant(idx, 'variantImage', url)} 
                                 />
                               </TableCell>
                             </TableRow>

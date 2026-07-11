@@ -60,9 +60,9 @@ export interface ProductCreateRequest {
   maxOrderQuantity?: number;
 
   /**
-   * Cấu hình tùy chọn (Frontend cần stringify object thành JSON string trước khi gửi)
+   * Cấu hình tùy chọn
    */
-  optionsConfig?: string;
+  optionsConfig?: Record<string, any>;
 
   /** Danh sách các tag. Ví dụ: ["vintage", "oversize"] */
   productTags?: string[];
@@ -104,8 +104,8 @@ export interface ProductUpdateRequest {
   /** @minimum 0 */
   maxOrderQuantity?: number;
 
-  /** JSON string tự do */
-  optionsConfig?: string;
+  /** Cấu hình tùy chọn */
+  optionsConfig?: Record<string, any>;
 
   productTags?: string[];
   categoryId?: number;

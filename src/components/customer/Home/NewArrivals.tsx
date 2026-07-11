@@ -1,91 +1,65 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from '@/components/ui/icons';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
 import { paths } from '@/config/paths';
 import type { Product } from '@/features/products';
-import { CustomPrevArrow } from '@/components/general/CustomPrevArrow';
-import { CustomNextArrow } from '@/components/general/CustomNextArrow';
 import { ProductCard } from '@/components/shared/ProductCard';
-
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 
 interface NewArrivalsProps {
   products: Product[];
   onAddToCart: (product: Product, e: React.MouseEvent, selectedColor?: string) => void;
+  isLoading?: boolean;
 }
 
-export function NewArrivals({ products, onAddToCart }: NewArrivalsProps) {
+export function NewArrivals({ products, onAddToCart, isLoading = false }: NewArrivalsProps) {
   const navigate = useNavigate();
-  const [swiper, setSwiper] = useState<any>(null);
 
-  // For mock representation, use the popular items as new arrivals as well
-  const newArrivals = products.filter((p) => p.in_popular);
+  // For mock representation, we slice the first 8 products as new arrivals
+  // In real case, filter by created_at or is_new flag
+  const newArrivals = products?.slice(0, 8) || [];
 
   return (
-    <section className="py-12 md:py-16 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
-      {/* HEADER SECTION: Nâng cấp phân cấp thị giác */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 md:mb-10">
-        <div className="space-y-1.5 text-left">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-heading font-black text-gray-900 tracking-tight m-0">
-            Sản phẩm mới về
-          </h2>
-        </div>
-        
-        {/* Nút Khám phá tất cả: Thêm hiệu ứng trượt mượt mà */}
-        <button
-          onClick={() => navigate(paths.customer.newArrivals)}
-          className="group flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-900 hover:text-[var(--color-theme)] border-none bg-transparent cursor-pointer transition-colors duration-300 self-start sm:self-auto"
-        >
-          <span className="relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-[var(--color-theme)] after:transition-all after:duration-300 group-hover:after:w-full pb-0.5">
-            Khám phá tất cả
-          </span>
-          <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-gray-400 group-hover:text-[var(--color-theme)]" />
-        </button>
-      </div>
+    <section className="py-12 md:py-16 bg-[#fafafa]">
+      <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
+        <h2 className="text-2xl md:text-3xl font-heading font-black text-center mb-8 md:mb-12 m-0 uppercase tracking-tight text-gray-900">
+          Sản phẩm mới về
+        </h2>
 
-      {/* SLIDER CONTAINER: Định hình vùng an toàn cho layout */}
-      <div className="relative group/slider">
-        <Swiper
-          onSwiper={setSwiper}
-          modules={[Navigation, Pagination]}
-          spaceBetween={24}
-          slidesPerView={1}
-          pagination={{ clickable: true }}
-          breakpoints={{
-            540: { slidesPerView: 2, spaceBetween: 16 },
-            768: { slidesPerView: 3, spaceBetween: 24 },
-            1024: { slidesPerView: 4, spaceBetween: 24 },
-          }}
-          className="mb-12 !overflow-visible" 
-          style={{
-            '--swiper-pagination-color': 'var(--color-theme)',
-            '--swiper-pagination-bullet-inactive-color': '#e5e7eb',
-            '--swiper-pagination-bullet-inactive-opacity': '1',
-            '--swiper-pagination-bullet-size': '8px',
-            '--swiper-pagination-bullet-horizontal-gap': '5px',
-            '--swiper-pagination-bottom': '-32px',
-          } as React.CSSProperties}
-        >
-          {newArrivals.map((product) => (
-            <SwiperSlide key={product.product_id} className="h-auto !flex">
-              {/* Thêm div bọc ngoài để tạo hiệu ứng hover shadow mượt mà cho từng card */}
-              <div className="w-full h-full rounded-xl transition-all duration-300 hover:-translate-y-1">
+        {isLoading ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-gray-200 aspect-[3/4] w-full rounded-[4px] mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : newArrivals.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {newArrivals.map((product) => (
                 <ProductCard
+                  key={product.product_id}
                   product={product}
                   isNewArrival={true}
                   onAddToCart={onAddToCart}
                 />
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+              ))}
+            </div>
 
-        <CustomPrevArrow onClick={() => swiper?.slidePrev()} />
-        <CustomNextArrow onClick={() => swiper?.slideNext()} />
+            <div className="text-center mt-10 md:mt-12">
+              <button 
+                onClick={() => navigate(paths.customer.newArrivals)}
+                className="px-10 py-3.5 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest text-gray-900 hover:border-theme hover:bg-theme hover:text-white transition-all duration-300 cursor-pointer rounded-[2px]"
+              >
+                Khám phá tất cả
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-12 text-gray-400">
+            <p>Hiện chưa có sản phẩm mới nào.</p>
+          </div>
+        )}
       </div>
     </section>
   );

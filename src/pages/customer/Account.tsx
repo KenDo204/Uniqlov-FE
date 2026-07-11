@@ -52,6 +52,11 @@ export function Account() {
                     Đánh giá
                   </NavLink>
                 </li>
+                <li>
+                  <NavLink to="/account/contacts" className={navLinkClass}>
+                    Lịch sử liên hệ
+                  </NavLink>
+                </li>
               </ul>
             </div>
 

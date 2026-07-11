@@ -47,5 +47,16 @@ export const uploadService = {
       }
     });
     return response.data;
+  },
+
+  uploadSliderImage: async (file: File): Promise<ApiResponse<UploadImageResponse>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axiosClient.post<ApiResponse<UploadImageResponse>>(`${API_URL}/image/sliders`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
   }
 };

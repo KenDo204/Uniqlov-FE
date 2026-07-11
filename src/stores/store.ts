@@ -13,6 +13,8 @@ import wishlistReducer from './slices/wishlistSlice';
 import reviewReducer from './slices/reviewSlice';
 import addressReducer from './slices/addressSlice';
 import ghnReducer from './slices/ghnSlice';
+import sliderReducer from './slices/sliderSlice';
+import contactReducer from './slices/contactSlice';
 
 export const store = configureStore({
   reducer: {
@@ -29,6 +31,8 @@ export const store = configureStore({
     review: reviewReducer,
     address: addressReducer,
     ghn: ghnReducer,
+    slider: sliderReducer,
+    contact: contactReducer,
     theme: themeReducer,
   },
 });

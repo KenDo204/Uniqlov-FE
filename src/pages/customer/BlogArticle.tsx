@@ -42,7 +42,7 @@ export function BlogArticle() {
       id: `${matchingProduct.product_id}-${color}-${size}`,
       name: `${matchingProduct.product_name} (${color} / ${size})`,
       price: price,
-      image: image
+      variantImage: image
     }, 1);
     toast.success(`Đã thêm ${matchingProduct.product_name} vào giỏ hàng.`);
   };
