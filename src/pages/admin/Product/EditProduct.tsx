@@ -628,8 +628,8 @@ export default function EditProduct() {
   }
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto space-y-6">
 
         {/* BACK HEADER */}
         <div className="flex items-center gap-3">

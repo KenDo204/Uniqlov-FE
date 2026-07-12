@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, Heart, ShoppingCart, Menu } from '@/components/ui/icons';
+import { Heart, ShoppingCart, Menu } from '@/components/ui/icons';
+import { SearchBox } from '@/components/shared/SearchBox';
 import { Link, useLocation } from 'react-router-dom';
 import { useCartStore } from '@/stores/useCartStore';
 import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
@@ -26,19 +27,24 @@ export function Header() {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+
     // Close drawers on path change
     useEffect(() => {
         setIsCartOpen(false);
         setIsMobileMenuOpen(false);
     }, [location.pathname]);
 
+    // Lắng nghe event mở giỏ hàng từ bất kỳ đâu (ví dụ: ProductCard sau khi Add to cart)
+    useEffect(() => {
+        const handleOpenCart = () => setIsCartOpen(true);
+        window.addEventListener('open-cart-drawer', handleOpenCart);
+        return () => window.removeEventListener('open-cart-drawer', handleOpenCart);
+    }, []);
+
     const headerContainerClass = "sticky left-0 top-0 z-50 w-full bg-white dark:bg-gray-950 border-b border-unilo-border shadow-sm pointer-events-auto transition-colors";
 
     // Màu icon
     const iconClass = `text-gray-700 hover:text-theme`;
-
-    // Thanh tìm kiếm
-    const searchBgClass = "bg-white/95 hover:bg-white";
 
     return (
         <>
@@ -57,16 +63,12 @@ export function Header() {
                     {/* 2. CỤM PHẢI: SEARCH + ICONS */}
                     <div className="flex items-center gap-2 sm:gap-4 shrink-0 order-2 lg:order-3">
 
-                        {/* Thanh tìm kiếm */}
-                        <div className="relative hidden md:block w-48 md:w-64 lg:w-[320px] mr-1 sm:mr-2">
-                            <form className={`flex items-center transition-colors rounded-full px-3 py-2 sm:px-4 sm:py-2.5 shadow-sm ${searchBgClass}`}>
-                                <Search className="text-gray-500 w-4 h-4 mr-2 sm:mr-2.5 shrink-0" />
-                                <input
-                                    type="text"
-                                    placeholder="Bạn đang tìm sản phẩm gì?"
-                                    className="bg-transparent border-none outline-none w-full text-xs sm:text-sm text-gray-800 dark:text-white placeholder-gray-500 font-medium"
-                                />
-                            </form>
+                        {/* 2. SEARCH BOX */}
+                        <div className="flex-1 w-full max-w-[400px] xl:max-w-[500px]">
+                            <SearchBox 
+                                placeholder="Bạn đang tìm sản phẩm gì?"
+                                className="w-full h-9 sm:h-10"
+                            />
                         </div>
 
                         {/* 3. KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP */}

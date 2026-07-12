@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/stores/hooks';
 import { 
   fetchAllCouponsThunk, 
+  fetchAvailableCouponsThunk,
   fetchCouponByIdThunk, 
   createCouponThunk, 
   updateCouponThunk, 
@@ -16,6 +17,7 @@ export const useCoupon = () => {
   const dispatch = useAppDispatch();
   const { 
     couponsList, 
+    availableCoupons,
     currentCoupon, 
     previewResult, 
     isFetching, 
@@ -25,6 +27,10 @@ export const useCoupon = () => {
 
   const fetchAllCoupons = useCallback(async (page: number = 0, size: number = 20) => {
     return await dispatch(fetchAllCouponsThunk({ page, size })).unwrap();
+  }, [dispatch]);
+
+  const fetchAvailableCoupons = useCallback(async () => {
+    return await dispatch(fetchAvailableCouponsThunk()).unwrap();
   }, [dispatch]);
 
   const fetchCouponById = useCallback(async (id: number) => {
@@ -57,6 +63,7 @@ export const useCoupon = () => {
 
   return useMemo(() => ({
     coupons: couponsList?.content || [],
+    availableCoupons: availableCoupons || [],
     pagination: couponsList,
     currentCoupon,
     previewResult,
@@ -64,6 +71,7 @@ export const useCoupon = () => {
     isSubmitting,
     error,
     fetchAllCoupons,
+    fetchAvailableCoupons,
     fetchCouponById,
     createCoupon,
     updateCoupon,
@@ -73,12 +81,14 @@ export const useCoupon = () => {
     clearPreview
   }), [
     couponsList, 
+    availableCoupons,
     currentCoupon, 
     previewResult, 
     isFetching, 
     isSubmitting, 
     error, 
     fetchAllCoupons, 
+    fetchAvailableCoupons,
     fetchCouponById, 
     createCoupon, 
     updateCoupon, 

@@ -8,6 +8,7 @@ import {
   Add, Search, Delete, Visibility, CheckCircle, ErrorOutlined, Edit
 } from '@mui/icons-material';
 import ConfirmModal from '@/components/general/ConfirmModal';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import { useProduct } from '@/hooks/useProduct';
 import { useCategory } from '@/hooks/useCategory';
 import { toast } from 'react-toastify';
@@ -18,7 +19,7 @@ import CustomPagination from '@/components/general/Pagination';
 const AdminProductList: React.FC = () => {
   const navigate = useNavigate();
   const {
-    products,
+    adminProducts: products,
     isFetching: loading,
     fetchAdminProducts,
     deleteProduct
@@ -122,10 +123,9 @@ const AdminProductList: React.FC = () => {
     }
   };
 
-  // Filtered Products
   const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    return products.filter(p => {
+    const productArray: ProductResponse[] = Array.isArray(products) ? products : (products as any)?.content || [];
+    return productArray.filter((p: ProductResponse) => {
       const matchesSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.productSlug.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = categoryFilter === '' || p.categoryId === Number(categoryFilter);
@@ -160,26 +160,28 @@ const AdminProductList: React.FC = () => {
   }, [categories]);
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý sản phẩm</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Xem toàn bộ danh mục sản phẩm của hệ thống, kiểm soát kho hàng và các cửa hàng</p>
           </div>
-          <Button
-            onClick={() => navigate('/admin/products/add')}
-            variant="contained"
-            sx={{
-              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
-              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
-            }}
-          >
-            <Add fontSize="medium" />
-            Thêm sản phẩm
-          </Button>
+          <PermissionGuard permission="product:create">
+            <Button
+              onClick={() => navigate('/admin/products/add')}
+              variant="contained"
+              sx={{
+                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+              }}
+            >
+              <Add fontSize="medium" />
+              Thêm sản phẩm
+            </Button>
+          </PermissionGuard>
         </div>
 
         {/* FILTERS */}
@@ -248,8 +250,8 @@ const AdminProductList: React.FC = () => {
                     </td>
                   </tr>
                 ) : paginatedProducts.length > 0 ? (
-                  paginatedProducts.map((prod) => {
-                    const thumbImg = prod.images?.find(img => img.isThumbnail) || prod.images?.[0];
+                  paginatedProducts.map((prod: ProductResponse) => {
+                    const thumbImg = prod.images?.find((img: any) => img.isThumbnail) || prod.images?.[0];
                     const totalStock = getTotalStock(prod);
                     return (
                       <tr key={prod.productId} className="hover:bg-gray-50/50 transition-colors">
@@ -315,24 +317,28 @@ const AdminProductList: React.FC = () => {
                                 <Visibility fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Chỉnh sửa sản phẩm" arrow>
-                              <IconButton
-                                onClick={() => navigate(`/admin/products/edit/${prod.productId}`)}
-                                size="small"
-                                sx={{ color: '#3b82f6', bgcolor: '#eff6ff', '&:hover': { bgcolor: '#dbeafe' } }}
-                              >
-                                <Edit fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Xóa/Khóa sản phẩm" arrow>
-                              <IconButton
-                                onClick={() => handleDeleteClick(prod.productId)}
-                                size="small"
-                                sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
-                              >
-                                <Delete fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
+                            <PermissionGuard permission="product:update">
+                              <Tooltip title="Chỉnh sửa sản phẩm" arrow>
+                                <IconButton
+                                  onClick={() => navigate(`/admin/products/edit/${prod.productId}`)}
+                                  size="small"
+                                  sx={{ color: '#3b82f6', bgcolor: '#eff6ff', '&:hover': { bgcolor: '#dbeafe' } }}
+                                >
+                                  <Edit fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </PermissionGuard>
+                            <PermissionGuard permission="product:delete">
+                              <Tooltip title="Xóa/Khóa sản phẩm" arrow>
+                                <IconButton
+                                  onClick={() => handleDeleteClick(prod.productId)}
+                                  size="small"
+                                  sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </PermissionGuard>
                           </div>
                         </td>
                       </tr>

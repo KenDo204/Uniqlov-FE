@@ -11,6 +11,7 @@ import ConfirmModal from '@/components/general/ConfirmModal';
 import { useCoupon } from '@/hooks/useCoupon';
 import { toast } from 'react-toastify';
 import type { CouponResponse } from '@/types/coupon/responses';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import AddCoupon from './AddCoupon';
 import EditCoupon from './EditCoupon';
 
@@ -92,26 +93,28 @@ const CouponList: React.FC = () => {
   const totalPages = pagination?.totalPages ?? 0;
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý Mã giảm giá</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Tạo mã ưu đãi, kiểm tra lượt sử dụng và cấu hình điều kiện áp dụng</p>
           </div>
-          <Button
-            onClick={handleOpenAdd}
-            variant="contained"
-            sx={{
-              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
-              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
-            }}
-          >
-            <Add fontSize="medium" />
-            Thêm mã giảm giá
-          </Button>
+          <PermissionGuard permission="coupon:create">
+            <Button
+              onClick={handleOpenAdd}
+              variant="contained"
+              sx={{
+                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+              }}
+            >
+              <Add fontSize="medium" />
+              Thêm mã giảm giá
+            </Button>
+          </PermissionGuard>
         </div>
 
         {/* TABLE */}
@@ -212,25 +215,29 @@ const CouponList: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center gap-1">
-                            <Tooltip title="Chỉnh sửa mã ưu đãi" arrow>
-                              <IconButton
-                                onClick={() => handleOpenEdit(coupon)}
-                                size="small"
-                                sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
-                              >
-                                <Edit fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            {coupon.isActive && !isExpired && (
-                              <Tooltip title="Vô hiệu hóa mã giảm giá" arrow>
+                            <PermissionGuard permission="coupon:update">
+                              <Tooltip title="Chỉnh sửa mã ưu đãi" arrow>
                                 <IconButton
-                                  onClick={() => handleOpenDeactivate(coupon.couponId)}
+                                  onClick={() => handleOpenEdit(coupon)}
                                   size="small"
-                                  sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                                  sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                                 >
-                                  <Block fontSize="small" />
+                                  <Edit fontSize="small" />
                                 </IconButton>
                               </Tooltip>
+                            </PermissionGuard>
+                            {coupon.isActive && !isExpired && (
+                              <PermissionGuard permission="coupon:update">
+                                <Tooltip title="Vô hiệu hóa mã giảm giá" arrow>
+                                  <IconButton
+                                    onClick={() => handleOpenDeactivate(coupon.couponId)}
+                                    size="small"
+                                    sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                                  >
+                                    <Block fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </PermissionGuard>
                             )}
                           </div>
                         </td>

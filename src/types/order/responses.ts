@@ -16,6 +16,7 @@ export interface OrderDetailResponse {
   skuCode: string;
   productName: string;
   variantAttributes: Record<string, any>; // Thay thế cho Object của Java
+  variantImage: string;
   price: number;
   quantity: number;
   totalMoney: number;

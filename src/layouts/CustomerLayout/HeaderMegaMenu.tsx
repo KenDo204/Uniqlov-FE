@@ -24,15 +24,23 @@ export function HeaderMegaMenu() {
     setActiveCategory(null);
   };
 
-  const getTargetUrl = (parent: any, _child: any) => {
+  const getTargetUrl = (parent: any, child: any) => {
+    let url = `/products`;
     const pName = parent.categoryName.toLowerCase();
+    
     if (pName.includes('nữ') || pName.includes('women')) {
-      return `/women`;
+      url += `?targetGender=0`;
+    } else if (pName.includes('nam') || pName.includes('men')) {
+      url += `?targetGender=1`;
+    } else {
+      url += `?`;
     }
-    if (pName.includes('nam') || pName.includes('men')) {
-      return `/men`;
+
+    if (child && child.categoryCode) {
+      url += url.includes('?') && !url.endsWith('?') ? `&categoryCode=${child.categoryCode}` : `categoryCode=${child.categoryCode}`;
     }
-    return `/search`;
+    
+    return url.endsWith('?') ? url.slice(0, -1) : url;
   };
 
   return (

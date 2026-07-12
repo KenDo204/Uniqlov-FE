@@ -40,10 +40,10 @@ export function ResetPassword() {
     resetAuth(); 
     try {
       await resetPassword({ email: data.email, otp: data.otp, newPassword: data.password } as any);
-      toast.success('🎉 Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.', { position: "top-right" });
+      toast.success('🎉 Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.');
       navigate('/login');
     } catch (err: any) {
-      toast.error(err || 'Mã OTP không hợp lệ hoặc đã hết hạn.', { position: "top-right" });
+      toast.error(err || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
     }
   };
 
@@ -96,15 +96,15 @@ export function ResetPassword() {
                      // Lấy email hiện tại đang gõ trên form để gửi lại mã
                      const currentEmail = getValues('email');
                      if (!currentEmail || errors.email) {
-                        toast.error('Vui lòng nhập Email hợp lệ trước khi gửi lại mã.', { position: 'top-right' });
+                        toast.error('Vui lòng nhập Email hợp lệ trước khi gửi lại mã.');
                         throw new Error("Missing email"); // Quăng lỗi để OTPField không tự reset timer
                      }
                      
                      try {
                         await resendOtp({ email: currentEmail, type: 'FORGOT_PASSWORD' });
-                        toast.success('Đã gửi lại mã OTP!', { position: 'top-right' });
+                        toast.success('Đã gửi lại mã OTP!');
                      } catch (err: any) {
-                        toast.error(err || 'Không thể gửi lại mã lúc này', { position: 'top-right' });
+                        toast.error(err || 'Không thể gửi lại mã lúc này');
                         throw err; // Quăng lỗi để OTPField chặn timer
                      }
                   }}

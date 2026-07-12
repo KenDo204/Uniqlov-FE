@@ -6,6 +6,7 @@ import { useAppSelector } from '@/stores/hooks';
 import { toast } from 'react-toastify';
 import type { ContactMessageRequest } from '@/types/contact';
 import { cn } from '@/lib/utils';
+import { CONTACT_SUBJECTS } from '@/constants/contact-subjects';
 
 interface ContactFormData {
   guestName?: string;
@@ -134,21 +135,28 @@ export function FloatingContactWidget() {
                 <label className="block text-[12px] font-bold text-gray-700 uppercase tracking-wider">
                   Chủ đề <span className="text-red-500">*</span>
                 </label>
-                <input
-                  {...register('subject', {
-                    required: 'Vui lòng nhập chủ đề',
-                    maxLength: {
-                      value: 200,
-                      message: 'Chủ đề tối đa 200 ký tự',
-                    },
-                  })}
-                  type="text"
-                  placeholder="Tiêu đề tin nhắn..."
-                  className={cn(
-                    "w-full px-3 py-2.5 bg-white border rounded-[4px] text-[13px] outline-none transition-all",
-                    errors.subject ? "border-red-500 focus:ring-1 focus:ring-red-500" : "border-gray-300 focus:border-[var(--color-theme,#1a1a1a)] focus:ring-1 focus:ring-[var(--color-theme,#1a1a1a)]"
-                  )}
-                />
+                <div className="relative">
+                  <select
+                    {...register('subject', {
+                      required: 'Vui lòng chọn chủ đề',
+                    })}
+                    className={cn(
+                      "w-full px-3 py-2.5 bg-white border rounded-[4px] text-[13px] outline-none transition-all appearance-none cursor-pointer",
+                      errors.subject ? "border-red-500 focus:ring-1 focus:ring-red-500" : "border-gray-300 focus:border-[var(--color-theme,#1a1a1a)] focus:ring-1 focus:ring-[var(--color-theme,#1a1a1a)]"
+                    )}
+                  >
+                    <option value="">Chọn chủ đề liên hệ</option>
+                    {CONTACT_SUBJECTS.map((sub, idx) => (
+                      <option key={idx} value={sub}>{sub}</option>
+                    ))}
+                  </select>
+                  {/* Custom arrow for select */}
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
                 {errors.subject && (
                   <p className="text-red-500 text-[11px] mt-1 m-0">{errors.subject.message}</p>
                 )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Minus, Heart } from '@/components/ui/icons';
-import { formatVND } from '@/utils/formatters';
+import { formatVND, translateAttribute } from '@/utils/formatters';
 import type { CartItem } from '@/stores/slices/cartSlice';
 
 interface CartItemRowProps {
@@ -11,12 +11,6 @@ interface CartItemRowProps {
   onOpenVariantModal: (item: CartItem) => void;
 }
 
-const translateAttribute = (key: string) => {
-  const lowerKey = key.toLowerCase();
-  if (lowerKey === 'size') return 'Kích thước';
-  if (lowerKey === 'color') return 'Màu sắc';
-  return key;
-};
 
 export const CartItemRow: React.FC<CartItemRowProps> = ({
   item,
@@ -41,7 +35,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
               {item.name}
             </Link>
           </h3>
-          <button className="text-gray-400 hover:text-black bg-transparent border-none cursor-pointer p-0 shrink-0">
+          <button className="text-gray-400 hover:text-theme bg-transparent border-none cursor-pointer p-0 shrink-0">
             <Heart className="w-5 h-5" strokeWidth={1.5} />
           </button>
         </div>
@@ -83,7 +77,6 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
         </div>
 
         <div className="text-[16px] font-bold mt-3 text-theme">{formatVND(item.price)}</div>
-        <div className="text-[12px] text-gray-500 mt-1">Sản phẩm được làm từ chất liệu tái chế</div>
 
         {/* Bộ tăng giảm số lượng & Xóa */}
         <div className="mt-5 flex flex-col items-start gap-2">

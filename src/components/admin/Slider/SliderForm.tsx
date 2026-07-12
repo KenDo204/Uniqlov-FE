@@ -67,10 +67,10 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
       return;
     }
 
-    if (targetUrl.trim() && !/^https?:\/\/.+/.test(targetUrl.trim())) {
-      toast.error('URL đích không hợp lệ (phải bắt đầu bằng http:// hoặc https://)');
-      return;
-    }
+    // if (targetUrl.trim() && !/^https?:\/\/.+/.test(targetUrl.trim())) {
+    //   toast.error('URL đích không hợp lệ (phải bắt đầu bằng http:// hoặc https://)');
+    //   return;
+    // }
 
     await onSubmit({
       imageUrl: imageUrl.trim(),

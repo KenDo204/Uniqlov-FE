@@ -17,7 +17,7 @@ export function NotFound() {
       <div className="flex flex-col sm:flex-row gap-3 pt-2 items-center">
         <BackHome />
         {/* <button
-          onClick={() => navigate(paths.customer.men)}
+          onClick={() => navigate(`${paths.customer.products}?targetGender=1`)}
           className="btn-secondary border-none cursor-pointer text-xs"
         >
           Shop Collection <ArrowRight className="w-3.5 h-3.5 text-primary" />

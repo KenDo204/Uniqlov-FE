@@ -1,95 +1,142 @@
 import type { CouponResponse } from '@/types/coupon/responses';
+import type { CartItem } from '@/stores/slices/cartSlice';
 
-export const getOptimalCoupon = (
-  coupons: CouponResponse[],
-  orderAmount: number
-): {
-  coupon: CouponResponse | null;
-  discountAmount: number;
-} => {
-  if (!coupons || coupons.length === 0) {
-    return { coupon: null, discountAmount: 0 };
-  }
+export interface OrderFinancials {
+  subtotal: number;
+  shippingFee: number;
+  shopDiscount: number;
+  shippingDiscount: number;
+  paymentDiscount: number;
+  grandTotal: number;
+  errors: string[];
+  warnings: Record<number, string>;
+  validCoupons: CouponResponse[];
+}
+
+export const calculateOrderFinancials = (
+  items: CartItem[],
+  baseShippingFee: number,
+  appliedCoupons: CouponResponse[],
+  paymentMethod: 'COD' | 'VNPAY' | 'MOMO' | string
+): OrderFinancials => {
+  // 1. Tính Subtotal: Σ(totalMoney) thay vì price * quantity
+  const subtotal = items.reduce((sum, item) => {
+    const itemTotal = typeof item.totalMoney === 'number' ? item.totalMoney : item.price * item.quantity;
+    return sum + itemTotal;
+  }, 0);
+
+  let shippingFee = baseShippingFee;
+  let shopDiscount = 0;
+  let shippingDiscount = 0;
+  let paymentDiscount = 0;
+  const errors: string[] = [];
+  const warnings: Record<number, string> = {};
+  const validCoupons: CouponResponse[] = [];
 
   const now = new Date();
 
-  // 1. Filter valid coupons
-  const validCoupons = coupons.filter((coupon) => {
-    // Must be active
-    if (!coupon.isActive) return false;
-
-    // Must be within date range
-    const startDate = new Date(coupon.startDate);
-    const endDate = new Date(coupon.endDate);
-    if (now < startDate || now > endDate) return false;
-
-    // Must meet min order value
-    if (coupon.minOrderAmount && orderAmount < coupon.minOrderAmount) return false;
-
-    return true;
-  });
-
-  if (validCoupons.length === 0) {
-    return { coupon: null, discountAmount: 0 };
-  }
-
-  // 2. Map coupons with their actual discount amount for this order
-  const couponsWithDiscount = validCoupons.map((coupon) => {
-    let actualDiscount = 0;
-
+  const calculateDiscount = (coupon: CouponResponse, baseAmount: number) => {
+    let discount = 0;
     if (coupon.discountType === 'FIXED_AMOUNT') {
-      actualDiscount = coupon.discountValue;
+      discount = coupon.discountValue;
     } else if (coupon.discountType === 'PERCENTAGE') {
-      actualDiscount = Math.round(orderAmount * (coupon.discountValue / 100));
-      if (coupon.maxDiscountAmount && actualDiscount > coupon.maxDiscountAmount) {
-        actualDiscount = coupon.maxDiscountAmount;
+      discount = Math.round(baseAmount * (coupon.discountValue / 100));
+      if (coupon.maxDiscountAmount && discount > coupon.maxDiscountAmount) {
+        discount = coupon.maxDiscountAmount;
+      }
+    }
+    return discount;
+  };
+
+  // 2. Lọc mã hợp lệ (Tối đa 1 Order Discount, 1 Shipping Discount)
+  const orderCoupons = appliedCoupons.filter(c => c.couponType === 'SHOP_VOUCHER' || c.couponType === 'PAYMENT_VOUCHER');
+  const shippingCoupons = appliedCoupons.filter(c => c.couponType === 'FREE_SHIPPING');
+  
+  const activeOrderCoupon = orderCoupons.length > 0 ? orderCoupons[0] : null;
+  const activeShippingCoupon = shippingCoupons.length > 0 ? shippingCoupons[0] : null;
+
+  const couponsToProcess = [activeOrderCoupon, activeShippingCoupon].filter(Boolean) as CouponResponse[];
+
+  // 3. Phân loại và xử lý Coupons
+  couponsToProcess.forEach((coupon) => {
+    if (!coupon.isActive) {
+      errors.push(`Mã ${coupon.code} hiện không hoạt động.`);
+      return;
+    }
+    
+    if (coupon.startDate && coupon.endDate) {
+      const startDate = new Date(coupon.startDate);
+      const endDate = new Date(coupon.endDate);
+      if (now < startDate || now > endDate) {
+        errors.push(`Mã ${coupon.code} đã hết hạn hoặc chưa đến thời gian sử dụng.`);
+        return;
       }
     }
 
-    // Discount cannot exceed order amount
-    actualDiscount = Math.min(actualDiscount, orderAmount);
-
-    return {
-      coupon,
-      actualDiscount,
-    };
-  });
-
-  // 3. Sort coupons to find the optimal one
-  couponsWithDiscount.sort((a, b) => {
-    // Rule 1: Highest discount amount
-    if (a.actualDiscount !== b.actualDiscount) {
-      return b.actualDiscount - a.actualDiscount;
+    if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) {
+      errors.push(`Mã ${coupon.code} yêu cầu giá trị tối thiểu là ${coupon.minOrderAmount}.`);
+      return;
     }
 
-    // Rule 2: Highest discount percentage (if amount is the same)
-    // To compare fairly, we check if one is percentage
-    const aIsPercentage = a.coupon.discountType === 'PERCENTAGE';
-    const bIsPercentage = b.coupon.discountType === 'PERCENTAGE';
-    if (aIsPercentage !== bIsPercentage) {
-      return aIsPercentage ? -1 : 1;
+    if (coupon.couponType === 'SHOP_VOUCHER') {
+      let discount = calculateDiscount(coupon, subtotal);
+      discount = Math.min(discount, subtotal);
+      shopDiscount += discount;
+      validCoupons.push(coupon);
+    } 
+    else if (coupon.couponType === 'FREE_SHIPPING') {
+      let discount = calculateDiscount(coupon, subtotal); 
+      discount = Math.min(discount, shippingFee);
+      shippingDiscount += discount;
+      validCoupons.push(coupon);
     }
-    if (aIsPercentage && bIsPercentage) {
-      if (a.coupon.discountValue !== b.coupon.discountValue) {
-        return b.coupon.discountValue - a.coupon.discountValue;
+    else if (coupon.couponType === 'PAYMENT_VOUCHER') {
+      let isPaymentValid = false;
+      try {
+        if (coupon.applicableConditions) {
+          const conditions = JSON.parse(coupon.applicableConditions);
+          if (Array.isArray(conditions.payment_methods)) {
+            if (conditions.payment_methods.includes(paymentMethod.toUpperCase())) {
+              isPaymentValid = true;
+            }
+          } else {
+             isPaymentValid = true;
+          }
+        } else {
+          isPaymentValid = true;
+        }
+      } catch (e) {
+        isPaymentValid = true;
       }
-    }
 
-    // Rule 3: Nearest expiry date
-    const aEndDate = new Date(a.coupon.endDate).getTime();
-    const bEndDate = new Date(b.coupon.endDate).getTime();
-    if (aEndDate !== bEndDate) {
-      return aEndDate - bEndDate; // Ascending (sooner expiry wins)
-    }
+      if (!isPaymentValid) {
+        errors.push(`Mã ${coupon.code} không áp dụng cho phương thức thanh toán hiện tại.`);
+        return;
+      }
 
-    // Rule 4: Lowest minOrderValue
-    const aMin = a.coupon.minOrderAmount || 0;
-    const bMin = b.coupon.minOrderAmount || 0;
-    return aMin - bMin; // Ascending
+      let discount = calculateDiscount(coupon, subtotal);
+      const remainingSubtotal = Math.max(0, subtotal - shopDiscount);
+      discount = Math.min(discount, remainingSubtotal);
+      paymentDiscount += discount;
+      validCoupons.push(coupon);
+    }
   });
+
+  const grandTotal = Math.max(0, subtotal - shopDiscount) 
+                     + Math.max(0, shippingFee - shippingDiscount) 
+                     - paymentDiscount;
 
   return {
-    coupon: couponsWithDiscount[0].coupon,
-    discountAmount: couponsWithDiscount[0].actualDiscount,
+    subtotal,
+    shippingFee,
+    shopDiscount,
+    shippingDiscount,
+    paymentDiscount,
+    grandTotal: Math.max(0, grandTotal),
+    errors,
+    warnings,
+    validCoupons
   };
 };
+
+

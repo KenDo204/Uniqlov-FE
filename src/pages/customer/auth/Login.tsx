@@ -30,11 +30,11 @@ export function Login() {
     resetAuth(); 
     try {
       await login(data);
-      toast.success('Đăng nhập thành công!', { position: 'top-right' });
+      toast.success('Đăng nhập thành công!');
       navigate('/');
       await fetchProfile();
     } catch (err: any) {
-      toast.error(err || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!', { position: 'top-right' });
+      toast.error(err || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!');
     }
   };
 

@@ -8,7 +8,7 @@ interface AccessoryCardProps {
 
 export function AccessorySection() {
   return (
-    <section className="bg-[#f8f8f8] py-20 mt-8">
+    <section className="bg-white py-2 md:py-6">
       <div className="max-w-[1200px] mx-auto px-4">
         <div className="text-center mb-12">
           <h3 className="text-2xl md:text-3xl font-bold uppercase mb-3 tracking-wide">Phụ Kiện Thời Trang</h3>

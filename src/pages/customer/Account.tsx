@@ -9,10 +9,10 @@ export function Account() {
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success('Đã đăng xuất thành công!', { position: 'top-right' });
+      toast.success('Đã đăng xuất thành công!');
       navigate('/login'); // Chuyển hướng người dùng về trang đăng nhập
     } catch (error) {
-      toast.error('Có lỗi xảy ra khi đăng xuất.', { position: 'top-right' });
+      toast.error('Có lỗi xảy ra khi đăng xuất.');
       console.error("Lỗi đăng xuất:", error);
     }
   };

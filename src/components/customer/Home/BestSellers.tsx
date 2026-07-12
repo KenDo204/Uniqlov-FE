@@ -1,23 +1,39 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { paths } from '@/config/paths';
-import type { Product } from '@/features/products';
 import { ProductCard } from '@/components/shared/ProductCard';
+import { productService } from '@/services/productService';
+import type { ProductResponse } from '@/types/product/responses';
 
-interface BestSellersProps {
-  products: Product[];
-  onAddToCart: (product: Product, e: React.MouseEvent, selectedColor?: string) => void;
-  isLoading?: boolean;
-}
-
-export function BestSellers({ products, onAddToCart, isLoading = false }: BestSellersProps) {
+export function BestSellers() {
   const navigate = useNavigate();
+  const [products, setProducts] = useState<ProductResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter popular products for best sellers
-  const bestSellers = products?.filter((p) => p.in_popular).slice(0, 8) || [];
+  useEffect(() => {
+    let isMounted = true;
+    const fetchBestSellers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await productService.getPublicProducts({ collection: 'BEST_SELLERS', size: 8 });
+        if (isMounted && response.result) {
+          setProducts(response.result.content);
+        }
+      } catch (error) {
+        console.error('Failed to fetch best sellers', error);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    fetchBestSellers();
+    return () => { isMounted = false; };
+  }, []);
+
+  const bestSellers = products;
 
   return (
-    <section className="py-12 md:py-16 bg-white">
-      <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
+    <section className="w-full py-8 md:py-16 bg-white">
+      <div className="max-w-[1200px] mx-auto px-4 lg:px-8">
         <h2 className="text-2xl md:text-3xl font-heading font-black text-center mb-8 md:mb-12 m-0 uppercase tracking-tight text-gray-900">
           Sản phẩm bán chạy nhất
         </h2>
@@ -37,16 +53,15 @@ export function BestSellers({ products, onAddToCart, isLoading = false }: BestSe
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {bestSellers.map((product) => (
                 <ProductCard
-                  key={product.product_id}
+                  key={product.productId}
                   product={product}
-                  onAddToCart={onAddToCart}
                 />
               ))}
             </div>
 
             <div className="text-center mt-10 md:mt-12">
               <button 
-                onClick={() => navigate(paths.customer.bestSellers)}
+                onClick={() => navigate(`${paths.customer.products}?collection=BEST_SELLERS`)}
                 className="px-10 py-3.5 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest text-gray-900 hover:border-theme hover:bg-theme hover:text-white transition-all duration-300 cursor-pointer rounded-[2px]"
               >
                 Khám phá tất cả

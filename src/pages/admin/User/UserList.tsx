@@ -11,6 +11,7 @@ import { useRole } from '@/hooks/useRole';
 import { toast } from 'react-toastify';
 import type { UserDetailResponse } from '@/types/user';
 import CustomPagination from '@/components/general/Pagination';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import AddUser from './AddUser';
 import EditUser from './EditUser';
 
@@ -101,26 +102,28 @@ const UserList: React.FC = () => {
   const totalPages = users?.totalPages ?? 0;
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý người dùng</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Theo dõi, cấp quyền, vô hiệu hóa tài khoản và quản trị thành viên</p>
           </div>
-          <Button
-            onClick={handleOpenAdd}
-            variant="contained"
-            sx={{
-              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
-              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
-            }}
-          >
-            <Add fontSize="medium" />
-            Thêm người dùng
-          </Button>
+          <PermissionGuard permission="user:create">
+            <Button
+              onClick={handleOpenAdd}
+              variant="contained"
+              sx={{
+                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+              }}
+            >
+              <Add fontSize="medium" />
+              Thêm người dùng
+            </Button>
+          </PermissionGuard>
         </div>
 
         {/* FILTERS & SEARCH */}
@@ -229,24 +232,28 @@ const UserList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <Tooltip title="Chỉnh sửa quyền & thông tin" arrow>
-                            <IconButton
-                              onClick={() => handleOpenEdit(user)}
-                              size="small"
-                              sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Xóa tài khoản" arrow>
-                            <IconButton
-                              onClick={() => handleDeleteClick(user.userId)}
-                              size="small"
-                              sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <PermissionGuard permission="user:update">
+                            <Tooltip title="Chỉnh sửa quyền & thông tin" arrow>
+                              <IconButton
+                                onClick={() => handleOpenEdit(user)}
+                                size="small"
+                                sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
+                          <PermissionGuard permission="user:delete">
+                            <Tooltip title="Xóa tài khoản" arrow>
+                              <IconButton
+                                onClick={() => handleDeleteClick(user.userId)}
+                                size="small"
+                                sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
                         </div>
                       </td>
                     </tr>

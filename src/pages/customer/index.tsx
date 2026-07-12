@@ -3,12 +3,11 @@ export { ProductDetail as CustomerProductDetail } from './ProductDetail';
 export { Cart as CustomerCart } from './Cart';
 export { Checkout as CustomerCheckout } from './Checkout';
 
-export { Collection } from './Collection';
+export { ProductListPage } from './ProductListPage';
 export { Login } from './auth/Login';
 export { Register } from './auth/Register';
 export { ForgotPassword } from './auth/ForgotPassword';
 export { ResetPassword } from './auth/ResetPassword';
-export { Search } from './Search';
 export { Account } from './Account';
 export { About } from './About';
 export { Sustainability } from './Sustainability';

@@ -74,7 +74,7 @@ export function ProfileDetails() {
           await fetchProfile();
         }
       } catch (err: any) {
-        toast.error(err || 'Không thể cập nhật ảnh đại diện lúc này.', { position: 'top-right' });
+        toast.error(err || 'Không thể cập nhật ảnh đại diện lúc này.');
       }
     }
     event.target.value = '';
@@ -93,7 +93,7 @@ export function ProfileDetails() {
         gender: data.gender,
       });
 
-      toast.success('Cập nhật hồ sơ thành công!', { position: 'top-right' });
+      toast.success('Cập nhật hồ sơ thành công!');
       setIsEditing(false); // Tắt chế độ chỉnh sửa
       
       // Quan trọng: Gọi lại fetchProfile để nạp dữ liệu mới nhất vào Redux State
@@ -101,7 +101,7 @@ export function ProfileDetails() {
         await fetchProfile();
       }
     } catch (err: any) {
-      toast.error(err || 'Không thể cập nhật hồ sơ lúc này.', { position: 'top-right' });
+      toast.error(err || 'Không thể cập nhật hồ sơ lúc này.');
     } finally {
       setIsSubmitting(false);
     }

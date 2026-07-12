@@ -25,12 +25,12 @@ export function ForgotPassword() {
     resetAuth();
     try {
       await forgotPassword({ email: data.email });
-      toast.success('Đường dẫn đặt lại mật khẩu đã được gửi đến email của bạn!', { position: 'top-right' });
+      toast.success('Đường dẫn đặt lại mật khẩu đã được gửi đến email của bạn!');
       reset(); // Xóa form sau khi gửi thành công
       // Chuyển sang form nhập OTP luôn
       navigate('/reset-password'); 
     } catch (err: any) {
-      toast.error(err || 'Gửi yêu cầu thất bại.', { position: 'top-right' });
+      toast.error(err || 'Gửi yêu cầu thất bại.');
     }
   };
 

@@ -12,12 +12,12 @@ export function CategoryNavigation() {
 
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
         {[
-          { name: 'Men', path: paths.customer.men, img: 'https://images.unsplash.com/photo-1614975058789-41316d0e2e9c?w=400&q=80' },
-          { name: 'Women', path: paths.customer.women, img: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&q=80' },
-          { name: 'Essentials', path: paths.customer.seasonalEssentials, img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&q=80' },
-          { name: 'Active', path: paths.customer.newArrivals, img: 'https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=400&q=80' },
-          { name: 'Outerwear', path: paths.customer.bestSellers, img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=80' },
-          { name: 'Accessories', path: paths.customer.newArrivals, img: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&q=80' }
+          { name: 'Men', path: `${paths.customer.products}?targetGender=1`, img: 'https://images.unsplash.com/photo-1614975058789-41316d0e2e9c?w=400&q=80' },
+          { name: 'Women', path: `${paths.customer.products}?targetGender=0`, img: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&q=80' },
+          { name: 'Essentials', path: `${paths.customer.products}?categoryCode=essentials`, img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&q=80' },
+          { name: 'Active', path: `${paths.customer.products}?collection=NEW_ARRIVALS`, img: 'https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=400&q=80' },
+          { name: 'Outerwear', path: `${paths.customer.products}?collection=BEST_SELLERS`, img: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&q=80' },
+          { name: 'Accessories', path: `${paths.customer.products}?categoryCode=accessories`, img: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&q=80' }
         ].map((cat, idx) => (
           <div
             key={idx}

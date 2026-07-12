@@ -7,8 +7,7 @@ import {
   CustomerCheckout,
   Login,
   Register,
-  Collection,
-  Search,
+  ProductListPage,
   Account,
   About,
   Sustainability,
@@ -25,7 +24,7 @@ import {
   ChangePassword,
   ResetPassword
 } from '../pages/customer';
-import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
+
 import ContactPage from '../pages/customer/Contact/ContactPage';
 import MyContactHistory from '../pages/customer/Contact/MyContactHistory';
 import { GuestGuard } from './GuestGuard';
@@ -48,18 +47,10 @@ export const customerRoutes: RouteObject = {
         { path: 'reset-password', element: <ResetPassword /> },
       ],
     },
-    { 
-      path: 'sign-in/sso-callback', 
-      element: <AuthenticateWithRedirectCallback signInForceRedirectUrl="/" /> 
-    },
+
     // UNILO routes
-    { path: 'men', element: <Collection /> },
-    { path: 'women', element: <Collection /> },
-    { path: 'new-arrivals', element: <Collection /> },
-    { path: 'best-sellers', element: <Collection /> },
-    { path: 'seasonal-essentials', element: <Collection /> },
+    { path: 'products', element: <ProductListPage /> },
     { path: 'product/:id', element: <CustomerProductDetail /> },
-    { path: 'search', element: <Search /> },
     { path: 'cart', element: <CustomerCart /> },
     { path: 'checkout', element: <CustomerCheckout /> },
     { 

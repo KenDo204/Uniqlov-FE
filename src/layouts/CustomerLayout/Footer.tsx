@@ -37,10 +37,10 @@ export function Footer() {
             <div className="space-y-6">
               <h5 className="text-sm font-bold uppercase text-primary dark:text-white tracking-widest mb-4">Collections</h5>
               <div className="flex flex-col gap-4 text-base text-gray-500 dark:text-gray-400 font-medium">
-                <Link to={paths.customer.men} className="hover:text-theme transition-colors decoration-none">Men Range</Link>
-                <Link to={paths.customer.women} className="hover:text-theme transition-colors decoration-none">Women Range</Link>
-                <Link to={paths.customer.newArrivals} className="hover:text-theme transition-colors decoration-none">New Arrivals</Link>
-                <Link to={paths.customer.bestSellers} className="hover:text-theme transition-colors decoration-none">Bestsellers</Link>
+                <Link to={`${paths.customer.products}?targetGender=1`} className="hover:text-theme transition-colors decoration-none">Men Range</Link>
+                <Link to={`${paths.customer.products}?targetGender=0`} className="hover:text-theme transition-colors decoration-none">Women Range</Link>
+                <Link to={`${paths.customer.products}?collection=NEW_ARRIVALS`} className="hover:text-theme transition-colors decoration-none">New Arrivals</Link>
+                <Link to={`${paths.customer.products}?collection=BEST_SELLERS`} className="hover:text-theme transition-colors decoration-none">Bestsellers</Link>
               </div>
             </div>
 
@@ -78,7 +78,7 @@ export function Footer() {
           <span className="w-6 h-6 flex items-center justify-center font-heading font-black text-lg">U</span>
           <span>Home</span>
         </Link>
-        <Link to={paths.customer.search} className="flex flex-col items-center gap-1.5 text-[10px] uppercase font-bold text-gray-500 hover:text-theme transition-colors decoration-none">
+        <Link to={paths.customer.products} className="flex flex-col items-center gap-1.5 text-[10px] uppercase font-bold text-gray-500 hover:text-theme transition-colors decoration-none">
           <Search className="w-5 h-5" />
           <span>Search</span>
         </Link>

@@ -166,7 +166,7 @@ export function Orders() {
                             <div key={item.orderDetailId} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                               <div className="w-[70px] h-[90px] bg-gray-50 shrink-0 rounded overflow-hidden border border-gray-100">
                                 <img
-                                  src={(item as any).variantImage || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&q=80'}
+                                  src={item.variantImage || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&q=80'}
                                   alt={item.productName}
                                   className="w-full h-full object-cover"
                                 />

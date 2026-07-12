@@ -11,6 +11,7 @@ import { useOrder } from '@/hooks/useOrder';
 import { toast } from 'react-toastify';
 import type { OrderSummaryResponse } from '@/types/order/responses';
 import { OrderStatus } from '@/types/enums/orderType';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 
 const OrderList: React.FC = () => {
   const {
@@ -143,8 +144,8 @@ const OrderList: React.FC = () => {
   const totalPages = pagination?.totalPages ?? 0;
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
@@ -380,7 +381,15 @@ const OrderList: React.FC = () => {
                       {currentOrderDetail.items.map((item) => (
                         <tr key={item.orderDetailId}>
                           <td className="px-4 py-3">
-                            <div>
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                                <img 
+                                  src={item.variantImage || '/placeholder-product.png'} 
+                                  alt={item.productName}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div>
                               <div className="font-semibold text-gray-800">{item.productName}</div>
                               <div className="text-[10px] text-gray-400 mt-0.5">SKU: {item.skuCode}</div>
                               {item.variantAttributes && Object.keys(item.variantAttributes).length > 0 ? (
@@ -392,6 +401,7 @@ const OrderList: React.FC = () => {
                                   ))}
                                 </div>
                               ) : null}
+                              </div>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-center font-medium">
@@ -437,47 +447,49 @@ const OrderList: React.FC = () => {
               </div>
 
               {/* Status Update Section */}
-              <div className="border-t border-gray-150 pt-5 mt-2">
-                <Typography sx={{ fontWeight: 'bold', color: 'text.secondary', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 3 }}>
-                  Cập nhật trạng thái đơn hàng (Admin)
-                </Typography>
-                <form onSubmit={handleUpdateStatus} className="flex flex-col sm:flex-row gap-4 items-start">
-                  <div className="flex-1 w-full">
-                    <TextField
-                      select
-                      label="Trạng thái mới"
-                      fullWidth
-                      size="small"
-                      value={newStatus}
-                      onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
-                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              <PermissionGuard permission="order:update">
+                <div className="border-t border-gray-150 pt-5 mt-2">
+                  <Typography sx={{ fontWeight: 'bold', color: 'text.secondary', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.5px', mb: 3 }}>
+                    Cập nhật trạng thái đơn hàng (Admin)
+                  </Typography>
+                  <form onSubmit={handleUpdateStatus} className="flex flex-col sm:flex-row gap-4 items-start">
+                    <div className="flex-1 w-full">
+                      <TextField
+                        select
+                        label="Trạng thái mới"
+                        fullWidth
+                        size="small"
+                        value={newStatus}
+                        onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      >
+                        <MenuItem value={OrderStatus.PENDING}>Chờ xử lý (PENDING)</MenuItem>
+                        <MenuItem value={OrderStatus.PENDING_REVIEW}>Chờ duyệt (PENDING_REVIEW)</MenuItem>
+                        <MenuItem value={OrderStatus.PENDING_PAYMENT}>Chờ thanh toán (PENDING_PAYMENT)</MenuItem>
+                        <MenuItem value={OrderStatus.AWAITING_SHIPMENT}>Chờ giao hàng (AWAITING_SHIPMENT)</MenuItem>
+                        <MenuItem value={OrderStatus.SHIPPING}>Đang vận chuyển (SHIPPING)</MenuItem>
+                        <MenuItem value={OrderStatus.DELIVERED}>Đã giao hàng (DELIVERED)</MenuItem>
+                        <MenuItem value={OrderStatus.COMPLETED}>Hoàn tất đơn (COMPLETED)</MenuItem>
+                        <MenuItem value={OrderStatus.CANCELLED}>Hủy bỏ đơn (CANCELLED)</MenuItem>
+                        <MenuItem value={OrderStatus.RETURNED}>Đã trả hàng (RETURNED)</MenuItem>
+                        <MenuItem value={OrderStatus.REFUND_FAILED}>Hoàn tiền lỗi (REFUND_FAILED)</MenuItem>
+                      </TextField>
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={actionLoading}
+                      variant="contained"
+                      sx={{
+                        bgcolor: 'theme', textTransform: 'none', px: 4, height: '40px',
+                        fontWeight: 'bold', fontSize: '13px', borderRadius: '10px', boxShadow: 'none',
+                        '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
+                      }}
                     >
-                      <MenuItem value={OrderStatus.PENDING}>Chờ xử lý (PENDING)</MenuItem>
-                      <MenuItem value={OrderStatus.PENDING_REVIEW}>Chờ duyệt (PENDING_REVIEW)</MenuItem>
-                      <MenuItem value={OrderStatus.PENDING_PAYMENT}>Chờ thanh toán (PENDING_PAYMENT)</MenuItem>
-                      <MenuItem value={OrderStatus.AWAITING_SHIPMENT}>Chờ giao hàng (AWAITING_SHIPMENT)</MenuItem>
-                      <MenuItem value={OrderStatus.SHIPPING}>Đang vận chuyển (SHIPPING)</MenuItem>
-                      <MenuItem value={OrderStatus.DELIVERED}>Đã giao hàng (DELIVERED)</MenuItem>
-                      <MenuItem value={OrderStatus.COMPLETED}>Hoàn tất đơn (COMPLETED)</MenuItem>
-                      <MenuItem value={OrderStatus.CANCELLED}>Hủy bỏ đơn (CANCELLED)</MenuItem>
-                      <MenuItem value={OrderStatus.RETURNED}>Đã trả hàng (RETURNED)</MenuItem>
-                      <MenuItem value={OrderStatus.REFUND_FAILED}>Hoàn tiền lỗi (REFUND_FAILED)</MenuItem>
-                    </TextField>
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={actionLoading}
-                    variant="contained"
-                    sx={{
-                      bgcolor: 'theme', textTransform: 'none', px: 4, height: '40px',
-                      fontWeight: 'bold', fontSize: '13px', borderRadius: '10px', boxShadow: 'none',
-                      '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
-                    }}
-                  >
-                    {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Cập nhật'}
-                  </Button>
-                </form>
-              </div>
+                      {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Cập nhật'}
+                    </Button>
+                  </form>
+                </div>
+              </PermissionGuard>
             </div>
           ) : (
             <div className="text-center py-6 text-gray-500">Không tìm thấy thông tin đơn hàng</div>

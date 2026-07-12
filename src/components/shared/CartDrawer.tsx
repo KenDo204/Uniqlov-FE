@@ -2,7 +2,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, X, ArrowRight } from '@/components/ui/icons';
 import { useCart } from '@/hooks/useCart';
 import { paths } from '@/config/paths';
-import { formatVND } from '@/utils/formatters';
+import { formatVND, translateAttribute } from '@/utils/formatters';
+import { useState } from 'react';
+import ConfirmModal from '@/components/general/ConfirmModal';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -12,6 +14,37 @@ interface CartDrawerProps {
 export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const navigate = useNavigate();
   const { items: cartItems, updateQuantity, removeItem } = useCart();
+
+  // Confirm delete states
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  const handleUpdateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity === 0) {
+      setItemToRemove(id);
+      setIsConfirmModalOpen(true);
+    } else {
+      updateQuantity(id, newQuantity);
+    }
+  };
+
+  const handleRequestRemove = (id: string) => {
+    setItemToRemove(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (itemToRemove) {
+      removeItem(itemToRemove);
+      setItemToRemove(null);
+    }
+    setIsConfirmModalOpen(false);
+  };
+
+  const handleCancelRemove = () => {
+    setItemToRemove(null);
+    setIsConfirmModalOpen(false);
+  };
 
   const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -23,11 +56,11 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       <div className="w-80 md:w-[400px] h-full bg-white dark:bg-gray-900 flex flex-col justify-between animate-slide-up shadow-2xl animate-duration-300">
         {/* Header */}
         <div className="p-4 md:p-6 border-b border-unilo-border dark:border-gray-800 flex justify-between items-center text-xs uppercase font-bold tracking-wider">
-          <span className="font-heading font-black text-sm flex items-center gap-2">
+          <span className="font-heading text-theme text-sm flex items-center gap-2">
             <ShoppingCart className="w-4.5 h-4.5" /> Giỏ hàng ({totalQuantity})
           </span>
 
-          <button onClick={onClose} className="p-1 hover:bg-unilo-muted dark:hover:bg-gray-800 rounded-full border-none bg-transparent cursor-pointer text-gray-500 transition-colors">
+          <button onClick={onClose} className="p-1 hover:text-theme dark:hover:bg-gray-800 rounded-full border-none bg-transparent cursor-pointer text-gray-500 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -52,7 +85,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   {item.variantAttributes && Object.keys(item.variantAttributes).length > 0 && (
                     <div className="text-[10px] text-gray-400 mt-1 flex flex-wrap gap-x-2">
                       {Object.entries(item.variantAttributes).map(([k, v]) => (
-                        <span key={k}>{k}: {v}</span>
+                        <span key={k}>{translateAttribute(k)}: {String(v)}</span>
                       ))}
                     </div>
                   )}
@@ -62,15 +95,15 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   {/* Quantity modifiers in drawer */}
                   <div className="flex items-center gap-2 border border-unilo-border dark:border-gray-800 w-fit rounded overflow-hidden bg-unilo-muted dark:bg-gray-855 mt-2 shrink-0">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="px-1.5 py-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 bg-transparent border-none cursor-pointer font-bold transition-colors"
+                      onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                      className="px-1.5 py-0.5 hover:text-theme bg-transparent border-none cursor-pointer font-bold transition-colors"
                     >
                       -
                     </button>
                     <span className="w-5 text-center font-bold text-[10px]">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="px-1.5 py-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 bg-transparent border-none cursor-pointer font-bold transition-colors"
+                      onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                      className="px-1.5 py-0.5 hover:text-theme bg-transparent border-none cursor-pointer font-bold transition-colors"
                     >
                       +
                     </button>
@@ -81,8 +114,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     {formatVND(item.price * item.quantity)}
                   </span>
                   <button
-                    onClick={() => removeItem(item.id)}
-                    className="text-[10px] text-gray-400 hover:text-accent font-semibold border-none bg-transparent cursor-pointer mt-1 transition-colors"
+                    onClick={() => handleRequestRemove(item.id)}
+                    className="text-[10px] text-gray-400 hover:text-cancel font-semibold border-none bg-transparent cursor-pointer mt-1 transition-colors"
                   >
                     Xóa
                   </button>
@@ -120,6 +153,16 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        open={isConfirmModalOpen}
+        setOpen={handleCancelRemove}
+        title="Xóa sản phẩm khỏi giỏ hàng"
+        content="Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+        onConfirm={handleConfirmRemove}
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+      />
     </div>
   );
 }

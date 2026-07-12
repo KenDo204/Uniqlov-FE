@@ -11,6 +11,7 @@ import { usePermission } from '@/hooks/usePermission';
 import { toast } from 'react-toastify';
 import type { RoleResponse } from '@/types/role';
 import CustomPagination from '@/components/general/Pagination';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import AddRole from './AddRole';
 import EditRole from './EditRole';
 
@@ -88,26 +89,28 @@ const RoleList: React.FC = () => {
   };
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý vai trò</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Cấp nhóm quyền, mô tả vai trò và cấu trúc phân quyền hệ thống</p>
           </div>
-          <Button
-            onClick={handleOpenAdd}
-            variant="contained"
-            sx={{
-              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
-              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
-            }}
-          >
-            <Add fontSize="medium" />
-            Thêm vai trò
-          </Button>
+          <PermissionGuard permission="role:create">
+            <Button
+              onClick={handleOpenAdd}
+              variant="contained"
+              sx={{
+                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+              }}
+            >
+              <Add fontSize="medium" />
+              Thêm vai trò
+            </Button>
+          </PermissionGuard>
         </div>
 
         {/* ROLE LIST (CARDS) */}
@@ -137,24 +140,28 @@ const RoleList: React.FC = () => {
                       </div>
 
                       <div className="flex gap-1">
-                        <Tooltip title="Chỉnh sửa vai trò & quyền" arrow>
-                          <IconButton
-                            onClick={() => handleOpenEdit(role)}
-                            size="small"
-                            sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
-                          >
-                            <Edit fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Xóa vai trò" arrow>
-                          <IconButton
-                            onClick={() => handleDeleteClick(role.roleId)}
-                            size="small"
-                            sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
-                          >
-                            <Delete fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <PermissionGuard permission="role:update">
+                          <Tooltip title="Chỉnh sửa vai trò & quyền" arrow>
+                            <IconButton
+                              onClick={() => handleOpenEdit(role)}
+                              size="small"
+                              sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                            >
+                              <Edit fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </PermissionGuard>
+                        <PermissionGuard permission="role:delete">
+                          <Tooltip title="Xóa vai trò" arrow>
+                            <IconButton
+                              onClick={() => handleDeleteClick(role.roleId)}
+                              size="small"
+                              sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </PermissionGuard>
                       </div>
                     </div>
 

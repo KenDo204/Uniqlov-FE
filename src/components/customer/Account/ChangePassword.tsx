@@ -40,11 +40,11 @@ export function ChangePassword() {
     setIsSendingOtp(true);
     try {
       await forgotPassword({ email: user.email });
-      toast.success(`Mã OTP đã được gửi đến email ${user.email}`, { position: 'top-right' });
+      toast.success(`Mã OTP đã được gửi đến email ${user.email}`);
       startTimer(60);
       setStep(2);
     } catch (err: any) {
-      toast.error(err || 'Gửi yêu cầu thất bại.', { position: 'top-right' });
+      toast.error(err || 'Gửi yêu cầu thất bại.');
     } finally {
       setIsSendingOtp(false);
     }
@@ -60,12 +60,12 @@ export function ChangePassword() {
         otp: data.otp,
         newPassword: data.newPassword,
       });
-      toast.success('Đổi mật khẩu thành công!', { position: 'top-right' });
+      toast.success('Đổi mật khẩu thành công!');
       reset();
       clearTimer();
       setStep(1); // Quay lại bước gửi OTP hoặc để yên tùy nghiệp vụ
     } catch (err: any) {
-      toast.error(err || 'Đổi mật khẩu thất bại.', { position: 'top-right' });
+      toast.error(err || 'Đổi mật khẩu thất bại.');
     } finally {
       setIsSubmitting(false);
     }

@@ -27,7 +27,7 @@ const colorNameToHex: Record<string, string> = {
   'hồng': '#E2A4A4',
 };
 
-const getColorCode = (colorName: string): string => {
+export const getColorCode = (colorName: string): string => {
   const normalized = colorName.trim().toLowerCase();
   return colorNameToHex[normalized] || '#8E8E93';
 };

@@ -1,10 +1,11 @@
 import { axiosClient } from './axiosClient';
-import type { ApiResponse } from '@/types/common/apiResponse';
+import type { ApiResponse, PageResponse } from '@/types/common/apiResponse';
 import type {
   ProductResponse,
   ProductCreateRequest,
   ProductUpdateRequest,
-  ProductVariantResponse
+  ProductVariantResponse,
+  ProductFilterRequest
 } from '@/types/product';
 
 const API_URL = '/products';
@@ -12,8 +13,15 @@ const API_URL = '/products';
 export const productService = {
   // --- PUBLIC ENDPOINTS (Storefront) ---
 
-  getPublicProducts: async (): Promise<ApiResponse<ProductResponse[]>> => {
-    const response = await axiosClient.get<ApiResponse<ProductResponse[]>>(`${API_URL}/public`);
+  getPublicProducts: async (filter?: ProductFilterRequest & { page?: number; size?: number; sort?: string }): Promise<ApiResponse<PageResponse<ProductResponse>>> => {
+    // Xóa các key undefined/null ra khỏi filter
+    const cleanFilter = filter ? Object.fromEntries(
+      Object.entries(filter).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ) : {};
+
+    const response = await axiosClient.get<ApiResponse<PageResponse<ProductResponse>>>(`${API_URL}/public`, {
+      params: cleanFilter,
+    });
     return response.data;
   },
 

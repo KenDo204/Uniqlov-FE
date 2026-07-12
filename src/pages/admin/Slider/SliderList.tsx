@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { useSlider } from '@/hooks/useSlider';
 import { toast } from 'react-toastify';
 import CustomPagination from '@/components/general/Pagination';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { useAuth } from '@/hooks/useAuth';
 
 const SliderList: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ const SliderList: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { hasPermission } = useAuth();
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -72,8 +75,8 @@ const SliderList: React.FC = () => {
   };
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-[1400px] mx-auto text-left">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý Slider</h1>
@@ -81,13 +84,15 @@ const SliderList: React.FC = () => {
               Cập nhật hình ảnh banner trình chiếu trên trang chủ
             </p>
           </div>
-          <button
-            onClick={() => navigate('/admin/sliders/add')}
-            className="flex items-center gap-2 px-6 py-2.5 bg-theme text-white rounded-lg font-medium hover:bg-theme-hover transition-colors border-none cursor-pointer shadow-sm"
-          >
-            <Add fontSize="small" />
-            <span>Thêm Slider mới</span>
-          </button>
+          <PermissionGuard permission="slider:create">
+            <button
+              onClick={() => navigate('/admin/sliders/add')}
+              className="flex items-center gap-2 px-6 py-2.5 bg-theme text-white rounded-lg font-medium hover:bg-theme-hover transition-colors border-none cursor-pointer shadow-sm"
+            >
+              <Add fontSize="small" />
+              <span>Thêm Slider mới</span>
+            </button>
+          </PermissionGuard>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -168,6 +173,7 @@ const SliderList: React.FC = () => {
                       <td className="px-6 py-4 text-center">
                         <Switch
                           checked={slider.isActive}
+                          disabled={!hasPermission('slider:update')}
                           onChange={(e) => handleToggleStatus(slider.sliderId, slider, e.target.checked)}
                           sx={{
                             '& .MuiSwitch-switchBase.Mui-checked': {
@@ -183,25 +189,29 @@ const SliderList: React.FC = () => {
 
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center gap-2">
-                          <Tooltip title="Chỉnh sửa" arrow>
-                            <IconButton 
-                              size="small" 
-                              onClick={() => navigate(`/admin/sliders/edit/${slider.sliderId}`)}
-                              className="text-blue-600 hover:bg-blue-50"
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <PermissionGuard permission="slider:update">
+                            <Tooltip title="Chỉnh sửa" arrow>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => navigate(`/admin/sliders/edit/${slider.sliderId}`)}
+                                className="text-blue-600 hover:bg-blue-50"
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
                           
-                          <Tooltip title="Xóa slider" arrow>
-                            <IconButton 
-                              size="small" 
-                              onClick={() => confirmDelete(slider.sliderId)}
-                              className="text-red-500 hover:bg-red-50"
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <PermissionGuard permission="slider:delete">
+                            <Tooltip title="Xóa slider" arrow>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => confirmDelete(slider.sliderId)}
+                                className="text-red-500 hover:bg-red-50"
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
                         </div>
                       </td>
                     </tr>

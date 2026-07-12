@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { useCategory } from '@/hooks/useCategory';
+import { useNavigate } from 'react-router-dom';
 
 export function CategorySection() {
   const { categories, fetchPublicCategories } = useCategory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -22,6 +24,7 @@ export function CategorySection() {
         {displayCategories.map((cat) => (
           <div
             key={cat.categoryId}
+            onClick={() => navigate(`/products?categoryCode=${cat.categoryCode}`)}
             className="flex flex-col items-center group cursor-pointer text-center"
           >
             {/* Vùng chứa ảnh: kích thước to hơn, bo tròn mềm mại và hover effect */}

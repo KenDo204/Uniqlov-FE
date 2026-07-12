@@ -4,7 +4,7 @@ import { Footer } from './Footer';
 
 export default function CustomerLayout() {
   return (
-    <div className="flex flex-col min-h-screen bg-unilo-muted text-primary transition-colors duration-300 w-full text-left font-sans">
+    <div className="flex flex-col min-h-screen bg-white text-primary transition-colors duration-300 w-full text-left font-sans">
       {/* Header */}
       <Header />
 

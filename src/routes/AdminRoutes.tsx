@@ -17,6 +17,7 @@ import ContactManagement from '../pages/admin/Contact/ContactManagement';
 import CouponList from '../pages/admin/Coupon/CouponList';
 import OrderList from '../pages/admin/Order/OrderList';
 import { RoleGuard } from './RoleGuard';
+import { PermissionRouteGuard } from './PermissionRouteGuard';
 import { ROLES } from '@/constants/roles';
 
 export const adminRoutes: RouteObject = {
@@ -30,35 +31,66 @@ export const adminRoutes: RouteObject = {
         { path: 'dashboard', element: <AdminDashboard /> },
         {
           path: 'sliders',
+          element: <PermissionRouteGuard permission="slider:read" />,
           children: [
             { path: '', element: <SliderList /> },
-            { path: 'add', element: <AddSlider /> },
-            { path: 'edit/:sliderId', element: <EditSlider /> },
+            { path: 'add', element: <PermissionRouteGuard permission="slider:create" />, children: [{ path: '', element: <AddSlider /> }] },
+            { path: 'edit/:sliderId', element: <PermissionRouteGuard permission="slider:update" />, children: [{ path: '', element: <EditSlider /> }] },
           ],
         },
-        { path: 'brands', element: <AdminBrands /> },
+        { 
+          path: 'brands', 
+          element: <PermissionRouteGuard permission="brand:read" />,
+          children: [{ path: '', element: <AdminBrands /> }]
+        },
         {
           path: 'categories',
+          element: <PermissionRouteGuard permission="category:read" />,
           children: [
             { path: '', element: <CategoryList /> },
-            { path: 'add', element: <AddCategory /> },
-            { path: 'edit/:categoryId', element: <EditCategory /> },
+            { path: 'add', element: <PermissionRouteGuard permission="category:create" />, children: [{ path: '', element: <AddCategory /> }] },
+            { path: 'edit/:categoryId', element: <PermissionRouteGuard permission="category:update" />, children: [{ path: '', element: <EditCategory /> }] },
           ],
         },
-        { path: 'users', element: <UserList /> },
-        { path: 'roles', element: <RoleList /> },
-        { path: 'permissions', element: <PermissionList /> },
+        { 
+          path: 'users', 
+          element: <PermissionRouteGuard permission="user:read" />,
+          children: [{ path: '', element: <UserList /> }]
+        },
+        { 
+          path: 'roles', 
+          element: <PermissionRouteGuard permission="role:read" />,
+          children: [{ path: '', element: <RoleList /> }]
+        },
+        { 
+          path: 'permissions', 
+          element: <PermissionRouteGuard permission="permission:read" />,
+          children: [{ path: '', element: <PermissionList /> }]
+        },
         {
           path: 'products',
+          element: <PermissionRouteGuard permission="product:read" />,
           children: [
             { path: '', element: <AdminProductList /> },
-            { path: 'add', element: <AddProduct /> },
-            { path: 'edit/:productId', element: <EditProduct /> },
+            { path: 'add', element: <PermissionRouteGuard permission="product:create" />, children: [{ path: '', element: <AddProduct /> }] },
+            { path: 'edit/:productId', element: <PermissionRouteGuard permission="product:update" />, children: [{ path: '', element: <EditProduct /> }] },
           ],
         },
-        { path: 'contacts', element: <ContactManagement /> },
-        { path: 'orders', element: <OrderList /> },
-        { path: 'coupons', element: <CouponList /> },
+        { 
+          path: 'contacts', 
+          element: <PermissionRouteGuard permission="contact:read" />,
+          children: [{ path: '', element: <ContactManagement /> }]
+        },
+        { 
+          path: 'orders', 
+          element: <PermissionRouteGuard permission="order:read" />,
+          children: [{ path: '', element: <OrderList /> }]
+        },
+        { 
+          path: 'coupons', 
+          element: <PermissionRouteGuard permission="coupon:read" />,
+          children: [{ path: '', element: <CouponList /> }]
+        },
       ],
     },
   ],

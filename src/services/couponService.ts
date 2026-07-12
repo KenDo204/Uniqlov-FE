@@ -33,6 +33,12 @@ export const couponService = {
     return response.data;
   },
 
+  getAvailableCoupons: async (): Promise<ApiResponse<CouponResponse[]>> => {
+    const response = await axiosClient.get<ApiResponse<CouponResponse[]>>(`${API_URL}/available`);
+    return response.data;
+  },
+
+
   previewApply: async (data: CouponApplyRequest): Promise<ApiResponse<CouponApplyResponse>> => {
     const response = await axiosClient.post<ApiResponse<CouponApplyResponse>>(`${API_URL}/preview`, data);
     return response.data;

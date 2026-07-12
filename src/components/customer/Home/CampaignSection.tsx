@@ -18,7 +18,7 @@ function CampaignBlock({ data }: { data: any }) {
   const [activeTab, setActiveTab] = useState(data.tabs[0]);
 
   return (
-    <section className="w-full mt-2 bg-[rgba(215, 222, 241, 1)]">
+    <section className="w-full mt-2 bg-[rgba(215, 222, 241, 1)] py-4 md:py-8">
       {/* Banner */}
       <div className="relative w-full h-[40vh] md:h-[65vh]">
         <img src={data.banner_url} alt={data.title} className="w-full h-full object-cover" />

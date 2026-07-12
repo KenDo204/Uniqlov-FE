@@ -13,6 +13,12 @@ import {
   introspectThunk
 } from '@/stores/slices/authSlice';
 import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResendOtpRequest, ResetPasswordRequest } from '@/types/auth';
+import { jwtDecode } from 'jwt-decode';
+
+interface CustomJwtPayload {
+  scope?: string;
+  [key: string]: any;
+}
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
@@ -58,6 +64,21 @@ export const useAuth = () => {
     dispatch(clearAuth());
   }, [dispatch]);
 
+  const hasPermission = useCallback((permission: string) => {
+    if (!accessToken) return false;
+    try {
+      const decoded = jwtDecode<CustomJwtPayload>(accessToken);
+      const scopes = (decoded.scope || '').split(' ');
+      
+      // ADMIN role has all permissions
+      if (scopes.includes('ROLE_ADMIN')) return true;
+      
+      return scopes.includes(permission);
+    } catch {
+      return false;
+    }
+  }, [accessToken]);
+
   return useMemo(() => ({
     user,
     isAuthenticated,
@@ -73,6 +94,7 @@ export const useAuth = () => {
     activateAccount,
     resendOtp,
     resetPassword,
-    introspectToken
-  }), [user, isAuthenticated, accessToken, isLoading, error, login, logout, fetchProfile, resetAuth, register, forgotPassword, activateAccount, resendOtp, resetPassword, introspectToken]);
+    introspectToken,
+    hasPermission
+  }), [user, isAuthenticated, accessToken, isLoading, error, login, logout, fetchProfile, resetAuth, register, forgotPassword, activateAccount, resendOtp, resetPassword, introspectToken, hasPermission]);
 };

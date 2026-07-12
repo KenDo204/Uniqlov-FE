@@ -13,6 +13,7 @@ import { CartItemRow } from '@/components/customer/Cart/CartItemRow';
 import { OrderSummary } from '@/components/customer/Cart/OrderSummary';
 import { CrossSellSection } from '@/components/customer/Cart/CrossSellSection';
 import { VariantChangeModal } from '@/components/customer/Cart/VariantChangeModal';
+import ConfirmModal from '@/components/general/ConfirmModal';
 
 export function Cart() {
   const { items, removeItem, updateQuantity } = useCartStore();
@@ -26,6 +27,10 @@ export function Cart() {
   const [loadingVariants, setLoadingVariants] = useState(false);
   const [itemVariants, setItemVariants] = useState<ProductVariantResponse[]>([]);
   const [tempAttributes, setTempAttributes] = useState<Record<string, string>>({});
+
+  // Confirm delete states
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   const scrollToRecommendations = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -153,8 +158,35 @@ export function Cart() {
     }
   };
 
+  const handleUpdateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity === 0) {
+      setItemToRemove(id);
+      setIsConfirmModalOpen(true);
+    } else {
+      updateQuantity(id, newQuantity);
+    }
+  };
+
+  const handleRequestRemove = (id: string) => {
+    setItemToRemove(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (itemToRemove) {
+      removeItem(itemToRemove);
+      setItemToRemove(null);
+    }
+    setIsConfirmModalOpen(false);
+  };
+
+  const handleCancelRemove = () => {
+    setItemToRemove(null);
+    setIsConfirmModalOpen(false);
+  };
+
   // Financial calculations
-  const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const rawSubtotal = items.reduce((sum, item) => sum + (typeof item.totalMoney === 'number' ? item.totalMoney : item.price * item.quantity), 0);
 
   const total = rawSubtotal;
 
@@ -201,8 +233,8 @@ export function Cart() {
                 <CartItemRow
                   key={item.id}
                   item={item}
-                  onUpdateQuantity={updateQuantity}
-                  onRemoveItem={removeItem}
+                  onUpdateQuantity={handleUpdateQuantity}
+                  onRemoveItem={handleRequestRemove}
                   onOpenVariantModal={handleOpenVariantModal}
                 />
               ))}
@@ -235,6 +267,16 @@ export function Cart() {
         tempAttributes={tempAttributes}
         setTempAttributes={setTempAttributes}
         onConfirmVariant={handleConfirmVariant}
+      />
+
+      <ConfirmModal
+        open={isConfirmModalOpen}
+        setOpen={handleCancelRemove}
+        title="Xóa sản phẩm khỏi giỏ hàng"
+        content="Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng không?"
+        onConfirm={handleConfirmRemove}
+        confirmText="Xác nhận"
+        cancelText="Hủy"
       />
     </div>
   );

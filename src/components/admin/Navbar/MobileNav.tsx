@@ -3,11 +3,11 @@ import { Box, Button, Drawer, Divider, List, ListItem, ListItemButton, ListItemI
 import { Logout } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { LayoutDashboard, Users, FolderTree, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket } from '@/components/ui/icons';
+import { LayoutDashboard, Users, FolderTree, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket, MessageSquare, Image } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 
 export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: Dispatch<SetStateAction<boolean>> }) {
-    const { user, logout } = useAuth();
+    const { user, logout, hasPermission } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -23,16 +23,16 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
     }
 
     const menuItems = [
-      { label: 'Tổng quan', path: paths.admin.dashboard, icon: LayoutDashboard },
-    //   { label: 'Quản lý Banners', path: paths.admin.banners, icon: Image },
-    //   { label: 'Quản lý Thương hiệu', path: paths.admin.brands, icon: Settings },
-      { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree },
-      { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom },
-      { label: 'Quản lý Đơn hàng', path: paths.admin.orders, icon: ShoppingBag },
-      { label: 'Quản lý Mã giảm giá', path: paths.admin.coupons, icon: Ticket },
-      { label: 'Quản lý Người dùng', path: paths.admin.users, icon: Users },
-      { label: 'Quản lý Vai trò', path: paths.admin.roles, icon: ShieldCheck },
-      { label: 'Quản lý Quyền', path: paths.admin.permissions, icon: Lock },
+        { label: 'Tổng quan', path: paths.admin.dashboard, icon: LayoutDashboard },
+        { label: 'Quản lý Slider', path: paths.admin.sliders, icon: Image, permission: 'slider:read' },
+        { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree, permission: 'category:read' },
+        { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom, permission: 'product:read' },
+        { label: 'Quản lý Đơn hàng', path: paths.admin.orders, icon: ShoppingBag, permission: 'order:read' },
+        { label: 'Quản lý Liên hệ', path: paths.admin.contacts, icon: MessageSquare, permission: 'contact:read' },
+        { label: 'Quản lý Mã giảm giá', path: paths.admin.coupons, icon: Ticket, permission: 'coupon:read' },
+        { label: 'Quản lý Người dùng', path: paths.admin.users, icon: Users, permission: 'user:read' },
+        { label: 'Quản lý Vai trò', path: paths.admin.roles, icon: ShieldCheck, permission: 'role:read' },
+        { label: 'Quản lý Quyền', path: paths.admin.permissions, icon: Lock, permission: 'permission:read' },
     ];
 
     const DrawerList = (
@@ -49,7 +49,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
 
             {/* Main Links */}
             <List sx={{ flexGrow: 1, pt: 2, overflowY: 'auto' }}>
-                {menuItems.map((item) => {
+                {menuItems.filter(item => !item.permission || hasPermission(item.permission)).map((item) => {
                     const isActive = location.pathname === item.path || (item.path !== paths.admin.dashboard && location.pathname.startsWith(item.path));
                     const Icon = item.icon;
                     return (

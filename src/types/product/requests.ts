@@ -123,3 +123,15 @@ export interface ProductUpdateRequest {
   
   images?: ProductImageRequest[];
 }
+
+export interface ProductFilterRequest {
+  keyword?: string;
+  categoryCode?: string;
+  collection?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+  targetGender?: number;
+  inStock?: boolean;
+  inPopular?: boolean;
+}

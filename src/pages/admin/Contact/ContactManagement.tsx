@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import CustomPagination from '@/components/general/Pagination';
 import ContactStatusChip from '@/components/admin/Contact/ContactStatusChip';
 import type { ContactMessageResponse } from '@/types/contact';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 
 const ContactManagement: React.FC = () => {
   const {
@@ -60,8 +61,8 @@ const ContactManagement: React.FC = () => {
   };
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-[1400px] mx-auto text-left">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý Liên hệ - Góp ý - Khiếu nại</h1>
@@ -160,16 +161,17 @@ const ContactManagement: React.FC = () => {
                               <Visibility fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          
-                          <Tooltip title="Đổi trạng thái" arrow>
-                            <IconButton 
-                              size="small" 
-                              onClick={() => handleOpenStatusModal(contact)}
-                              className="text-blue-600 hover:bg-blue-50"
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <PermissionGuard permission="contact:update">
+                            <Tooltip title="Đổi trạng thái" arrow>
+                              <IconButton 
+                                size="small" 
+                                onClick={() => handleOpenStatusModal(contact)}
+                                className="text-blue-600 hover:bg-blue-50"
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
                         </div>
                       </td>
                     </tr>

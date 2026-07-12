@@ -10,5 +10,4 @@ export interface ShippingFeeRequest {
   toDistrictId: number;
   toWardCode: string;
   weightGram: number;
-  serviceId: number;
 }

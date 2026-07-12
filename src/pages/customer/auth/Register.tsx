@@ -63,9 +63,9 @@ export function Register() {
 
       setRegisteredEmail(data.email);
       setStep(2); // Chuyển sang bước OTP
-      toast.success('Đã gửi mã xác nhận đến email của bạn!', { position: 'top-right' });
+      toast.success('Đã gửi mã xác nhận đến email của bạn!');
     } catch (err: any) {
-      toast.error(err || 'Đăng ký thất bại. Email có thể đã tồn tại.', { position: 'top-right' });
+      toast.error(err || 'Đăng ký thất bại. Email có thể đã tồn tại.');
     }
   };
 
@@ -77,7 +77,7 @@ export function Register() {
       toast.success('🎉 Kích hoạt tài khoản thành công! Vui lòng đăng nhập.', { position: 'top-right', autoClose: 3000 });
       navigate('/login');
     } catch (err: any) {
-      toast.error(err || 'Mã OTP không hợp lệ hoặc đã hết hạn.', { position: 'top-right' });
+      toast.error(err || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
     }
   };
 
@@ -85,9 +85,9 @@ export function Register() {
   const handleResendOtp = async () => {
     try {
       await resendOtp({ email: registeredEmail, type: 'ACTIVATION' });
-      toast.success('Đã gửi lại mã OTP!', { position: 'top-right' });
+      toast.success('Đã gửi lại mã OTP!');
     } catch (err: any) {
-      toast.error(err || 'Chưa thể gửi lại mã lúc này.', { position: 'top-right' });
+      toast.error(err || 'Chưa thể gửi lại mã lúc này.');
       throw err; // Bắn lỗi ra để OTPInput không reset timer nếu API lỗi
     }
   };

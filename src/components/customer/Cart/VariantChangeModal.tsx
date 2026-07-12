@@ -106,7 +106,7 @@ export const VariantChangeModal: React.FC<VariantChangeModalProps> = ({
                                 ${
                                   isSelected
                                     ? 'border-theme border-[2px] text-theme font-bold bg-theme/5'
-                                    : 'border-gray-300 text-gray-800 hover:border-black'
+                                    : 'border-gray-300 text-gray-800 hover:border-theme hover:text-theme'
                                 }`}
                         >
                           {val}

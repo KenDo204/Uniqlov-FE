@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { clearAuth, updateTokens } from '@/stores/slices/authSlice';
+import { toast } from 'react-toastify';
 
 const REFRESH_URL = '/auth/refresh';
 
@@ -62,6 +63,7 @@ axiosClient.interceptors.response.use(
         case 403:
           // Tránh lặp vô hạn nếu API refresh cũng trả về 401 hoặc 403
           if (originalRequest.url === REFRESH_URL) {
+            toast.info('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.');
             store.dispatch(clearAuth());
             return Promise.reject(error);
           }
@@ -143,6 +145,7 @@ axiosClient.interceptors.response.use(
       }
     } else {
       console.error('Network Error or server is offline.');
+      toast.error('Lỗi kết nối mạng hoặc máy chủ không phản hồi.');
     }
     return Promise.reject(error);
   }

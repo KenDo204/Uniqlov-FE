@@ -168,39 +168,6 @@ export function ProductDetail() {
     }
   };
 
-  const handleAddRelatedToCart = async (prod: any, e: React.MouseEvent, selectedCol?: string) => {
-    e.stopPropagation();
-    const activeColor = selectedCol || prod.options_config.colors[0]?.colorName || 'Default';
-    const activeVar = prod.variants.find((v: any) => v.variant_attributes.colorName === activeColor) || prod.variants[0];
-    const size = activeVar?.variant_attributes.size || 'M';
-    const price = activeVar?.price || prod.variants[0]?.price || 0;
-    const image = activeVar?.variant_image || prod.images[0]?.image_url || '';
-
-    if (!activeVar) {
-      toast.error('Biến thể sản phẩm không khả dụng.');
-      return;
-    }
-
-    try {
-      await addCartItem({
-        id: `${activeVar.variant_id}`,
-        variantId: activeVar.variant_id,
-        name: prod.product_name,
-        price: price,
-        variantImage: image,
-        color: activeColor,
-        size: size,
-        variantAttributes: {
-          'Màu sắc': activeColor,
-          'Kích cỡ': size
-        }
-      }, 1);
-      toast.success(`Đã thêm ${prod.product_name} vào giỏ hàng.`);
-    } catch (err: any) {
-      toast.error(err || `Không thể thêm ${prod.product_name} vào giỏ hàng.`);
-    }
-  };
-
   const averageRating = useMemo(() => {
     if (!product || !product.reviews || product.reviews.length === 0) return 5.0;
     const sum = product.reviews.reduce((acc, rev) => acc + rev.rating, 0);
@@ -286,15 +253,12 @@ export function ProductDetail() {
     }
   };
 
-  const allProductsMapped = useMemo(() => {
-    return (rawProducts || []).map(mapProductResponseToProduct);
-  }, [rawProducts]);
 
   // Bundle Items cho mục Sản phẩm mua kèm
   const bundleItems = useMemo(() => {
     if (!product) return [];
-    return allProductsMapped.filter((p) => p.category_id === product.category_id && p.product_id !== product.product_id).slice(0, 4);
-  }, [allProductsMapped, product]);
+    return (rawProducts || []).filter((p) => String(p.categoryId) === String(product.category_id) && String(p.productId) !== String(product.product_id)).slice(0, 4);
+  }, [rawProducts, product]);
 
   if (isFetching && !product) {
     return (
@@ -344,7 +308,7 @@ export function ProductDetail() {
         {/* Breadcrumbs */}
         <div className="text-[12px] text-gray-500 mb-6 flex gap-1 uppercase tracking-wide">
           <span className="text-theme cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span> /
-          <span className="text-theme cursor-pointer" onClick={() => navigate('/collections/men')}>Bộ sưu tập</span> /
+          {/* <span className="text-theme cursor-pointer" onClick={() => navigate(`/products?categoryCode=${product.category_code}`)}>{product.category_name}</span> / */}
           <span className="text-gray-800">{product.product_name}</span>
         </div>
 
@@ -561,7 +525,7 @@ export function ProductDetail() {
 
             {/* Giá & Đánh giá (Nằm ngang nhau) */}
             <div className="flex justify-between items-end mt-6">
-              <div className="text-[26px] font-bold tracking-tight">
+              <div className="text-[26px] font-bold tracking-tight text-theme">
                 {formatVND(activeVariant?.price || product.variants[0]?.price || 0)}
               </div>
               <div className="flex items-center gap-1 cursor-pointer" onClick={() => {
@@ -640,9 +604,8 @@ export function ProductDetail() {
 
               {bundleItems.map((prod) => (
                 <ProductCard
-                  key={prod.product_id}
+                  key={prod.productId}
                   product={prod}
-                  onAddToCart={handleAddRelatedToCart}
                 />
               ))}
             </div>

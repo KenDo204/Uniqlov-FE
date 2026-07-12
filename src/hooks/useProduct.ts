@@ -11,16 +11,19 @@ import {
   deleteProductThunk,
   clearCurrentProductDetail
 } from '@/stores/slices/productSlice';
-import type { ProductCreateRequest, ProductUpdateRequest } from '@/types/product';
+import type { ProductCreateRequest, ProductUpdateRequest, ProductFilterRequest } from '@/types/product';
 
 export const useProduct = () => {
   const dispatch = useAppDispatch();
-  const { productsList, currentProductDetail, isFetching, isSubmitting, error } = useAppSelector((state) => state.product);
+  const { productsList, publicProductsData, currentProductDetail, isFetching, isSubmitting, error } = useAppSelector((state) => state.product);
 
   // --- Public APIs ---
-  const fetchPublicProducts = useCallback(async () => {
-    return await dispatch(fetchPublicProductsThunk()).unwrap();
-  }, [dispatch]);
+  const fetchPublicProducts = useCallback(
+    async (filter?: ProductFilterRequest & { page?: number; size?: number; sort?: string }) => {
+      return await dispatch(fetchPublicProductsThunk(filter)).unwrap();
+    },
+    [dispatch]
+  );
 
   const fetchProductBySlug = useCallback(async (slug: string) => {
     return await dispatch(fetchPublicProductBySlugThunk(slug)).unwrap();
@@ -56,7 +59,9 @@ export const useProduct = () => {
   }, [dispatch]);
 
   return useMemo(() => ({
-    products: productsList,
+    products: publicProductsData ? publicProductsData.content : productsList, // fallback logic
+    adminProducts: productsList,
+    publicProductsData,
     productDetail: currentProductDetail,
     isFetching,
     isSubmitting,
@@ -70,5 +75,5 @@ export const useProduct = () => {
     deleteProduct,
     fetchAdminProductById,
     clearDetail
-  }), [productsList, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchProductVariants, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
+  }), [productsList, publicProductsData, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchProductVariants, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
 };

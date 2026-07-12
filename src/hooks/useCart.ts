@@ -14,6 +14,7 @@ import {
   changeItemVariantDbThunk
 } from '@/stores/slices/cartSlice';
 import type { CartItem } from '@/stores/slices/cartSlice';
+import { toast } from 'react-toastify';
 import type { ProductVariantResponse } from '@/types/product';
 
 export const useCart = () => {
@@ -49,23 +50,36 @@ export const useCart = () => {
   }, [dispatch, isAuthenticated]);
 
   const updateCartItemQuantity = useCallback(async (id: string, quantity: number) => {
-    if (isAuthenticated) {
-      const vId = Number(id);
-      if (!isNaN(vId)) {
-        return await dispatch(updateItemDbThunk({ variantId: vId, quantity })).unwrap();
+    try {
+      if (isAuthenticated) {
+        const vId = Number(id);
+        if (!isNaN(vId)) {
+          await dispatch(updateItemDbThunk({ variantId: vId, quantity })).unwrap();
+        }
+      } else {
+        dispatch(updateQuantity({ id, quantity }));
       }
+      // Không nên toast success khi tăng giảm số lượng quá nhiều để tránh spam UX, nhưng theo yêu cầu:
+      toast.success('Đã cập nhật số lượng sản phẩm.');
+    } catch (err: any) {
+      toast.error(err || 'Không thể cập nhật số lượng sản phẩm.');
     }
-    dispatch(updateQuantity({ id, quantity }));
   }, [dispatch, isAuthenticated]);
 
   const removeCartItem = useCallback(async (id: string) => {
-    if (isAuthenticated) {
-      const vId = Number(id);
-      if (!isNaN(vId)) {
-        return await dispatch(removeItemDbThunk(vId)).unwrap();
+    try {
+      if (isAuthenticated) {
+        const vId = Number(id);
+        if (!isNaN(vId)) {
+          await dispatch(removeItemDbThunk(vId)).unwrap();
+        }
+      } else {
+        dispatch(removeItem(id));
       }
+      toast.success('Đã xóa sản phẩm khỏi giỏ hàng.');
+    } catch (err: any) {
+      toast.error(err || 'Không thể xóa sản phẩm khỏi giỏ hàng.');
     }
-    dispatch(removeItem(id));
   }, [dispatch, isAuthenticated]);
 
   const clearAllCart = useCallback(async () => {

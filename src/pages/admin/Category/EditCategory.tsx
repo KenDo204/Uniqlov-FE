@@ -125,7 +125,7 @@ const EditCategory: React.FC = () => {
 
   if (isPageLoading || isFetching) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
         <CircularProgress sx={{ color: 'theme' }} />
         <p className="mt-2 text-gray-500 font-medium">Đang tải thông tin danh mục...</p>
       </div>
@@ -133,8 +133,8 @@ const EditCategory: React.FC = () => {
   }
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-3xl mx-auto text-left">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate('/admin/categories')}

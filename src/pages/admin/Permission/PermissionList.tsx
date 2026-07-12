@@ -10,6 +10,7 @@ import { usePermission } from '@/hooks/usePermission';
 import { toast } from 'react-toastify';
 import type { PermissionResponse } from '@/types/permission';
 import CustomPagination from '@/components/general/Pagination';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
 import AddPermission from './AddPermission';
 import EditPermission from './EditPermission';
 
@@ -90,26 +91,28 @@ const PermissionList: React.FC = () => {
   };
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen text-left">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý quyền hạn</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Định nghĩa các quyền thao tác trong hệ thống bảo mật cấp cơ sở dữ liệu</p>
           </div>
-          <Button
-            onClick={handleOpenAdd}
-            variant="contained"
-            sx={{
-              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
-              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
-            }}
-          >
-            <Add fontSize="medium" />
-            Thêm mã quyền
-          </Button>
+          <PermissionGuard permission="permission:create">
+            <Button
+              onClick={handleOpenAdd}
+              variant="contained"
+              sx={{
+                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+              }}
+            >
+              <Add fontSize="medium" />
+              Thêm mã quyền
+            </Button>
+          </PermissionGuard>
         </div>
 
         {/* TABLE */}
@@ -152,24 +155,28 @@ const PermissionList: React.FC = () => {
                       <td className="px-6 py-4 text-center text-gray-500">{formatDate(perm.createdAt)}</td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-1">
-                          <Tooltip title="Chỉnh sửa mô tả quyền" arrow>
-                            <IconButton
-                              onClick={() => handleOpenEdit(perm)}
-                              size="small"
-                              sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Xóa quyền hệ thống" arrow>
-                            <IconButton
-                              onClick={() => handleDeleteClick(perm.permissionId)}
-                              size="small"
-                              sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <PermissionGuard permission="permission:update">
+                            <Tooltip title="Chỉnh sửa mô tả quyền" arrow>
+                              <IconButton
+                                onClick={() => handleOpenEdit(perm)}
+                                size="small"
+                                sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                              >
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
+                          <PermissionGuard permission="permission:delete">
+                            <Tooltip title="Xóa quyền hệ thống" arrow>
+                              <IconButton
+                                onClick={() => handleDeleteClick(perm.permissionId)}
+                                size="small"
+                                sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                              >
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </PermissionGuard>
                         </div>
                       </td>
                     </tr>

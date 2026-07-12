@@ -13,6 +13,8 @@ import { useCategory } from '@/hooks/useCategory';
 import type { CategoryResponse } from '@/types/category';
 import { toast } from 'react-toastify';
 import CustomPagination from '@/components/general/Pagination';
+import { PermissionGuard } from '@/components/shared/PermissionGuard';
+import { useAuth } from '@/hooks/useAuth';
 
 const CategoryList: React.FC = () => {
   const navigate = useNavigate();
@@ -79,6 +81,7 @@ const CategoryList: React.FC = () => {
     const hasChildren = category.children && category.children.length > 0;
     const isExpanded = expandedIds.includes(category.categoryId);
     const [isUpdating, setIsUpdating] = useState(false);
+    const { hasPermission } = useAuth();
 
     const handleToggleStatus = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const isChecked = e.target.checked;
@@ -166,7 +169,7 @@ const CategoryList: React.FC = () => {
               <Switch
                 checked={category.categoryStatus === 1}
                 onChange={handleToggleStatus}
-                disabled={isUpdating}
+                disabled={isUpdating || !hasPermission('category:update')}
                 size="small"
                 sx={{
                   '& .MuiSwitch-switchBase.Mui-checked': { color: 'theme' },
@@ -179,24 +182,28 @@ const CategoryList: React.FC = () => {
 
           <td className="px-6 py-4 text-center w-32">
             <div className="flex items-center justify-center gap-1">
-              <Tooltip title="Chỉnh sửa" arrow>
-                <IconButton
-                  onClick={() => navigate(`/admin/categories/edit/${category.categoryId}`)}
-                  size="small"
-                  sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Xóa" arrow>
-                <IconButton
-                  onClick={() => handleDeleteClick(category.categoryId)}
-                  size="small"
-                  sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
-                >
-                  <Delete fontSize="small" />
-                </IconButton>
-              </Tooltip>
+              <PermissionGuard permission="category:update">
+                <Tooltip title="Chỉnh sửa" arrow>
+                  <IconButton
+                    onClick={() => navigate(`/admin/categories/edit/${category.categoryId}`)}
+                    size="small"
+                    sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                  >
+                    <Edit fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </PermissionGuard>
+              <PermissionGuard permission="category:delete">
+                <Tooltip title="Xóa" arrow>
+                  <IconButton
+                    onClick={() => handleDeleteClick(category.categoryId)}
+                    size="small"
+                    sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                  >
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </PermissionGuard>
             </div>
           </td>
         </tr>
@@ -240,25 +247,27 @@ const CategoryList: React.FC = () => {
   };
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full text-left flex flex-col gap-6">
+      <div className="w-full mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý danh mục</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Xem, thêm, sửa, xóa cấu trúc danh mục sản phẩm của hệ thống</p>
           </div>
-          <Button
-            onClick={() => navigate('/admin/categories/add')}
-            variant="contained"
-            sx={{
-              bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
-              fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
-            }}
-          >
-            <Add fontSize="medium" />
-            Thêm danh mục
-          </Button>
+          <PermissionGuard permission="category:create">
+            <Button
+              onClick={() => navigate('/admin/categories/add')}
+              variant="contained"
+              sx={{
+                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+              }}
+            >
+              <Add fontSize="medium" />
+              Thêm danh mục
+            </Button>
+          </PermissionGuard>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

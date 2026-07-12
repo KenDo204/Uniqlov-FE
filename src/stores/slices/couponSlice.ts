@@ -6,6 +6,7 @@ import type { PageResponse } from '@/types/common/apiResponse';
 
 interface CouponState {
   couponsList: PageResponse<CouponResponse> | null;
+  availableCoupons: CouponResponse[] | null;
   currentCoupon: CouponResponse | null;
   previewResult: CouponApplyResponse | null;
   isFetching: boolean;
@@ -15,6 +16,7 @@ interface CouponState {
 
 const initialState: CouponState = {
   couponsList: null,
+  availableCoupons: null,
   currentCoupon: null,
   previewResult: null,
   isFetching: false,
@@ -32,6 +34,18 @@ export const fetchAllCouponsThunk = createAsyncThunk(
       return response.result;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Không thể lấy danh sách mã giảm giá');
+    }
+  }
+);
+
+export const fetchAvailableCouponsThunk = createAsyncThunk(
+  'coupon/fetchAvailable',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await couponService.getAvailableCoupons();
+      return response.result;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Không thể lấy danh sách mã giảm giá khả dụng');
     }
   }
 );
@@ -119,6 +133,21 @@ const couponSlice = createSlice({
         state.couponsList = action.payload || null;
       })
       .addCase(fetchAllCouponsThunk.rejected, (state, action) => {
+        state.isFetching = false;
+        state.error = action.payload as string;
+      });
+
+    // fetchAvailableCouponsThunk
+    builder
+      .addCase(fetchAvailableCouponsThunk.pending, (state) => {
+        state.isFetching = true;
+        state.error = null;
+      })
+      .addCase(fetchAvailableCouponsThunk.fulfilled, (state, action) => {
+        state.isFetching = false;
+        state.availableCoupons = action.payload || [];
+      })
+      .addCase(fetchAvailableCouponsThunk.rejected, (state, action) => {
         state.isFetching = false;
         state.error = action.payload as string;
       });

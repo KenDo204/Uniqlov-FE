@@ -1,15 +1,18 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import { productService } from '@/services/productService';
+import type { PageResponse } from '@/types/common/apiResponse';
 import type {
   ProductResponse,
   ProductCreateRequest,
   ProductUpdateRequest,
-  ProductVariantResponse
+  ProductVariantResponse,
+  ProductFilterRequest
 } from '@/types/product';
 
 // --- ĐỊNH NGHĨA STATE ---
 interface ProductState {
-  productsList: ProductResponse[];
+  productsList: ProductResponse[]; // Dành cho Admin
+  publicProductsData: PageResponse<ProductResponse> | null; // Dành cho Storefront
   productVariantsList: ProductVariantResponse[];
   currentProductDetail: ProductResponse | null;
   isFetching: boolean;
@@ -19,6 +22,7 @@ interface ProductState {
 
 const initialState: ProductState = {
   productsList: [],
+  publicProductsData: null,
   productVariantsList: [],
   currentProductDetail: null,
   isFetching: false,
@@ -30,9 +34,9 @@ const initialState: ProductState = {
 
 export const fetchPublicProductsThunk = createAsyncThunk(
   'product/fetchPublicProducts',
-  async (_, { rejectWithValue }) => {
+  async (filter: ProductFilterRequest & { page?: number; size?: number; sort?: string } | undefined, { rejectWithValue }) => {
     try {
-      const response = await productService.getPublicProducts();
+      const response = await productService.getPublicProducts(filter);
       return response.result;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Lỗi tải danh sách sản phẩm');
@@ -154,10 +158,15 @@ const productSlice = createSlice({
       state.error = action.payload as string;
     };
 
+    const handleFetchPublicListFulfilled = (state: ProductState, action: PayloadAction<PageResponse<ProductResponse> | undefined>) => {
+      state.isFetching = false;
+      if (action.payload) state.publicProductsData = action.payload;
+    };
+
     // Handle Public & Admin List
     builder
       .addCase(fetchPublicProductsThunk.pending, handleFetchListPending)
-      .addCase(fetchPublicProductsThunk.fulfilled, handleFetchListFulfilled)
+      .addCase(fetchPublicProductsThunk.fulfilled, handleFetchPublicListFulfilled)
       .addCase(fetchPublicProductsThunk.rejected, handleFetchListRejected)
       .addCase(fetchAdminProductsThunk.pending, handleFetchListPending)
       .addCase(fetchAdminProductsThunk.fulfilled, handleFetchListFulfilled)
