@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Heart, ShoppingBag, Star } from '@/components/ui/icons';
 import { cn } from "@/lib/utils";
 import { formatVND } from '@/utils/formatters';
@@ -10,23 +10,32 @@ import { toast } from 'react-toastify';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAppSelector } from '@/stores/hooks';
 import { useCart } from '@/hooks/useCart';
+import { useTracking } from '@/hooks/useTracking';
 
 export interface ProductCardProps {
   product: ProductResponse;
   isNewArrival?: boolean;
+  isRecommendation?: boolean;
+  aiModel?: string;
+  rankPosition?: number;
 }
 
 export function ProductCard({
   product,
-  isNewArrival = false
+  isNewArrival = false,
+  isRecommendation = false,
+  aiModel,
+  rankPosition
 }: ProductCardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [isAdding, setIsAdding] = useState(false);
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const { wishlist, toggleWishlist } = useWishlist();
   const { addItem } = useCart();
+  const { trackClickRecommendation } = useTracking();
 
   const isInWishlist = useMemo(() => {
     if (!wishlist || !product) return false;
@@ -70,7 +79,7 @@ export function ProductCard({
     if (!product || !product.variants) return null;
     if (selectedColor) {
       return product.variants.find(
-        (v) => Object.values(v.variantAttributes || {}).some(attr => 
+        (v) => Object.values(v.variantAttributes || {}).some(attr =>
           String(attr).toLowerCase() === selectedColor.toLowerCase()
         )
       ) || product.variants[0];
@@ -95,7 +104,7 @@ export function ProductCard({
     e.stopPropagation();
     e.preventDefault();
     if (isOutOfStock || isAdding) return;
-    
+
     // 1. Get the current active color string
     const activeColorStr = selectedColor || (product.optionsConfig?.colors?.length > 0 ? parseColor(product.optionsConfig.colors[0]).name : '');
 
@@ -129,7 +138,7 @@ export function ProductCard({
       toast.error('Không tìm thấy thông tin biến thể hợp lệ.');
       return;
     }
-    
+
     setIsAdding(true);
     try {
       await addItem({
@@ -140,7 +149,7 @@ export function ProductCard({
         variantImage: targetVariant.variantImage || activeImage,
         variantAttributes: targetVariant.variantAttributes
       }, 1);
-      
+
       toast.success(`Đã thêm ${product.productName} vào giỏ hàng`);
       window.dispatchEvent(new CustomEvent('open-cart-drawer'));
     } catch (err: any) {
@@ -150,13 +159,24 @@ export function ProductCard({
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Ngăn chặn sự kiện click lan truyền
+    if ((e.target as HTMLElement).closest('.quick-add-btn, .wishlist-btn, .color-swatch')) {
+      return;
+    }
+    if (isRecommendation && aiModel && rankPosition) {
+      trackClickRecommendation(product.productId, aiModel, rankPosition);
+    }
+    navigate(productUrl, { state: { from: location.pathname } });
+  };
+
   return (
     <div
       className={cn(
         "group cursor-pointer text-left flex flex-col h-full bg-white transition-all duration-300 rounded-[4px] border border-transparent",
         "hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-1"
       )}
-      onClick={() => navigate(productUrl)}
+      onClick={handleClick}
     >
       {/* Image Container */}
       <div className="w-full aspect-[3/4] bg-[#f7f7f7] rounded-t-[4px] overflow-hidden relative">
@@ -274,42 +294,6 @@ export function ProductCard({
             <ShoppingBag className="w-4 h-4" />
           </button>
         )}
-      </div>
-    </div>
-  );
-}
-
-export function ProductCardSkeleton() {
-  return (
-    <div className="group text-left flex flex-col h-full bg-white transition-all duration-300 rounded-[4px] border border-transparent">
-      <div className="w-full aspect-[3/4] bg-gray-200 rounded-t-[4px] animate-pulse relative">
-        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
-           <div className="w-12 h-5 bg-gray-300 rounded animate-pulse" />
-        </div>
-      </div>
-      <div className="p-4 flex flex-col flex-1 gap-2">
-        <div className="h-4 bg-gray-200 rounded w-full animate-pulse mt-1"></div>
-        <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse"></div>
-        
-        {/* Rating skeleton */}
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <div className="w-3 h-3 bg-gray-200 rounded-full animate-pulse"></div>
-          <div className="w-12 h-3 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-
-        {/* Color swatches skeleton */}
-        <div className="flex gap-1.5 pt-2">
-          <div className="w-3.5 h-3.5 bg-gray-200 rounded-full animate-pulse"></div>
-          <div className="w-3.5 h-3.5 bg-gray-200 rounded-full animate-pulse"></div>
-        </div>
-      </div>
-      
-      {/* Footer skeleton */}
-      <div className="flex items-center justify-between px-4 pb-4 pt-1 border-t border-unilo-border dark:border-gray-800 mt-auto">
-        <div className="flex items-end gap-2 pt-1">
-          <div className="h-5 bg-gray-200 rounded w-24 animate-pulse"></div>
-        </div>
-        <div className="w-9 h-9 bg-gray-200 rounded-full animate-pulse"></div>
       </div>
     </div>
   );

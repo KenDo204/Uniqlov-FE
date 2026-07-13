@@ -1,8 +1,8 @@
 export const BRAND = {
-  NAME: 'UNILOV',
-  FULL_NAME: 'UNILOV Apparel',
+  NAME: 'EASYMALL',
+  FULL_NAME: 'EASYMALL',
   SLOGAN: 'Premium garments designed under Scandinavian simplicity and Japanese functional craftsmanship principles.',
-  COPYRIGHT: 'UNILOV Apparel Ltd. All rights reserved.',
+  COPYRIGHT: 'EASYMALL Ltd. All rights reserved.',
 } as const;
 
 export type BrandType = typeof BRAND;

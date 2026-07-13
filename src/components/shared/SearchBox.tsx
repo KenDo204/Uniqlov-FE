@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Search, Close as X, Mic, MicOff } from "@mui/icons-material";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { buildSearchUrl } from "@/utils/urlHelpers";
+import { useTracking } from "@/hooks/useTracking";
 
 interface SearchBoxProps {
   initialValue?: string;
@@ -19,6 +21,7 @@ export function SearchBox({
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
+  const { trackSearch } = useTracking();
 
   useEffect(() => {
     setQuery(initialValue);
@@ -81,7 +84,8 @@ export function SearchBox({
     const trimmedQuery = query.trim();
     if (trimmedQuery) {
       if (isListening) recognitionRef.current?.stop();
-      navigate(`/products?keyword=${encodeURIComponent(trimmedQuery)}`);
+      trackSearch(trimmedQuery);
+      navigate(buildSearchUrl(trimmedQuery));
     }
   };
 

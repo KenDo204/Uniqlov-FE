@@ -1,6 +1,6 @@
 import React from 'react'
 import { Avatar, Popper, Fade, Paper, type PopperPlacementType, ListItemText, MenuList, ListItemIcon, Divider, Box, Badge, Typography, MenuItem } from '@mui/material'
-import { NoteAlt, FavoriteBorder, Logout, AccountCircle, ShoppingCart, ArrowDropDown, ShoppingCartOutlined } from '@mui/icons-material'
+import { Logout, ShoppingCart, ArrowDropDown, ShoppingCartOutlined } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
@@ -8,28 +8,7 @@ import { type UserResponse } from '@/types/auth'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import { toast } from 'react-toastify';
 
-const navItem = [
-  {
-    title: "Hồ sơ của bạn",
-    icon: <AccountCircle />,
-    path: "/account/profile"
-  },
-  {
-    title: "Giỏ hàng của tôi",
-    icon: <ShoppingCart />,
-    path: "/cart"
-  },
-  {
-    title: "Lịch sử mua hàng",
-    icon: <NoteAlt />,
-    path: "/account/orders"
-  },
-  {
-    title: "Danh sách yêu thích",
-    icon: <FavoriteBorder />,
-    path: "/account/wishlists"
-  },
-]
+import { accountNavItems } from '@/config/navigation.config';
 
 const AvatarNav = ({ user }: { user: UserResponse | null }) => {
   const navigate = useNavigate();
@@ -106,7 +85,7 @@ const AvatarNav = ({ user }: { user: UserResponse | null }) => {
             <Fade {...TransitionProps} timeout={350}>
               <Paper sx={{ width: 300 }}>
                 <MenuList>
-                  {navItem.map((item) => {
+                  {accountNavItems.map((item) => {
                     const isCart = item.path === "/cart";
 
                     return (

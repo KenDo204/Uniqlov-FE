@@ -18,7 +18,7 @@ export function HeroBanner() {
   }, [loadPublicSliders]);
 
   const activeSliders = (publicSliders || [])
-    .filter((s) => s.isActive)
+    .filter((s) => s.isActive && s.displayOrder === 1)
     .sort((a, b) => a.displayOrder - b.displayOrder);
 
   const resolveImageUrl = (url: string) => {
@@ -50,20 +50,45 @@ export function HeroBanner() {
   }
 
   return (
-    <section className="relative w-full h-[70vh] md:h-[100vh] bg-muted overflow-hidden object-cover object-center">
-      {/* LỚP 1: BACKGROUND SWIPER */}
+    <section className="relative w-full h-[60vh] md:h-[90vh] bg-muted overflow-hidden object-cover object-center">
+      {/* LỚP 1: BACKGROUND SWIPER / IMAGE */}
       <div className="absolute inset-0 w-full h-full z-0">
-        <Swiper
-          modules={[Autoplay, EffectFade]}
-          effect="fade"
-          autoplay={{ 
-            delay: 4000, 
-            disableOnInteraction: false 
-          }}
-          loop={true}
-          className="w-full h-full"
-        >
-          {activeSliders.map((slider) => {
+        {activeSliders.length > 1 ? (
+          <Swiper
+            modules={[Autoplay, EffectFade]}
+            effect="fade"
+            autoplay={{ 
+              delay: 4000, 
+              disableOnInteraction: false 
+            }}
+            loop={true}
+            className="w-full h-full"
+          >
+            {activeSliders.map((slider) => {
+              const slideContent = (
+                <img 
+                  src={resolveImageUrl(slider.imageUrl)} 
+                  alt={`Hero Banner ${slider.sliderId}`} 
+                  className="w-full h-full object-cover object-center"
+                />
+              );
+
+              return (
+                <SwiperSlide key={slider.sliderId}>
+                  {slider.targetUrl ? (
+                    <Link to={slider.targetUrl} className="block w-full h-full">
+                      {slideContent}
+                    </Link>
+                  ) : (
+                    slideContent
+                  )}
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
+        ) : (
+          (() => {
+            const slider = activeSliders[0];
             const slideContent = (
               <img 
                 src={resolveImageUrl(slider.imageUrl)} 
@@ -71,20 +96,15 @@ export function HeroBanner() {
                 className="w-full h-full object-cover object-center"
               />
             );
-
-            return (
-              <SwiperSlide key={slider.sliderId}>
-                {slider.targetUrl ? (
-                  <Link to={slider.targetUrl} className="block w-full h-full">
-                    {slideContent}
-                  </Link>
-                ) : (
-                  slideContent
-                )}
-              </SwiperSlide>
+            return slider.targetUrl ? (
+              <Link to={slider.targetUrl} className="block w-full h-full">
+                {slideContent}
+              </Link>
+            ) : (
+              slideContent
             );
-          })}
-        </Swiper>
+          })()
+        )}
       </div>
 
       {/* LỚP 2: LỚP PHỦ MỜ (OVERLAY) */}

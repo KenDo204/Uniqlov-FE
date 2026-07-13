@@ -1,73 +1,195 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ProductGrid } from '@/components/shared/ProductGrid';
+import { buildCategoryUrl } from '@/utils/urlHelpers';
+import { useSlider } from '@/hooks/useSlider';
+import { useCategory } from '@/hooks/useCategory';
+import { useFetchProducts } from '@/hooks/useFetchProducts';
+import type { CategoryResponse } from '@/types/category/responses';
+import type { SliderResponse } from '@/types/slider/responses';
 
-interface CampaignSectionProps {
-  campaignBlocks: any[];
+// --- Helpers ---
+const extractCategoryCode = (url: string | null): string | null => {
+  if (!url) return null;
+  const match = url.match(/categoryCode=([^&]+)/);
+  return match ? match[1] : null;
+};
+
+const findCategoryByCode = (categories: CategoryResponse[], code: string): CategoryResponse | null => {
+  for (const cat of categories) {
+    if (cat.categoryCode === code) return cat;
+    if (cat.children && cat.children.length > 0) {
+      const found = findCategoryByCode(cat.children, code);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+const getLevel3Children = (category: CategoryResponse): CategoryResponse[] => {
+  let results: CategoryResponse[] = [];
+  if (category.level === 3) {
+    results.push(category);
+  } else if (category.children && category.children.length > 0) {
+    category.children.forEach(child => {
+      results = results.concat(getLevel3Children(child));
+    });
+  }
+  return results;
+};
+
+const resolveImageUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+// --- Sub-component: CampaignBlock ---
+interface CampaignBlockProps {
+  slider: SliderResponse;
+  categories: CategoryResponse[];
 }
 
-export function CampaignSection({ campaignBlocks }: CampaignSectionProps) {
-  return (
-    <>
-      {campaignBlocks.map((campaign) => (
-        <CampaignBlock key={campaign.id} data={campaign} />
-      ))}
-    </>
+const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: CampaignBlockProps) {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<CategoryResponse | null>(null);
+
+  // Compute tabs only for this slider's targetUrl
+  const campaignTabs = useMemo(() => {
+    if (!categories || categories.length === 0 || !slider.targetUrl) return [];
+    
+    let allLevel3Tabs: CategoryResponse[] = [];
+    const code = extractCategoryCode(slider.targetUrl);
+    
+    if (code) {
+      const rootCategory = findCategoryByCode(categories, code);
+      if (rootCategory) {
+        allLevel3Tabs = getLevel3Children(rootCategory);
+      }
+    }
+    
+    // Remove duplicates by categoryId
+    return Array.from(new Map(allLevel3Tabs.map(item => [item.categoryId, item])).values());
+  }, [categories, slider.targetUrl]);
+
+  // Set default active tab
+  useEffect(() => {
+    if (campaignTabs.length > 0 && !activeTab) {
+      setActiveTab(campaignTabs[0]);
+    }
+  }, [campaignTabs, activeTab]);
+
+  // Fetch products specific to this block's activeTab
+  const activeTabFilter = useMemo(() => {
+    return { 
+      categoryCode: activeTab?.categoryCode || '', 
+      size: 8 
+    };
+  }, [activeTab]);
+
+  const { products: campaignProducts, isLoading: isProductsLoading } = useFetchProducts(
+    activeTabFilter,
+    { skip: !activeTab }
   );
-}
-
-function CampaignBlock({ data }: { data: any }) {
-  const [activeTab, setActiveTab] = useState(data.tabs[0]);
 
   return (
-    <section className="w-full mt-2 bg-[rgba(215, 222, 241, 1)] py-4 md:py-8">
+    <section className="w-full mt-2 bg-[rgba(215, 222, 241, 1)] py-4 md:py-8 mb-8">
       {/* Banner */}
-      <div className="relative w-full h-[40vh] md:h-[65vh]">
-        <img src={data.banner_url} alt={data.title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-12 md:pb-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent text-white">
-          <p className="text-[10px] md:text-xs tracking-[0.2em] uppercase mb-2">BỀN . MỀM . KHÔNG LỖI MỐT</p>
-          <h2 className="text-3xl md:text-5xl font-light mb-4 uppercase tracking-wider">{data.title}</h2>
-          <p className="text-xs md:text-sm font-light max-w-2xl text-center px-4 leading-relaxed opacity-90">{data.subtitle}</p>
-        </div>
+      <div className="relative w-full h-[40vh] md:h-[65vh] overflow-hidden">
+        {slider.targetUrl ? (
+          <Link to={slider.targetUrl} className="block w-full h-full">
+            <img src={resolveImageUrl(slider.imageUrl)} alt="Campaign Banner" className="w-full h-full object-cover" />
+          </Link>
+        ) : (
+          <img src={resolveImageUrl(slider.imageUrl)} alt="Campaign Banner" className="w-full h-full object-cover" />
+        )}
       </div>
 
       {/* Tabs */}
-      <div className="max-w-[1200px] mx-auto px-4 py-8 md:py-12">
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-14">
-          {data.tabs.map((tab: string) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-5 md:px-6 py-2 md:py-2.5 text-[11px] md:text-[13px] rounded-full border transition-all cursor-pointer ${activeTab === tab
-                  ? 'bg-black text-white border-black font-semibold shadow-md'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
+      {campaignTabs.length > 0 && (
+        <div className="max-w-[1200px] mx-auto px-4 py-8 md:py-12">
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-14">
+            {campaignTabs.map((tab) => (
+              <button
+                key={tab.categoryId}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 md:px-6 py-2 md:py-2.5 text-[11px] md:text-[13px] rounded-full border transition-all cursor-pointer ${
+                  activeTab?.categoryId === tab.categoryId
+                    ? 'bg-black text-white border-black font-semibold shadow-md'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
                 }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+              >
+                {tab.categoryName}
+              </button>
+            ))}
+          </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          {data.products.map((prod: any) => (
-            <div key={prod.product_id} className="group cursor-pointer">
-              <div className="w-full aspect-[3/4] bg-gray-100 overflow-hidden mb-4">
-                <img src={prod.thumbnail_url} alt={prod.product_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+          {/* Product Grid */}
+          <div className="min-h-[300px]">
+            {isProductsLoading ? (
+              <div className="flex justify-center items-center h-[300px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
               </div>
-              <h4 className="text-[13px] font-medium text-gray-800 leading-snug mb-2 group-hover:text-black">{prod.product_name}</h4>
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] font-bold text-black">{prod.price_range}</span>
-                <span className="text-[11px] text-gray-400 line-through">457.000đ</span>
-              </div>
+            ) : campaignProducts.length > 0 ? (
+              <ProductGrid 
+                products={campaignProducts} 
+                gridClassName="grid-cols-2 md:grid-cols-4" 
+              />
+            ) : (
+              <div className="text-center text-gray-500 py-10">Không có sản phẩm nào cho danh mục này.</div>
+            )}
+          </div>
+
+          {activeTab && (
+            <div className="text-center mt-12">
+              <button 
+                onClick={() => navigate(buildCategoryUrl(activeTab.categoryCode))}
+                className="px-10 py-3 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest hover:border-black hover:bg-black hover:text-white transition-all cursor-pointer"
+              >
+                XEM TẤT CẢ
+              </button>
             </div>
-          ))}
+          )}
         </div>
-
-        <div className="text-center mt-12">
-          <button className="px-10 py-3 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest hover:border-black hover:bg-black hover:text-white transition-all cursor-pointer">
-            XEM TẤT CẢ
-          </button>
-        </div>
-      </div>
+      )}
     </section>
+  );
+});
+
+// --- Main Component: CampaignSection ---
+export function CampaignSection() {
+  const { publicSliders, loadPublicSliders } = useSlider();
+  const { categories, fetchPublicCategories } = useCategory();
+
+  // Fetch data on mount if empty
+  useEffect(() => {
+    if (!publicSliders || publicSliders.length === 0) {
+      loadPublicSliders().catch(console.error);
+    }
+    if (!categories || categories.length === 0) {
+      fetchPublicCategories().catch(console.error);
+    }
+  }, [publicSliders, categories, loadPublicSliders, fetchPublicCategories]);
+
+  // Extract displayOrder === 2 sliders
+  const campaignSliders = useMemo(() => {
+    return (publicSliders || [])
+      .filter((s) => s.isActive && s.displayOrder === 2)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }, [publicSliders]);
+
+  if (campaignSliders.length === 0) return null;
+
+  return (
+    <>
+      {campaignSliders.map((slider) => (
+        <CampaignBlock 
+          key={slider.sliderId} 
+          slider={slider} 
+          categories={categories} 
+        />
+      ))}
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Plus, Minus, Heart } from '@/components/ui/icons';
 import { formatVND, translateAttribute } from '@/utils/formatters';
 import type { CartItem } from '@/stores/slices/cartSlice';
@@ -18,11 +18,14 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
   onRemoveItem,
   onOpenVariantModal,
 }) => {
+  const location = useLocation();
+  const originState = { from: location.pathname + location.search };
+
   return (
     <div className="py-6 border-b border-gray-200 flex gap-4 md:gap-6">
       {/* Hình ảnh to, vuông vức */}
       <div className="w-[120px] h-[150px] md:w-[150px] md:h-[180px] shrink-0 bg-gray-50">
-        <Link to={`/product/${item.id}`}>
+        <Link to={`/products/${item.id}`} state={originState}>
           <img src={item.variantImage} alt={item.name} className="w-full h-full object-cover" />
         </Link>
       </div>
@@ -31,7 +34,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
       <div className="flex-1 flex flex-col">
         <div className="flex justify-between items-start gap-4">
           <h3 className="font-medium text-[15px] md:text-[16px] m-0 leading-snug">
-            <Link to={`/product/${item.id}`} className="text-gray-900 hover:text-theme no-underline">
+            <Link to={`/products/${item.id}`} state={originState} className="text-gray-900 hover:text-theme no-underline">
               {item.name}
             </Link>
           </h3>

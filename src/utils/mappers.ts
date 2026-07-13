@@ -1,5 +1,70 @@
 import type { ProductResponse } from '@/types/product';
-import type { Product, ProductVariant, ProductImage } from '@/features/products';
+import { Gender } from '@/types/enums/genderType';
+
+export interface ProductImage {
+  image_id: number;
+  image_url: string;
+  is_thumbnail: boolean;
+  display_order: number;
+}
+
+export interface ProductVariant {
+  variant_id: number;
+  sku_code: string;
+  price: number;
+  cost_price: number;
+  stock_quantity: number;
+  locked_stock: number;
+  variant_image: string | null;
+  variant_attributes: {
+    size: string;
+    colorName: string;
+    colorCode: string;
+  };
+}
+
+export interface ProductReview {
+  review_id: string | number;
+  full_name: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  review_status: 'APPROVED' | 'PENDING' | 'HIDDEN';
+  review_images: string[];
+}
+
+export interface Product {
+  product_id: number;
+  product_slug: string;
+  product_name: string;
+  category_id: string; 
+  product_description: string;
+  product_tags: string[];
+  in_popular: boolean;
+  in_stock: boolean;
+
+  target_gender: Gender; 
+  max_order_quantity: number; 
+  
+  options_config: {
+    sizes: string[];
+    colors: Array<{
+      colorName: string;
+      colorCode: string;
+    }>;
+  }; 
+  
+  weight_kg: number;
+  length_m: number;
+  width_m: number;
+  height_m: number;
+  search_vector: string | null;
+
+  images: ProductImage[];
+  variants: ProductVariant[];
+  reviews: ProductReview[];
+}
+export type Review = ProductReview;
 
 // Helper to strip outer double quotes from backend strings
 const cleanStr = (s?: string): string => {

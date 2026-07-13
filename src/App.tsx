@@ -5,6 +5,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { AppProvider } from './providers/AppProvider';
 import { router } from './routes';
 import { useAuth } from './hooks/useAuth';
+import { useWishlist } from './hooks/useWishlist';
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const { fetchProfile } = useAuth();
@@ -45,10 +46,28 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function GlobalDataInitializer() {
+  const { isAuthenticated } = useAuth();
+  const { fetchMyWishlist, clearData: clearWishlist } = useWishlist();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Tự động fetch Wishlist ngay khi vào app hoặc sau khi login
+      fetchMyWishlist().catch(console.error);
+    } else {
+      // Tự động xóa dữ liệu khỏi Redux khi Guest hoặc khi Logout
+      clearWishlist();
+    }
+  }, [isAuthenticated, fetchMyWishlist, clearWishlist]);
+
+  return null;
+}
+
 function App() {
   return (
     <AppProvider>
       <AuthInitializer>
+        <GlobalDataInitializer />
         <RouterProvider router={router} />
       </AuthInitializer>
     </AppProvider>

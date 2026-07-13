@@ -15,6 +15,7 @@ import addressReducer from './slices/addressSlice';
 import ghnReducer from './slices/ghnSlice';
 import sliderReducer from './slices/sliderSlice';
 import contactReducer from './slices/contactSlice';
+import { recommendationReducer } from './slices/recommendationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -34,6 +35,7 @@ export const store = configureStore({
     slider: sliderReducer,
     contact: contactReducer,
     theme: themeReducer,
+    recommendation: recommendationReducer,
   },
 });
 

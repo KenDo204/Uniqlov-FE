@@ -134,4 +134,5 @@ export interface ProductFilterRequest {
   targetGender?: number;
   inStock?: boolean;
   inPopular?: boolean;
+  variantSize?: string;
 }

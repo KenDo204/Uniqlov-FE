@@ -1,19 +1,26 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Star, Heart, ChevronRight } from '@/components/ui/icons';
 import { useCart } from '@/hooks/useCart';
 import { toast } from 'react-toastify';
 import { formatVND } from '../../utils/formatters';
 import { useProduct } from '@/hooks/useProduct';
 import { mapProductResponseToProduct } from '@/utils/mappers';
-import { ProductCard } from '@/components/shared/ProductCard';
+import { ProductGrid } from '@/components/shared/ProductGrid';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useReview } from '@/hooks/useReview';
+import { useCategory } from '@/hooks/useCategory';
 import { useAppSelector } from '@/stores/hooks';
+import { useTracking } from '@/hooks/useTracking';
+import { SimilarProducts } from '@/components/customer/Recommendation/SimilarProducts';
+import { BoughtTogether } from '@/components/customer/Recommendation/BoughtTogether';
+import type { CategoryResponse } from '@/types/category/responses';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const originUrl = location.state?.from as string | undefined;
   const { addItem: addCartItem } = useCart();
 
   const {
@@ -31,6 +38,7 @@ export function ProductDetail() {
   }, [productDetail]);
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { categories: categoryTree } = useCategory();
   const { wishlist, fetchMyWishlist, toggleWishlist } = useWishlist();
   const {
     productReviews,
@@ -45,6 +53,18 @@ export function ProductDetail() {
   const [newComment, setNewComment] = useState<string>('');
   const [newImagesInput, setNewImagesInput] = useState<string>('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const { trackView, trackAddToCart, trackWishlist } = useTracking();
+
+  // Tracking VIEW_ITEM
+  useEffect(() => {
+    if (product?.product_id) {
+      const timer = setTimeout(() => {
+        trackView(Number(product.product_id), Number(product.category_id) || undefined);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [product, trackView]);
 
   // Fetch product detail and public products (for bundle items)
   useEffect(() => {
@@ -145,16 +165,13 @@ export function ProductDetail() {
       toast.error('Biến thể sản phẩm không khả dụng.');
       return;
     }
-    const itemPrice = activeVariant.price || product.variants[0]?.price;
-    const itemImage = activeVariant.variant_image || galleryImages[0] || '';
-
     try {
       await addCartItem({
         id: `${activeVariant.variant_id}`,
         variantId: activeVariant.variant_id,
         name: product.product_name,
-        price: itemPrice,
-        variantImage: itemImage,
+        price: activeVariant.price || product.variants[0]?.price,
+        variantImage: activeVariant.variant_image || galleryImages[0] || '',
         color: selectedColor,
         size: selectedSize,
         variantAttributes: {
@@ -162,7 +179,8 @@ export function ProductDetail() {
           'Kích cỡ': selectedSize
         }
       }, quantity);
-      toast.success(`Đã thêm vào giỏ hàng.`);
+      trackAddToCart(activeVariant.variant_id, quantity);
+      toast.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (err: any) {
       toast.error(err || 'Không thể thêm sản phẩm vào giỏ hàng.');
     }
@@ -202,6 +220,9 @@ export function ProductDetail() {
     if (!product) return;
     try {
       await toggleWishlist(product.product_id);
+      if (!isInWishlist) {
+        trackWishlist(product.product_id);
+      }
       toast.success(isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
     } catch (err: any) {
       toast.error(err || 'Không thể cập nhật danh sách yêu thích');
@@ -285,6 +306,43 @@ export function ProductDetail() {
     );
   }
 
+  // Determine Breadcrumb Text based on Origin
+  const getBreadcrumbLabel = (url: string) => {
+    if (url === '/' || url === '/home') return 'Trang chủ';
+    if (url.includes('?keyword=')) return 'Kết quả tìm kiếm';
+    if (url.includes('?collection=')) return 'Bộ sưu tập';
+    if (url.includes('/cart')) return 'Giỏ hàng';
+    if (url.includes('/account/orders')) return 'Lịch sử mua hàng';
+    if (url.includes('/account/wishlists')) return 'Danh sách yêu thích';
+    return 'Danh sách sản phẩm';
+  };
+
+  // Recursively find category by ID
+  const findCategory = (categories: CategoryResponse[], id: string | number): CategoryResponse | null => {
+    for (const cat of categories) {
+      if (String(cat.categoryId) === String(id)) return cat;
+      if (cat.children && cat.children.length > 0) {
+        const found = findCategory(cat.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const isFromHome = originUrl === '/' || originUrl === '/home' || originUrl === '/customer/home';
+
+  const categoryInfo = product ? findCategory(categoryTree || [], product.category_id) : null;
+
+  const handleBreadcrumbBack = () => {
+    if (originUrl && !isFromHome) {
+      navigate(originUrl);
+    } else if (categoryInfo) {
+      navigate(`/products?categoryCode=${categoryInfo.categoryCode}`);
+    } else {
+      navigate('/products');
+    }
+  };
+
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 bg-white">
@@ -307,8 +365,14 @@ export function ProductDetail() {
 
         {/* Breadcrumbs */}
         <div className="text-[12px] text-gray-500 mb-6 flex gap-1 uppercase tracking-wide">
-          <span className="text-theme cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span> /
-          {/* <span className="text-theme cursor-pointer" onClick={() => navigate(`/products?categoryCode=${product.category_code}`)}>{product.category_name}</span> / */}
+          <span className="text-theme cursor-pointer hover:underline" onClick={() => navigate('/')}>Trang chủ</span> /
+          {!isFromHome && (
+            <>
+              <span className="text-theme cursor-pointer hover:underline" onClick={handleBreadcrumbBack}>
+                {originUrl ? getBreadcrumbLabel(originUrl) : (categoryInfo?.categoryName || 'Danh mục')}
+              </span> /
+            </>
+          )}
           <span className="text-gray-800">{product.product_name}</span>
         </div>
 
@@ -593,7 +657,7 @@ export function ProductDetail() {
         {bundleItems.length > 0 && (
           <section className="mt-20 pt-16 border-t border-gray-200">
             <h2 className="text-[20px] font-medium mb-8">Sản Phẩm Thường Được Mua Kèm</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 relative">
+            <div className="relative">
               {/* Nút mũi tên trái/phải (chỉ để trang trí cho giống hình) */}
               <button className="hidden md:flex absolute left-[-20px] top-1/2 -translate-y-1/2 w-10 h-10 bg-white border border-gray-200 shadow-sm items-center justify-center z-10 cursor-pointer">
                 <ChevronRight className="w-5 h-5 rotate-180 text-gray-400" />
@@ -602,14 +666,20 @@ export function ProductDetail() {
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </button>
 
-              {bundleItems.map((prod) => (
-                <ProductCard
-                  key={prod.productId}
-                  product={prod}
-                />
-              ))}
+              <ProductGrid
+                products={bundleItems}
+                gridClassName="grid-cols-2 md:grid-cols-4"
+              />
             </div>
           </section>
+        )}
+
+        {/* AI Recommendations */}
+        {product && (
+          <div className="mt-20 pt-16 border-t border-gray-200 flex flex-col gap-12">
+            <SimilarProducts productId={product.product_id} />
+            <BoughtTogether productId={product.product_id} />
+          </div>
         )}
 
       </div>

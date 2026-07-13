@@ -223,7 +223,12 @@ const productSlice = createSlice({
       .addCase(createProductThunk.fulfilled, (state, action) => {
         state.isSubmitting = false;
         if (action.payload) {
-          state.productsList.unshift(action.payload); // Thêm lên đầu danh sách
+          const list = Array.isArray(state.productsList) ? state.productsList : (state.productsList as any)?.content;
+          if (Array.isArray(list)) {
+            list.unshift(action.payload); // Thêm lên đầu danh sách
+          } else {
+            state.productsList = [action.payload] as any;
+          }
         }
       })
       .addCase(createProductThunk.rejected, (state, action) => {
@@ -240,9 +245,12 @@ const productSlice = createSlice({
       .addCase(updateProductThunk.fulfilled, (state, action) => {
         state.isSubmitting = false;
         if (action.payload) {
-          const index = state.productsList.findIndex(p => p.productId === action.payload?.productId);
-          if (index !== -1) {
-            state.productsList[index] = action.payload;
+          const list = Array.isArray(state.productsList) ? state.productsList : (state.productsList as any)?.content;
+          if (Array.isArray(list)) {
+            const index = list.findIndex((p: any) => p.productId === action.payload?.productId);
+            if (index !== -1) {
+              list[index] = action.payload;
+            }
           }
           if (state.currentProductDetail?.productId === action.payload.productId) {
             state.currentProductDetail = action.payload;
@@ -264,9 +272,12 @@ const productSlice = createSlice({
         state.isSubmitting = false;
         // Controller ghi chú là soft-delete (set inStock=false). 
         // Thay vì xóa hẳn khỏi mảng, ta cập nhật lại trạng thái inStock của sản phẩm đó để UI hiển thị.
-        const index = state.productsList.findIndex(p => p.productId === action.payload);
-        if (index !== -1) {
-          state.productsList[index].inStock = false;
+        const list = Array.isArray(state.productsList) ? state.productsList : (state.productsList as any)?.content;
+        if (Array.isArray(list)) {
+          const index = list.findIndex((p: any) => p.productId === action.payload);
+          if (index !== -1) {
+            list[index].inStock = false;
+          }
         }
       })
       .addCase(deleteProductThunk.rejected, (state, action) => {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useCartStore } from '@/stores/useCartStore';
-import { mockProducts } from '@/features/products';
+
 import { toast } from 'react-toastify';
 import { useAppSelector } from '@/stores/hooks';
 import { useCart } from '@/hooks/useCart';
@@ -8,10 +8,10 @@ import { useProduct } from '@/hooks/useProduct';
 import BackHome from '@/components/general/BackHomeButton';
 import type { CartItem } from '@/stores/slices/cartSlice';
 import type { ProductVariantResponse } from '@/types/product';
-
+import { ProductGrid } from '@/components/shared/ProductGrid';
 import { CartItemRow } from '@/components/customer/Cart/CartItemRow';
 import { OrderSummary } from '@/components/customer/Cart/OrderSummary';
-import { CrossSellSection } from '@/components/customer/Cart/CrossSellSection';
+
 import { VariantChangeModal } from '@/components/customer/Cart/VariantChangeModal';
 import ConfirmModal from '@/components/general/ConfirmModal';
 
@@ -192,10 +192,10 @@ export function Cart() {
 
   // Cross-sell recommendations
   const crossSellItems = useMemo(() => {
-    return mockProducts
-      .filter((p) => !items.some((i) => i.id.startsWith(p.product_id.toString())))
+    return products
+      .filter((p) => !items.some((i) => i.id.startsWith(p.productId.toString())))
       .slice(0, 4); // Lấy 4 item cho đẹp
-  }, [items]);
+  }, [items, products]);
 
   const FreeShippingText = () => (
     <div className="text-[14px] mb-8 text-gray-800 leading-relaxed">
@@ -251,7 +251,10 @@ export function Cart() {
 
         {/* GỢI Ý MUA SẮM CROSS-SELL */}
         {crossSellItems.length > 0 && items.length > 0 && (
-          <CrossSellSection crossSellItems={crossSellItems} />
+          <div id="recommendations-section" className="mt-24 pt-12 border-t border-gray-200 scroll-mt-24">
+            <h3 className="text-[18px] font-medium mb-6">Sản Phẩm Gợi Ý Theo Giỏ Hàng</h3>
+            <ProductGrid products={crossSellItems} gridClassName="grid-cols-2 md:grid-cols-4" />
+          </div>
         )}
       </div>
 

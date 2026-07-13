@@ -2,7 +2,7 @@ import { useMemo, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../../hooks/useProduct';
 import type { ProductFilterRequest, ProductResponse } from '@/types/product';
-import { ProductCard, ProductCardSkeleton } from '@/components/shared/ProductCard';
+import { ProductGrid } from '@/components/shared/ProductGrid';
 import { ProductListSidebar } from '@/components/customer/Product/ProductListSidebar';
 
 export function ProductListPage() {
@@ -13,7 +13,7 @@ export function ProductListPage() {
   // Local State for UI only
 
   const filterRequest: ProductFilterRequest & { page?: number; size?: number; sort?: string; colors?: string[]; sizes?: string[] } = useMemo(() => {
-    const keyword = searchParams.get('keyword') || undefined;
+    const keyword = searchParams.get('q') || searchParams.get('keyword') || undefined;
     const categoryCode = searchParams.get('categoryCode') || undefined;
     const collection = searchParams.get('collection') || undefined;
     const targetGenderStr = searchParams.get('targetGender');
@@ -43,6 +43,8 @@ export function ProductListPage() {
 
     const inPopularStr = searchParams.get('inPopular');
     const inPopular = inPopularStr ? inPopularStr === 'true' : undefined;
+    
+    const variantSize = searchParams.get('variantSize') || undefined;
 
     return {
       keyword,
@@ -54,6 +56,7 @@ export function ProductListPage() {
       minRating,
       inStock,
       inPopular,
+      variantSize,
       sizes,
       colors,
       sort,
@@ -102,7 +105,7 @@ export function ProductListPage() {
   const productList: ProductResponse[] = publicProductsData?.content || [];
 
   return (
-    <div className="space-y-8 text-left bg-unilo-muted min-h-screen">
+    <div className="space-y-8 text-left bg-white min-h-screen">
       {/* Page Header (Banner) */}
       <div className="bg-white border-b border-unilo-border dark:border-gray-800 py-10 mb-8">
         <div className="max-w-[1400px] mx-auto px-4 md:px-8">
@@ -123,7 +126,7 @@ export function ProductListPage() {
           filterRequest={filterRequest}
           updateQueryString={updateQueryString}
           clearAllFilters={clearAllFilters}
-          hasFilters={!!(filterRequest.categoryCode || filterRequest.collection || filterRequest.targetGender !== undefined || filterRequest.minPrice || filterRequest.maxPrice || filterRequest.minRating)}
+          hasFilters={!!(filterRequest.categoryCode || filterRequest.collection || filterRequest.targetGender !== undefined || filterRequest.minPrice || filterRequest.maxPrice || filterRequest.minRating || filterRequest.variantSize)}
         />
 
         {/* Products List section */}
@@ -153,32 +156,26 @@ export function ProductListPage() {
           </div>
 
           {/* Grid Layout */}
-          {isFetching ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : productList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-white border border-unilo-border dark:bg-gray-900 dark:border-gray-800 rounded-xl text-center shadow-sm">
-              <img
-                className="w-48 opacity-80 mb-6"
-                src="https://cdn.pixabay.com/photo/2022/05/28/10/45/oops-7227010_960_720.png"
-                alt="Not Found"
-              />
-              <h2 className="font-bold text-2xl text-gray-800 dark:text-white m-0">Không tìm thấy sản phẩm</h2>
-              <p className="text-gray-500 mt-2 font-medium">Vui lòng thử lại với danh mục khác hoặc xóa bộ lọc hiện tại.</p>
-              <button onClick={clearAllFilters} className="mt-6 px-8 py-3 bg-primary hover:bg-black text-white text-sm font-bold uppercase tracking-wider rounded-full cursor-pointer border-none shadow-md transition-colors">
-                Xóa tất cả bộ lọc
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {productList.map((product) => (
-                <ProductCard key={product.productId} product={product} />
-              ))}
-            </div>
-          )}
+          <ProductGrid 
+            products={productList}
+            isLoading={isFetching}
+            skeletonCount={8}
+            gridClassName="grid-cols-2 md:grid-cols-3"
+            emptyContent={
+              <div className="flex flex-col items-center justify-center py-20 bg-white border border-unilo-border dark:bg-gray-900 dark:border-gray-800 rounded-xl text-center shadow-sm">
+                <img
+                  className="w-48 opacity-80 mb-6"
+                  src="https://cdn.pixabay.com/photo/2022/05/28/10/45/oops-7227010_960_720.png"
+                  alt="Not Found"
+                />
+                <h2 className="font-bold text-2xl text-gray-800 dark:text-white m-0">Không tìm thấy sản phẩm</h2>
+                <p className="text-gray-500 mt-2 font-medium">Vui lòng thử lại với danh mục khác hoặc xóa bộ lọc hiện tại.</p>
+                <button onClick={clearAllFilters} className="mt-6 px-8 py-3 bg-primary hover:bg-black text-white text-sm font-bold uppercase tracking-wider rounded-full cursor-pointer border-none shadow-md transition-colors">
+                  Xóa tất cả bộ lọc
+                </button>
+              </div>
+            }
+          />
           
           {/* Phân trang (Pagination) */}
           {publicProductsData && publicProductsData.totalPages > 1 && (

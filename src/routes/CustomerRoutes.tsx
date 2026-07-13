@@ -35,7 +35,7 @@ export const customerRoutes: RouteObject = {
   children: [
     { path: '', element: <CustomerHome /> },
     { path: 'home', element: <CustomerHome /> },
-    { path: 'product/:id', element: <CustomerProductDetail /> },
+    { path: 'products/:id', element: <CustomerProductDetail /> },
     { path: 'cart', element: <CustomerCart /> },
     { path: 'checkout', element: <CustomerCheckout /> },
     {
@@ -50,14 +50,14 @@ export const customerRoutes: RouteObject = {
 
     // UNILO routes
     { path: 'products', element: <ProductListPage /> },
-    { path: 'product/:id', element: <CustomerProductDetail /> },
+    { path: 'products/:id', element: <CustomerProductDetail /> },
     { path: 'cart', element: <CustomerCart /> },
     { path: 'checkout', element: <CustomerCheckout /> },
-    { 
-      path: 'account', 
+    {
+      path: 'account',
       element: <Account />,
       children: [
-        { index: true, element: <Navigate to="orders" replace /> }, 
+        { index: true, element: <Navigate to="orders" replace /> },
         { path: 'orders', element: <Orders /> },
         { path: 'wishlists', element: <Wishlists /> },
         { path: 'reviews', element: <Reviews /> },

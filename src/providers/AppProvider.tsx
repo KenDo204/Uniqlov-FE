@@ -12,6 +12,7 @@ import { muiTheme } from '@/theme/muiTheme';
 
 import { store } from '../stores/store';
 import { queryClient } from '../lib/queryClient';
+import { TrackingProvider } from '@/components/customer/TrackingProvider';
 import 'react-toastify/dist/ReactToastify.css';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -25,7 +26,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             <CssBaseline />
             
             {/* SỬA: Đã bỏ thẻ <BrowserRouter> bọc ngoài children */}
-            {children}
+            <TrackingProvider>
+              {children}
+            </TrackingProvider>
             
             <ToastContainer
               position="top-right"

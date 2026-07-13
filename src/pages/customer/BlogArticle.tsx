@@ -1,16 +1,17 @@
-import { useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useMemo, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {  ArrowLeft, Clock, Share2, ShoppingCart  } from '@/components/ui/icons';
 import { mockBlogEntries } from './Blog';
-import { mockProducts } from '../../features/products';
 import { paths } from '../../config/paths';
+import { useProduct } from '@/hooks/useProduct';
 import { useCartStore } from '../../stores/useCartStore';
 import { toast } from 'react-toastify';
-import { formatVND } from '../../utils/formatters';
+import { formatVND } from '@/utils/formatters';
 
 export function BlogArticle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const addItem = useCartStore((state) => state.addItem);
 
   // Retrieve current entry
@@ -18,13 +19,22 @@ export function BlogArticle() {
     return mockBlogEntries.find((e) => e.id === id) || mockBlogEntries[0];
   }, [id]);
 
+  const { products: rawProducts, fetchPublicProducts } = useProduct();
+
+  // Fetch products if not loaded yet
+  useEffect(() => {
+    if (rawProducts.length === 0) {
+      fetchPublicProducts();
+    }
+  }, [rawProducts.length, fetchPublicProducts]);
+
   // Related product to showcase inside the blog (e.g. Supima Tee for Supima article)
   const matchingProduct = useMemo(() => {
-    const raw = mockProducts;
-    if (entry.id.includes('supima')) return raw.find(p => p.product_slug === 'cotton-tee') || raw[0];
-    if (entry.id.includes('merino')) return raw.find(p => p.product_slug === 'merino-sweater') || raw[1];
-    return raw.find(p => p.product_slug === 'wool-coat') || raw[3];
-  }, [entry]);
+    if (rawProducts.length === 0) return null;
+    if (entry.id.includes('supima')) return rawProducts.find(p => p.productSlug === 'cotton-tee') || rawProducts[0];
+    if (entry.id.includes('merino')) return rawProducts.find(p => p.productSlug === 'merino-sweater') || rawProducts[1];
+    return rawProducts.find(p => p.productSlug === 'wool-coat') || rawProducts[3] || rawProducts[0];
+  }, [entry, rawProducts]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -32,19 +42,27 @@ export function BlogArticle() {
   };
 
   const handleQuickAdd = () => {
+    if (!matchingProduct) return;
     const firstVar = matchingProduct.variants[0];
-    const size = firstVar?.variant_attributes.size || 'M';
-    const color = firstVar?.variant_attributes.colorName || 'Default';
+    const size = firstVar?.variantAttributes?.size || 'M';
+    const color = firstVar?.variantAttributes?.colorName || 'Default';
     const price = firstVar?.price || 0;
-    const image = firstVar?.variant_image || matchingProduct.images[0]?.image_url || '';
+    const image = firstVar?.variantImage || matchingProduct.images[0]?.imageUrl || '';
 
     addItem({
-      id: `${matchingProduct.product_id}-${color}-${size}`,
-      name: `${matchingProduct.product_name} (${color} / ${size})`,
+      id: `${matchingProduct.productId}-${color}-${size}`,
+      variantId: firstVar?.variantId,
+      name: `${matchingProduct.productName} (${color} / ${size})`,
       price: price,
-      variantImage: image
+      variantImage: image,
+      color: color,
+      size: size,
+      variantAttributes: {
+        'Màu sắc': color,
+        'Kích cỡ': size
+      }
     }, 1);
-    toast.success(`Đã thêm ${matchingProduct.product_name} vào giỏ hàng.`);
+    toast.success(`Đã thêm ${matchingProduct.productName} vào giỏ hàng.`);
   };
 
   return (
@@ -106,11 +124,11 @@ export function BlogArticle() {
       {matchingProduct && (
         <div className="bg-white dark:bg-gray-900 border border-unilo-border dark:border-gray-800 p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex gap-4 items-center w-full sm:w-auto">
-            <img src={matchingProduct.images[0]?.image_url} alt={matchingProduct.product_name} className="w-14 h-18 object-cover rounded-lg shrink-0" />
+            <img src={matchingProduct.images[0]?.imageUrl} alt={matchingProduct.productName} className="w-14 h-18 object-cover rounded-lg shrink-0" />
             <div>
               <span className="text-[9px] uppercase font-bold text-accent">Sản phẩm nổi bật được đề xuất</span>
               <h4 className="font-heading font-bold text-sm text-primary dark:text-white m-0 truncate max-w-[280px]">
-                {matchingProduct.product_name}
+                {matchingProduct.productName}
               </h4>
               <p className="text-gray-400 font-semibold mt-0.5">{formatVND(matchingProduct.variants[0]?.price || 0)}</p>
             </div>
@@ -118,7 +136,7 @@ export function BlogArticle() {
 
           <div className="flex gap-2 w-full sm:w-auto">
             <button
-              onClick={() => navigate(paths.customer.productDetail.replace(':id', matchingProduct.product_slug))}
+              onClick={() => navigate(paths.customer.productDetail.replace(':id', matchingProduct.productSlug), { state: { from: location.pathname + location.search } })}
               className="flex-1 sm:flex-none py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-primary dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 transition-all cursor-pointer border-none"
             >
               Chi tiết

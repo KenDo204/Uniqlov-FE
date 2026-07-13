@@ -147,6 +147,29 @@ export function ProductListSidebar({
         </div>
       </div>
 
+      {/* Size (variantSize) */}
+      <div className="space-y-2 pt-2">
+        <h4 className="text-xs font-black uppercase text-gray-400 tracking-wider">Kích cỡ</h4>
+        <div className="flex flex-wrap gap-2">
+          {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => {
+            const isActive = filterRequest.variantSize === size;
+            return (
+              <button
+                key={size}
+                onClick={() => updateQueryString('variantSize', isActive ? null : size)}
+                className={`min-w-[40px] h-8 text-[11px] font-bold border flex items-center justify-center transition-all cursor-pointer rounded-sm
+                  ${isActive
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-black'
+                  }`}
+              >
+                {size}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Price Slider */}
       <div className="space-y-2 pt-2 pr-2">
         <h4 className="text-xs font-black uppercase text-gray-400 tracking-wider">Khoảng giá</h4>

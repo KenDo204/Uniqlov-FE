@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAddress } from '@/hooks/useAddress';
 import { useGhn } from '@/hooks/useGhn';
 import { useProduct } from '@/hooks/useProduct';
+import { useTracking } from '@/hooks/useTracking';
 import type { AddressResponse } from '@/types/address';
 import AddressSelectionModal from '@/components/customer/Account/AddressSelectionModal';
 import CreateAddressModal from '@/components/customer/Account/createAdressModal';
@@ -27,6 +28,7 @@ export function Checkout() {
   const { addresses, fetchAddresses } = useAddress();
   const { shippingFee, calculateShippingFee } = useGhn();
   const { products, fetchPublicProducts } = useProduct();
+  const { trackPurchase } = useTracking();
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -258,6 +260,7 @@ export function Checkout() {
       if (res) {
         toast.success('Đặt đơn hàng thành công!');
         clearCart();
+        trackPurchase(res.orderId, paymentMethod);
         
         if (res.paymentUrl) {
           window.location.href = res.paymentUrl;

@@ -5,7 +5,7 @@ import type { UploadImageResponse } from '@/types/image/responses';
 
 type UploadFunction = (file: File) => Promise<ApiResponse<UploadImageResponse>>;
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
 
 export const validateUploadFile = (file: File): boolean => {
   if (!file) {
@@ -19,7 +19,7 @@ export const validateUploadFile = (file: File): boolean => {
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    toast.error('Dung lượng hình ảnh không được vượt quá 2 MB.');
+    toast.error('Dung lượng hình ảnh không được vượt quá 1 MB.');
     return false;
   }
 

@@ -147,7 +147,7 @@ export function ProfileDetails() {
           </label>
         </div>
         <div className="text-[13px] text-gray-500">
-          <p className="m-0">Kích thước tệp tối đa 5MB</p>
+          <p className="m-0">Kích thước tệp tối đa 1MB</p>
           <p className="m-0">Định dạng hỗ trợ: JPEG, PNG</p>
         </div>
       </div>

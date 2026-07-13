@@ -58,6 +58,7 @@ export default function EditProduct() {
 
   // Form State - Basic Info
   const [productName, setProductName] = useState('');
+  const hasLoaded = React.useRef(false);
   const [productSlug, setProductSlug] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
@@ -116,7 +117,9 @@ export default function EditProduct() {
 
   // Load product detail into form
   useEffect(() => {
-    if (productDetail) {
+    // Chỉ nạp dữ liệu vào form 1 lần duy nhất khi lấy chi tiết sản phẩm thành công
+    // Tránh việc form tự reload lại khi Redux cập nhật state sau khi Edit thành công
+    if (productDetail && !hasLoaded.current) {
       setProductName(productDetail.productName || '');
       setProductSlug(productDetail.productSlug || '');
       setProductDescription(productDetail.productDescription || '');
@@ -193,6 +196,7 @@ export default function EditProduct() {
 
       // Initial load, keep form clean of isDirty
       setIsDirty(false);
+      hasLoaded.current = true;
     }
   }, [productDetail]);
 
@@ -436,8 +440,6 @@ export default function EditProduct() {
     }));
     setIsDirty(true);
   };
-
-
 
   // Validate form data
   const validateForm = (): boolean => {
