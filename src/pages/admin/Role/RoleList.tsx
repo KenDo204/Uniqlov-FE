@@ -145,7 +145,7 @@ const RoleList: React.FC = () => {
                             <IconButton
                               onClick={() => handleOpenEdit(role)}
                               size="small"
-                              sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                              sx={{ color: 'var(--color-theme)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                             >
                               <Edit fontSize="small" />
                             </IconButton>
@@ -156,7 +156,7 @@ const RoleList: React.FC = () => {
                             <IconButton
                               onClick={() => handleDeleteClick(role.roleId)}
                               size="small"
-                              sx={{ color: '#ef4444', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
+                              sx={{ color: 'var(--color-cancel)', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
                             >
                               <Delete fontSize="small" />
                             </IconButton>

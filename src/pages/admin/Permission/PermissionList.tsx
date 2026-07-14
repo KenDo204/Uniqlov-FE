@@ -160,7 +160,7 @@ const PermissionList: React.FC = () => {
                               <IconButton
                                 onClick={() => handleOpenEdit(perm)}
                                 size="small"
-                                sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                                sx={{ color: 'var(--color-theme)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                               >
                                 <Edit fontSize="small" />
                               </IconButton>

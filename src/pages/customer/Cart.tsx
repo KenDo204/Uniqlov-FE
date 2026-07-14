@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { useAppSelector } from '@/stores/hooks';
 import { useCart } from '@/hooks/useCart';
 import { useProduct } from '@/hooks/useProduct';
+import { Source } from '@/types/tracking/requests';
 import BackHome from '@/components/general/BackHomeButton';
 import type { CartItem } from '@/stores/slices/cartSlice';
 import type { ProductVariantResponse } from '@/types/product';
@@ -253,7 +254,7 @@ export function Cart() {
         {crossSellItems.length > 0 && items.length > 0 && (
           <div id="recommendations-section" className="mt-24 pt-12 border-t border-gray-200 scroll-mt-24">
             <h3 className="text-[18px] font-medium mb-6">Sản Phẩm Gợi Ý Theo Giỏ Hàng</h3>
-            <ProductGrid products={crossSellItems} gridClassName="grid-cols-2 md:grid-cols-4" />
+            <ProductGrid products={crossSellItems} gridClassName="grid-cols-2 md:grid-cols-4" source={Source.CART_PAGE} />
           </div>
         )}
       </div>

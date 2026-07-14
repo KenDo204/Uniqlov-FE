@@ -66,8 +66,6 @@ const EditSlider: React.FC = () => {
             <p className="text-sm text-gray-500 mt-1 m-0">Chỉnh sửa thông tin banner trang chủ</p>
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
           <SliderForm 
             initialData={{
               imageUrl: initialData.imageUrl,
@@ -78,7 +76,6 @@ const EditSlider: React.FC = () => {
             onSubmit={handleSubmit} 
             isSubmitting={isSubmitting} 
           />
-        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { ProductCard, type ProductCardProps } from './ProductCard';
 import { ProductCardSkeleton } from './ProductCardSkeleton';
 import type { ProductResponse } from '@/types/product/responses';
+import { Source } from '@/types/tracking/requests';
 
 export interface ProductGridProps {
     products: ProductResponse[];
@@ -21,6 +22,7 @@ export interface ProductGridProps {
     // --- Recommendation ---
     isRecommendation?: boolean;
     aiModel?: string;
+    source?: Source;
 
     // --- Misc ---
     onCardRef?: (index: number, element: HTMLDivElement | null) => void;
@@ -37,6 +39,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     className = "",
     isRecommendation,
     aiModel,
+    source = Source.UNKNOWN,
     cardProps,
 }) => {
     // Determine the classes for the grid
@@ -69,6 +72,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
                     isRecommendation={isRecommendation}
                     aiModel={aiModel}
                     rankPosition={index + 1}
+                    source={source}
                     {...cardProps}
                 />
             ))}

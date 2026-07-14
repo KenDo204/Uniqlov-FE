@@ -1,13 +1,14 @@
 import { useMemo, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useProduct } from '../../hooks/useProduct';
 import type { ProductFilterRequest, ProductResponse } from '@/types/product';
 import { ProductGrid } from '@/components/shared/ProductGrid';
-import { ProductListSidebar } from '@/components/customer/Product/ProductListSidebar';
+import { ProductFilterBar } from '@/components/customer/Product/ProductFilterBar';
+import { ProductListHeader } from '@/components/customer/Product/ProductListHeader';
+import { Source } from '@/types/tracking/requests';
 
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { publicProductsData, isFetching, fetchPublicProducts } = useProduct();
 
   // Local State for UI only
@@ -106,53 +107,32 @@ export function ProductListPage() {
 
   return (
     <div className="space-y-8 text-left bg-white min-h-screen">
-      {/* Page Header (Banner) */}
-      <div className="bg-white border-b border-unilo-border dark:border-gray-800 py-10 mb-8">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8">
-          <div className="text-xs text-gray-400 mb-2 text-center tracking-widest font-semibold">
-            <span className="hover:text-theme cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span> / <span className="text-theme font-bold">{collectionInfo.title}</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-black m-0 tracking-tight text-center text-gray-900">{collectionInfo.title}</h1>
-          <p className="mt-4 text-center text-gray-500 max-w-xl mx-auto text-sm font-medium">
-            {collectionInfo.subtitle || "Khám phá bộ sưu tập mới nhất với mức giá hấp dẫn. Dành riêng cho bạn."}
-          </p>
-        </div>
-      </div>
+      {/* Dynamic Page Header (Category Navigation & Search) */}
+      <ProductListHeader 
+        keyword={filterRequest.keyword}
+        categoryCode={filterRequest.categoryCode}
+        totalElements={publicProductsData?.totalElements || 0}
+        fallbackTitle={collectionInfo.title}
+        fallbackSubtitle={collectionInfo.subtitle}
+      />
+
+      {/* Filter Bar Horizontal */}
+      <ProductFilterBar 
+        filterRequest={filterRequest}
+        updateQueryString={updateQueryString}
+        clearAllFilters={clearAllFilters}
+        hasFilters={!!(filterRequest.categoryCode || filterRequest.collection || filterRequest.targetGender !== undefined || filterRequest.minPrice || filterRequest.maxPrice || filterRequest.minRating || filterRequest.variantSize || (filterRequest.sort && filterRequest.sort !== 'default'))}
+      />
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-[1400px] mx-auto px-4 md:px-8">
-        {/* Sidebar Filters */}
-        <ProductListSidebar 
-          filterRequest={filterRequest}
-          updateQueryString={updateQueryString}
-          clearAllFilters={clearAllFilters}
-          hasFilters={!!(filterRequest.categoryCode || filterRequest.collection || filterRequest.targetGender !== undefined || filterRequest.minPrice || filterRequest.maxPrice || filterRequest.minRating || filterRequest.variantSize)}
-        />
-
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8 mt-6">
         {/* Products List section */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="space-y-6">
           {/* Controls Bar */}
-          <div className="flex justify-between items-center bg-white dark:bg-gray-900 p-4 border border-unilo-border dark:border-gray-800 rounded-xl">
+          <div className="flex justify-between items-center bg-white dark:bg-gray-900 py-2">
             <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider">
               Hiển thị {productList.length} sản phẩm
             </span>
-
-            <div className="flex items-center gap-4">
-              {/* Sorting Select */}
-              <div className="flex items-center gap-1">
-                <select
-                  value={filterRequest.sort || 'default'}
-                  onChange={(e) => updateQueryString('sort', e.target.value === 'default' ? null : e.target.value)}
-                  className="bg-transparent border-none text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer"
-                >
-                  <option value="default">Sắp xếp mặc định</option>
-                  <option value="price_asc">Giá: Thấp đến Cao</option>
-                  <option value="price_desc">Giá: Cao đến Thấp</option>
-                  <option value="newest">Mới nhất</option>
-                  <option value="best_seller">Bán chạy nhất</option>
-                </select>
-              </div>
-            </div>
           </div>
 
           {/* Grid Layout */}
@@ -161,6 +141,7 @@ export function ProductListPage() {
             isLoading={isFetching}
             skeletonCount={8}
             gridClassName="grid-cols-2 md:grid-cols-3"
+            source={filterRequest.keyword ? Source.SEARCH_RESULT : Source.CATEGORY_GRID}
             emptyContent={
               <div className="flex flex-col items-center justify-center py-20 bg-white border border-unilo-border dark:bg-gray-900 dark:border-gray-800 rounded-xl text-center shadow-sm">
                 <img

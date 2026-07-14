@@ -312,7 +312,7 @@ const AdminProductList: React.FC = () => {
                                   setIsDetailOpen(true);
                                 }}
                                 size="small"
-                                sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                                sx={{ color: 'var(--color-blue)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: 'var(--color-blue-hover)' } }}
                               >
                                 <Visibility fontSize="small" />
                               </IconButton>
@@ -322,14 +322,14 @@ const AdminProductList: React.FC = () => {
                                 <IconButton
                                   onClick={() => navigate(`/admin/products/edit/${prod.productId}`)}
                                   size="small"
-                                  sx={{ color: '#3b82f6', bgcolor: '#eff6ff', '&:hover': { bgcolor: '#dbeafe' } }}
+                                  sx={{ color: 'var(--color-theme)', bgcolor: '#eff6ff', '&:hover': { bgcolor: '#dbeafe' } }}
                                 >
                                   <Edit fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                             </PermissionGuard>
                             <PermissionGuard permission="product:delete">
-                              <Tooltip title="Xóa/Khóa sản phẩm" arrow>
+                              <Tooltip title="Xóa sản phẩm" arrow>
                                 <IconButton
                                   onClick={() => handleDeleteClick(prod.productId)}
                                   size="small"

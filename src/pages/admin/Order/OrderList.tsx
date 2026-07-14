@@ -244,7 +244,7 @@ const OrderList: React.FC = () => {
                           <IconButton
                             onClick={() => handleOpenDetail(order.orderId)}
                             size="small"
-                            sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                            sx={{ color: 'var(--color-blue)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: 'var(--color-blue-hover)' } }}
                           >
                             <Visibility fontSize="small" />
                           </IconButton>

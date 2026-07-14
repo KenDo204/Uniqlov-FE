@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ProductGrid } from '@/components/shared/ProductGrid';
+import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { buildCategoryUrl } from '@/utils/urlHelpers';
+import { Source } from '@/types/tracking/requests';
 import { useSlider } from '@/hooks/useSlider';
 import { useCategory } from '@/hooks/useCategory';
 import { useFetchProducts } from '@/hooks/useFetchProducts';
@@ -84,7 +85,7 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
   const activeTabFilter = useMemo(() => {
     return { 
       categoryCode: activeTab?.categoryCode || '', 
-      size: 8 
+      size: 10 
     };
   }, [activeTab]);
 
@@ -132,9 +133,10 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
               </div>
             ) : campaignProducts.length > 0 ? (
-              <ProductGrid 
+              <ProductSwiper 
                 products={campaignProducts} 
-                gridClassName="grid-cols-2 md:grid-cols-4" 
+                skeletonCount={5}
+                source={Source.HOME_CATEGORY_LIST}
               />
             ) : (
               <div className="text-center text-gray-500 py-10">Không có sản phẩm nào cho danh mục này.</div>

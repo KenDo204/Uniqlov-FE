@@ -172,29 +172,29 @@ const CategoryList: React.FC = () => {
                 disabled={isUpdating || !hasPermission('category:update')}
                 size="small"
                 sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: 'theme' },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'theme' },
+                  '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--color-theme)' },
+                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'var(--color-theme)' },
                 }}
               />
-              {isUpdating && <CircularProgress size={14} sx={{ color: 'theme' }} />}
+              {isUpdating && <CircularProgress size={14} sx={{ color: 'var(--color-theme)' }} />}
             </div>
           </td>
 
           <td className="px-6 py-4 text-center w-32">
             <div className="flex items-center justify-center gap-1">
               <PermissionGuard permission="category:update">
-                <Tooltip title="Chỉnh sửa" arrow>
+                <Tooltip title="Chỉnh sửa danh mục" arrow>
                   <IconButton
                     onClick={() => navigate(`/admin/categories/edit/${category.categoryId}`)}
                     size="small"
-                    sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                    sx={{ color: 'var(--color-theme)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                   >
                     <Edit fontSize="small" />
                   </IconButton>
                 </Tooltip>
               </PermissionGuard>
               <PermissionGuard permission="category:delete">
-                <Tooltip title="Xóa" arrow>
+                <Tooltip title="Xóa danh mục" arrow>
                   <IconButton
                     onClick={() => handleDeleteClick(category.categoryId)}
                     size="small"

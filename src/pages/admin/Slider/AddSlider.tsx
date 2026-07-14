@@ -35,10 +35,7 @@ const AddSlider: React.FC = () => {
             <p className="text-sm text-gray-500 mt-1 m-0">Tải lên hình ảnh banner để hiển thị trên trang chủ</p>
           </div>
         </div>
-
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
-          <SliderForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
-        </div>
+        <SliderForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
       </div>
     </div>
   );

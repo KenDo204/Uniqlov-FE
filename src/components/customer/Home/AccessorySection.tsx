@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { ProductGrid } from '@/components/shared/ProductGrid';
+import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { useFetchProducts } from '@/hooks/useFetchProducts';
+import { Source } from '@/types/tracking/requests';
 import { buildCategoryUrl } from '@/utils/urlHelpers';
 
 export function AccessorySection() {
   const navigate = useNavigate();
   // Fetch data directly using the new custom hook
-  const { products, isLoading } = useFetchProducts({ categoryCode: 'phu-kien', size: 8 });
+  const { products, isLoading } = useFetchProducts({ categoryCode: 'phu-kien', size: 10 });
 
   return (
     <section className="w-full py-8 md:py-10 bg-white">
@@ -23,11 +24,11 @@ export function AccessorySection() {
         </div>
 
         {/* Product Grid */}
-        <ProductGrid
+        <ProductSwiper
           products={products}
           isLoading={isLoading}
-          skeletonCount={4}
-          gridClassName="grid-cols-2 lg:grid-cols-4"
+          skeletonCount={5}
+          source={Source.HOME_CATEGORY_LIST}
           emptyContent={
             <div className="text-center py-12 text-gray-400">
               <p>Hiện chưa có phụ kiện nào.</p>

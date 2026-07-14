@@ -41,3 +41,30 @@ export const buildSearchUrl = (query: string): string => {
 export const buildCollectionUrl = (collectionCode: string): string => {
   return `/products?collection=${encodeURIComponent(collectionCode)}`;
 };
+
+/**
+ * Builds the URL for mega menu navigation.
+ * Handles targetGender mapping for specific parent categories.
+ */
+export const buildMegaMenuUrl = (parent: any, child: any): string => {
+  let url = `/products`;
+  if (!parent) return url;
+
+  const pName = parent.categoryName?.toLowerCase() || '';
+
+  if (pName.includes('nữ') || pName.includes('women')) {
+    url += `?targetGender=0`;
+  } else if (pName.includes('nam') || pName.includes('men')) {
+    url += `?targetGender=1`;
+  } else {
+    url += `?`;
+  }
+
+  if (child && child.categoryCode) {
+    url += url.includes('?') && !url.endsWith('?') 
+      ? `&categoryCode=${child.categoryCode}` 
+      : `categoryCode=${child.categoryCode}`;
+  }
+
+  return url.endsWith('?') ? url.slice(0, -1) : url;
+};

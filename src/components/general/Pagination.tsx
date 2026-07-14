@@ -66,14 +66,14 @@ export default function CustomPagination({
               fontWeight: 600,
               borderRadius: '8px',
               '&.Mui-selected': {
-                bgcolor: 'theme',
+                bgcolor: 'var(--color-theme)',
                 color: 'white',
                 '&:hover': {
                   bgcolor: '#007a68',
                 },
               },
               '&:hover': {
-                bgcolor: 'rgba(0, 146, 124, 0.08)',
+                bgcolor: 'var(--color-theme-light)',
               }
             }}
           />

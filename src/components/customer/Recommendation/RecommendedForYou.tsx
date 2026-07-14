@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
-import { ProductGrid } from '@/components/shared/ProductGrid';
+import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { useRecommendation } from '@/hooks/useRecommendation';
+import { Source } from '@/types/tracking/requests';
 
 export function RecommendedForYou() {
   const { recommendedForYou, isFetching, fetchRecommendedForYou } = useRecommendation();
 
   useEffect(() => {
-    fetchRecommendedForYou(8).catch(console.error);
+    fetchRecommendedForYou(10).catch(console.error);
   }, [fetchRecommendedForYou]);
 
   if (!isFetching && (!recommendedForYou || recommendedForYou.length === 0)) {
@@ -14,18 +15,18 @@ export function RecommendedForYou() {
   }
 
   return (
-    <section className="w-full py-8 md:py-16 bg-gray-50">
+    <section className="w-full py-8 md:py-16 bg-white">
       <div className="max-w-[1200px] mx-auto px-4 lg:px-8">
         <h2 className="text-2xl md:text-3xl font-heading font-black text-center mb-8 md:mb-12 m-0 uppercase tracking-tight text-gray-900">
           Gợi ý dành riêng cho bạn
         </h2>
 
-        <ProductGrid
+        <ProductSwiper
           products={recommendedForYou}
           isLoading={isFetching}
-          skeletonCount={4}
-          gridClassName="grid-cols-2 lg:grid-cols-4"
+          skeletonCount={5}
           // Truyền flag để ProductCard biết đây là item từ AI Recommendation (để gọi sự kiện CLICK_REC)
+          source={Source.HOME_REC_FOR_YOU}
           isRecommendation={true}
           aiModel="for_you_v1"
           emptyContent={<></>}

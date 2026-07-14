@@ -1,8 +1,8 @@
 /* ========================================= */
 /* 1. FONTS & TAILWIND IMPORTS               */
 /* ========================================= */
-@import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -16,6 +16,7 @@
 @theme {
 
   --color-theme: #00927c;
+  --color-theme-light: #dbeafe;
   /* --color-theme: #00FFFF; */
   --color-theme-hover: #007a68;
   --color-cancel: #ef4444;
@@ -23,6 +24,7 @@
   --color-yellow: #f59e0b;
   --color-orange: #d97706;
   --color-blue: #2563eb;
+  --color-blue-hover: #dbeafe;
   --color-green: #059669;
 
   /* Gộp màu custom của Unilo (từ app.css) */
@@ -35,8 +37,10 @@
   --color-unilo-success: #16A34A;
 
   /* Gộp font chữ */
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Pacifico", sans-serif;
+  --font-primary: "Manrope", sans-serif;
+  --font-secondary: "Instrument Sans", sans-serif;
+  --font-sans: var(--font-primary);
+  --font-heading: var(--font-secondary);
 
   /* Gộp Animations (từ app.css) */
   --animate-fade-in: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -486,4 +490,23 @@
     'wght' 400,
     'GRAD' 0,
     'opsz' 24;
+}
+
+/* ========================================= */
+/* 6. TYPOGRAPHY UTILITIES                   */
+/* ========================================= */
+@layer components {
+  /* --- Instrument Sans --- */
+  .display { @apply font-secondary text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight; }
+  .heading { @apply font-secondary text-3xl md:text-4xl font-semibold tracking-tight; }
+  .title { @apply font-secondary text-xl md:text-2xl font-semibold; }
+  .price { @apply font-secondary text-lg md:text-xl font-bold tracking-tight text-gray-900; }
+  .badge-text { @apply font-secondary text-xs font-bold uppercase tracking-widest; }
+
+  /* --- Manrope --- */
+  .subtitle { @apply font-primary text-lg md:text-xl font-medium text-gray-600; }
+  .body { @apply font-primary text-base font-normal leading-relaxed text-gray-800; }
+  .caption { @apply font-primary text-sm font-normal text-gray-500; }
+  .label { @apply font-primary text-sm font-medium text-gray-700; }
+  .button-text { @apply font-primary text-sm md:text-base font-semibold tracking-wide; }
 }

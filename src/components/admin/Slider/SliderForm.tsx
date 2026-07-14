@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   TextField,
   Button,
   CircularProgress,
   Box,
-  Switch,
-  FormControlLabel,
-  Typography
+  Typography,
+  InputAdornment
 } from '@mui/material';
-import { Save } from '@mui/icons-material';
+import { Save, Language } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useUpload } from '@/hooks/useUpload';
 import { uploadService } from '@/services/uploadService';
 import type { SliderCreateRequest } from '@/types/slider';
+
+import { SliderFormCard } from './components/SliderFormCard';
+import { SliderImageUploader } from './components/SliderImageUploader';
+import { SliderPreview } from './components/SliderPreview';
+import { SliderDisplaySettings } from './components/SliderDisplaySettings';
 
 interface SliderFormProps {
   initialData?: {
@@ -32,6 +36,7 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
   const [displayOrder, setDisplayOrder] = useState<number>(0);
 
   const { isUploading, uploadFile } = useUpload(uploadService.uploadSliderImage);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -52,6 +57,10 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
       toast.success('Tải ảnh lên thành công!');
     }
     e.target.value = '';
+  };
+
+  const handleTriggerUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,126 +89,135 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
     });
   };
 
+  const isFormDisabled = isSubmitting || isUploading;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Box className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Ảnh Slider <span className="text-red-500">*</span></label>
-          <div className="flex items-start gap-6">
-            <div className="flex-1">
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors">
-                {isUploading ? (
-                  <div className="py-4">
-                    <CircularProgress size={30} sx={{ color: 'var(--color-theme)' }} />
-                    <p className="text-sm text-gray-500 mt-2">Đang tải ảnh lên...</p>
-                  </div>
-                ) : (
-                  <div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="slider-upload"
-                    />
-                    <label
-                      htmlFor="slider-upload"
-                      className="cursor-pointer inline-block px-6 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Chọn ảnh tải lên
-                    </label>
-                    <p className="text-xs text-gray-500 mt-2">Định dạng hỗ trợ: JPG, PNG, GIF</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            {imageUrl && (
-              <div className="w-64">
-                <p className="text-sm font-medium text-gray-700 mb-2">Xem trước:</p>
-                <div className="rounded-lg border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center p-2 relative aspect-[21/9]">
-                  <img
-                    src={imageUrl}
-                    alt="Slider Preview"
-                    className="max-w-full max-h-full object-contain rounded"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setImageUrl('')}
-                    className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs hover:bg-red-600 focus:outline-none"
-                    title="Xóa ảnh"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            )}
+    <form onSubmit={handleSubmit} className="bg-white p-3 sm:p-5 md:p-8 rounded-3xl min-h-[calc(100vh-140px)]">
+      <input
+        type="file"
+        accept="image/jpeg, image/png, image/webp, image/gif"
+        onChange={handleFileChange}
+        className="hidden"
+        ref={fileInputRef}
+        disabled={isFormDisabled}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 max-w-[1400px] mx-auto relative">
+        
+        {/* LEFT COLUMN */}
+        <div className="lg:col-span-7 xl:col-span-8 space-y-6 lg:space-y-8">
+          
+          <SliderFormCard 
+            title="Ảnh Slider" 
+            subtitle="Hỗ trợ các định dạng JPG, PNG, WEBP. Dung lượng tối đa 1MB."
+          >
+            <SliderImageUploader 
+              isUploading={isUploading} 
+              onFileChange={handleFileChange} 
+            />
+          </SliderFormCard>
+
+          <SliderFormCard 
+            title="Thông tin Slider"
+            subtitle="Đường link điều hướng khi người dùng nhấp vào ảnh"
+          >
+            <Box>
+              <Typography variant="body2" className="text-gray-700 font-medium mb-2.5 text-[14px]">Target URL (Không bắt buộc)</Typography>
+              <TextField
+                fullWidth
+                variant="outlined"
+                value={targetUrl}
+                onChange={(e) => setTargetUrl(e.target.value)}
+                placeholder="/products"
+                disabled={isFormDisabled}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Language className="text-gray-400" fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    backgroundColor: '#fff',
+                    '&.Mui-focused fieldset': {
+                      borderColor: 'var(--color-theme)',
+                      borderWidth: '2px'
+                    },
+                  }
+                }}
+              />
+              <Typography variant="caption" className="text-gray-500 mt-2 block text-[13px]">
+                Nếu để trống, khách hàng nhấn vào Slider sẽ không điều hướng đi đâu.
+              </Typography>
+            </Box>
+          </SliderFormCard>
+
+          <SliderFormCard 
+            title="Cấu hình hiển thị"
+            subtitle="Quản lý thứ tự và trạng thái xuất hiện trên website"
+          >
+            <SliderDisplaySettings 
+              displayOrder={displayOrder}
+              setDisplayOrder={setDisplayOrder}
+              isActive={isActive}
+              setIsActive={setIsActive}
+              disabled={isFormDisabled}
+            />
+          </SliderFormCard>
+        </div>
+
+        {/* RIGHT COLUMN */}
+        <div className="lg:col-span-5 xl:col-span-4">
+          <div className="sticky top-8 space-y-6 lg:space-y-8">
+            
+            <SliderFormCard 
+              title="Xem trước Slider" 
+              subtitle="Ảnh sẽ hiển thị theo tỷ lệ 21:9"
+            >
+              <SliderPreview 
+                imageUrl={imageUrl} 
+                onClear={() => setImageUrl('')}
+                onChangeClick={handleTriggerUpload}
+              />
+            </SliderFormCard>
+
+            <SliderFormCard title="Hành động">
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={isFormDisabled}
+                startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
+                className="h-[52px] text-[16px]"
+                sx={{
+                  backgroundColor: 'var(--color-theme)',
+                  textTransform: 'none',
+                  fontWeight: '600',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 14px 0 rgba(0, 146, 124, 0.2)',
+                  '&:hover': {
+                    backgroundColor: 'var(--color-theme-hover)',
+                    boxShadow: '0 6px 20px rgba(0, 146, 124, 0.3)',
+                    transform: 'translateY(-1px)'
+                  },
+                  transition: 'all 0.2s ease',
+                  '&.Mui-disabled': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                  }
+                }}
+              >
+                {isSubmitting ? 'Đang lưu hệ thống...' : 'Lưu Slider'}
+              </Button>
+            </SliderFormCard>
+
           </div>
         </div>
 
-        <TextField
-          fullWidth
-          label="URL đích (Không bắt buộc)"
-          variant="outlined"
-          value={targetUrl}
-          onChange={(e) => setTargetUrl(e.target.value)}
-          placeholder="https://example.com/promotion"
-          helperText="Đường link người dùng sẽ được chuyển tới khi click vào slider"
-        />
-
-        <TextField
-          fullWidth
-          type="number"
-          label="Thứ tự hiển thị"
-          variant="outlined"
-          value={displayOrder}
-          onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
-          slotProps={{ htmlInput: { min: 0 } }}
-          helperText="Slider có thứ tự nhỏ hơn sẽ được hiển thị trước (Vd: 0, 1, 2)"
-        />
-
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-              sx={{
-                '& .MuiSwitch-switchBase.Mui-checked': {
-                  color: 'var(--color-theme)',
-                  '&:hover': { backgroundColor: 'var(--color-theme-hover)' },
-                },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                  backgroundColor: 'var(--color-theme)',
-                },
-              }}
-            />
-          }
-          label={<Typography className="text-gray-700 font-medium">Kích hoạt hiển thị</Typography>}
-        />
-
-        <div className="pt-4 border-t border-gray-100 flex justify-end">
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={isSubmitting || isUploading}
-            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
-            sx={{
-              backgroundColor: 'var(--color-theme)',
-              textTransform: 'none',
-              fontWeight: 'bold',
-              px: 4,
-              py: 1.5,
-              borderRadius: '8px',
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: 'var(--color-theme-hover)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-              }
-            }}
-          >
-            {isSubmitting ? 'Đang lưu...' : 'Lưu Slider'}
-          </Button>
-        </div>
-      </Box>
+      </div>
     </form>
   );
 };

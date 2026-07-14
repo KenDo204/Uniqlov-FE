@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { buildSearchUrl } from "@/utils/urlHelpers";
 import { useTracking } from "@/hooks/useTracking";
+import { Source } from "@/types/tracking/requests";
 
 interface SearchBoxProps {
   initialValue?: string;
@@ -84,7 +85,7 @@ export function SearchBox({
     const trimmedQuery = query.trim();
     if (trimmedQuery) {
       if (isListening) recognitionRef.current?.stop();
-      trackSearch(trimmedQuery);
+      trackSearch(trimmedQuery, 0, Source.HEADER_MEGA_MENU);
       navigate(buildSearchUrl(trimmedQuery));
     }
   };

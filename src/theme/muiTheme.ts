@@ -10,7 +10,7 @@ export const muiTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'Geist Variable, sans-serif', // Ép MUI dùng chung font với Tailwind
+    fontFamily: '"Manrope", sans-serif', // Ép MUI dùng chung font với Tailwind
   },
   components: {
     MuiButton: {

@@ -3,8 +3,7 @@ import { Heart, ShoppingCart, Menu } from '@/components/ui/icons';
 import { SearchBox } from '@/components/shared/SearchBox';
 import { Link, useLocation } from 'react-router-dom';
 import { useCartStore } from '@/stores/useCartStore';
-import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
-import { HeaderMegaMenu } from './HeaderMegaMenu';
+import EasyMall_Logo from '@/assets/icons/logo.png';
 import { BRAND } from '@/constants/brand';
 import { CartDrawer } from '@/components/shared/CartDrawer';
 
@@ -49,22 +48,30 @@ export function Header() {
     return (
         <>
             <header className={headerContainerClass}>
-                <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pointer-events-auto flex flex-wrap items-center justify-between pt-2 lg:h-20 lg:pt-0 lg:flex-nowrap">
+                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 pointer-events-auto flex flex-wrap items-center justify-between pt-2 lg:pt-0">
 
                     {/* 1. LOGO */}
-                    <Link to="/" className="flex flex-col shrink-0 decoration-none group order-1">
+                    <Link to="/" className="flex flex-col shrink-0 decoration-none group order-1 lg:w-[20%]">
                         <img
                             src={EasyMall_Logo}
                             alt={`${BRAND.NAME} Logo`}
-                            className="w-16 h-16 md:w-20 md:h-20 object-contain"
+                            className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain"
                         />
                     </Link>
 
-                    {/* 2. CỤM PHẢI: SEARCH + ICONS */}
-                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 order-2 lg:order-3">
+                    {/* 2. DESKTOP SEARCH BOX */}
+                    <div className="hidden lg:block order-2 lg:w-[50%] px-4 py-4">
+                        <SearchBox 
+                            placeholder="Bạn đang tìm sản phẩm gì?"
+                            className="w-full h-11"
+                        />
+                    </div>
 
-                        {/* 2. SEARCH BOX */}
-                        <div className="flex-1 w-full max-w-[400px] xl:max-w-[500px]">
+                    {/* 3. CỤM PHẢI: MOBILE SEARCH + ICONS */}
+                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 order-2 lg:order-3 lg:w-[30%] justify-end">
+                        
+                        {/* MOBILE SEARCH BOX */}
+                        <div className="block lg:hidden flex-1 w-full max-w-[250px]">
                             <SearchBox 
                                 placeholder="Bạn đang tìm sản phẩm gì?"
                                 className="w-full h-9 sm:h-10"
@@ -75,7 +82,7 @@ export function Header() {
                         {isAuthenticated ? (
                             <>
                                 <Link to="/account/wishlists" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
-                                    <Heart size={20} strokeWidth={1.5} />
+                                    <Heart size={26} strokeWidth={1.5} />
                                 </Link>
                                 
                                 {/* Đã bổ sung sự kiện mở giỏ hàng và Badge hiển thị số lượng */}
@@ -83,9 +90,9 @@ export function Header() {
                                     onClick={() => setIsCartOpen(true)}
                                     className={`p-1.5 sm:p-2 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}
                                 >
-                                    <ShoppingCart size={20} strokeWidth={1.5} />
+                                    <ShoppingCart size={26} strokeWidth={1.5} />
                                     {totalQuantity > 0 && (
-                                        <span className="absolute 0 top-0 right-0 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                        <span className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                                             {totalQuantity}
                                         </span>
                                     )}
@@ -97,7 +104,7 @@ export function Header() {
                             // Nút Đăng nhập cho người dùng chưa auth
                             <Link 
                                 to="/login" 
-                                className="px-4 py-2 bg-theme hover:bg-theme-hover text-white text-sm font-bold rounded-full transition-colors decoration-none hidden sm:block"
+                                className="px-4 py-2 bg-theme hover:bg-theme-hover text-white text-sm font-bold rounded-full transition-colors decoration-none hidden sm:block whitespace-nowrap"
                             >
                                 Đăng nhập
                             </Link>
@@ -110,11 +117,6 @@ export function Header() {
                             <Menu size={22} strokeWidth={1.5} />
                         </button>
 
-                    </div>
-
-                    {/* 3. MENU - Truyền prop isHome vào để đổi màu chữ */}
-                    <div className="order-3 lg:order-2 w-full basis-full lg:basis-auto lg:flex-1 lg:px-8 overflow-x-auto scrollbar-hide border-white/20 lg:border-none pt-2 lg:pt-0">
-                        <HeaderMegaMenu />
                     </div>
                 </div>
             </header>

@@ -17,6 +17,9 @@ export function Home() {
       <div className="w-full text-left bg-white pb-20">
         {/* SECTION 1: HERO */}
         <HeroBanner />
+ 
+        {/* SECTION: RECOMMENDED FOR YOU */}
+        <RecommendedForYou />
         
         {/* SECTION: CATEGORIES */}
         <CategorySection />
@@ -26,9 +29,6 @@ export function Home() {
 
         {/* SECTION 4: POPULAR */}
         <Popular />
-
-        {/* SECTION: RECOMMENDED FOR YOU */}
-        <RecommendedForYou />
 
         {/* SECTION 5: NEW ARRIVALS */}
         <NewArrivals />

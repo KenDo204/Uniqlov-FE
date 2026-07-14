@@ -1,25 +1,26 @@
 import { useNavigate } from 'react-router-dom';
-import { ProductGrid } from '@/components/shared/ProductGrid';
+import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { buildCollectionUrl } from '@/utils/urlHelpers';
+import { Source } from '@/types/tracking/requests';
 import { useFetchProducts } from '@/hooks/useFetchProducts';
 
 export function NewArrivals() {
   const navigate = useNavigate();
-  const { products: newArrivals, isLoading } = useFetchProducts({ collection: 'NEW_ARRIVALS', size: 8 });
+  const { products: newArrivals, isLoading } = useFetchProducts({ collection: 'NEW_ARRIVALS', size: 10 });
 
   return (
-    <section className="w-full py-8 md:py-16 bg-white">
+    <section className="w-full py-4 md:py-10 bg-white">
       <div className="max-w-[1200px] mx-auto px-4 lg:px-8">
         <h2 className="text-2xl md:text-3xl font-heading font-black text-center mb-8 md:mb-12 m-0 uppercase tracking-tight text-gray-900">
           Sản phẩm mới về
         </h2>
 
-        <ProductGrid
+        <ProductSwiper
           products={newArrivals}
           isLoading={isLoading}
-          skeletonCount={4}
-          gridClassName="grid-cols-2 lg:grid-cols-4"
+          skeletonCount={5}
           cardProps={{ isNewArrival: true }}
+          source={Source.HOME_NEW_ARRIVAL}
           emptyContent={
             <div className="text-center py-12 text-gray-400">
               <p>Hiện chưa có sản phẩm mới nào.</p>

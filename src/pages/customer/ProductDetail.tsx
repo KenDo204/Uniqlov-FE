@@ -12,6 +12,7 @@ import { useReview } from '@/hooks/useReview';
 import { useCategory } from '@/hooks/useCategory';
 import { useAppSelector } from '@/stores/hooks';
 import { useTracking } from '@/hooks/useTracking';
+import { Source } from '@/types/tracking/requests';
 import { SimilarProducts } from '@/components/customer/Recommendation/SimilarProducts';
 import { BoughtTogether } from '@/components/customer/Recommendation/BoughtTogether';
 import type { CategoryResponse } from '@/types/category/responses';
@@ -60,7 +61,7 @@ export function ProductDetail() {
   useEffect(() => {
     if (product?.product_id) {
       const timer = setTimeout(() => {
-        trackView(Number(product.product_id), Number(product.category_id) || undefined);
+        trackView(Number(product.product_id), Number(product.category_id) || undefined, Source.PRODUCT_MAIN_INFO, 3);
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -179,7 +180,7 @@ export function ProductDetail() {
           'Kích cỡ': selectedSize
         }
       }, quantity);
-      trackAddToCart(activeVariant.variant_id, quantity);
+      trackAddToCart(activeVariant.variant_id, quantity, selectedColor, selectedSize, Source.PRODUCT_MAIN_INFO);
       toast.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (err: any) {
       toast.error(err || 'Không thể thêm sản phẩm vào giỏ hàng.');
@@ -221,7 +222,7 @@ export function ProductDetail() {
     try {
       await toggleWishlist(product.product_id);
       if (!isInWishlist) {
-        trackWishlist(product.product_id);
+        trackWishlist(product.product_id, selectedColor, selectedSize, 'product_page', Source.PRODUCT_MAIN_INFO);
       }
       toast.success(isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
     } catch (err: any) {
@@ -669,6 +670,7 @@ export function ProductDetail() {
               <ProductGrid
                 products={bundleItems}
                 gridClassName="grid-cols-2 md:grid-cols-4"
+                source={Source.PRODUCT_REC_BOUGHT_TOGETHER}
               />
             </div>
           </section>

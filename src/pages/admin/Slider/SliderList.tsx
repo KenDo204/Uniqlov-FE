@@ -85,13 +85,18 @@ const SliderList: React.FC = () => {
             </p>
           </div>
           <PermissionGuard permission="slider:create">
-            <button
+            <Button
               onClick={() => navigate('/admin/sliders/add')}
-              className="flex items-center gap-2 px-6 py-2.5 bg-theme text-white rounded-lg font-medium hover:bg-theme-hover transition-colors border-none cursor-pointer shadow-sm"
+              variant="contained"
+              sx={{
+                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+              }}
             >
-              <Add fontSize="small" />
-              <span>Thêm Slider mới</span>
-            </button>
+              <Add fontSize="medium" />
+              Thêm Slider mới
+            </Button>
           </PermissionGuard>
         </div>
 
@@ -170,19 +175,14 @@ const SliderList: React.FC = () => {
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-6 py-4 text-center w-40">
                         <Switch
                           checked={slider.isActive}
                           disabled={!hasPermission('slider:update')}
                           onChange={(e) => handleToggleStatus(slider.sliderId, slider, e.target.checked)}
                           sx={{
-                            '& .MuiSwitch-switchBase.Mui-checked': {
-                              color: 'var(--color-theme)',
-                              '&:hover': { backgroundColor: 'var(--color-theme-hover)' },
-                            },
-                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                              backgroundColor: 'var(--color-theme)',
-                            },
+                            '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--color-theme)' },
+                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'var(--color-theme)' },
                           }}
                         />
                       </td>
@@ -190,11 +190,11 @@ const SliderList: React.FC = () => {
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center gap-2">
                           <PermissionGuard permission="slider:update">
-                            <Tooltip title="Chỉnh sửa" arrow>
+                            <Tooltip title="Chỉnh sửa Slider" arrow>
                               <IconButton 
                                 size="small" 
                                 onClick={() => navigate(`/admin/sliders/edit/${slider.sliderId}`)}
-                                className="text-blue-600 hover:bg-blue-50"
+                                sx={{ color: 'var(--color-theme)', bgcolor: '#eff6ff', '&:hover': { bgcolor: '#dbeafe' } }}
                               >
                                 <Edit fontSize="small" />
                               </IconButton>
@@ -206,7 +206,7 @@ const SliderList: React.FC = () => {
                               <IconButton 
                                 size="small" 
                                 onClick={() => confirmDelete(slider.sliderId)}
-                                className="text-red-500 hover:bg-red-50"
+                                sx={{ color: 'var(--color-cancel)', bgcolor: '#fef2f2', '&:hover': { bgcolor: '#fee2e2' } }}
                               >
                                 <Delete fontSize="small" />
                               </IconButton>

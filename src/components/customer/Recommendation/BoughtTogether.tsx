@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ProductGrid } from '@/components/shared/ProductGrid';
 import { useRecommendation } from '@/hooks/useRecommendation';
+import { Source } from '@/types/tracking/requests';
 
 interface BoughtTogetherProps {
   productId: number;
@@ -30,6 +31,7 @@ export function BoughtTogether({ productId }: BoughtTogetherProps) {
         isLoading={isFetching}
         skeletonCount={4}
         gridClassName="grid-cols-2 lg:grid-cols-4"
+        source={Source.PRODUCT_REC_BOUGHT_TOGETHER}
         isRecommendation={true}
         aiModel="bought_together_v1"
         emptyContent={<></>}

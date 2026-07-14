@@ -156,7 +156,7 @@ const ContactManagement: React.FC = () => {
                             <IconButton 
                               size="small" 
                               onClick={() => setSelectedContact(contact)}
-                              className="text-gray-600 hover:bg-gray-100"
+                              sx={{ color: 'var(--color-blue)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: 'var(--color-blue-hover)' } }}
                             >
                               <Visibility fontSize="small" />
                             </IconButton>
@@ -166,7 +166,7 @@ const ContactManagement: React.FC = () => {
                               <IconButton 
                                 size="small" 
                                 onClick={() => handleOpenStatusModal(contact)}
-                                className="text-blue-600 hover:bg-blue-50"
+                                sx={{ color: 'var(--color-theme)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
                               >
                                 <Edit fontSize="small" />
                               </IconButton>
