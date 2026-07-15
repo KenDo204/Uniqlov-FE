@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { BRAND } from '@/constants/brand';
+import { Container } from '@/components/shared/Container';
 
 export function AboutSection() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <section className="max-w-[1200px] mx-auto px-4 py-24 text-left border-t border-gray-200 mt-12">
+    <Container className="py-24 text-left border-t border-gray-200 mt-12">
       <h4 className="text-base md:text-lg font-semibold mb-6 uppercase text-gray-900 tracking-wide">
         {BRAND.NAME} – TRANG PHỤC NAM BỀN, MỀM, KHÔNG LỖI MỐT | THỜI TRANG NAM VIỆT NAM
       </h4>
@@ -39,10 +40,9 @@ export function AboutSection() {
               <li>- Đổi trả linh hoạt 14 ngày</li>
               <li>- Bảo hành 365 ngày lỗi kỹ thuật (không cần hóa đơn)</li>
               <li>- Hơn 40 cửa hàng tại TP.HCM và các tỉnh miền Nam</li>
-              <li>- Ưu đãi thường xuyên, miễn phí vận chuyển (freeship) cho đơn hàng từ 50.000đ.</li>
             </ul>
 
-            <p className="font-bold text-gray-900 mt-8 mb-2">Unilov</p>
+            <p className="font-bold text-gray-900 mt-8 mb-2">{BRAND.NAME}</p>
             <p>Không chỉ là quần áo, {BRAND.NAME} là người bạn đồng hành giúp đàn ông Việt mặc sướng, mặc bền và mặc đúng gu mỗi ngày.</p>
 
             <p className="mt-8">Tìm kiếm: quần áo nam chất lượng cao, áo thun nam mát lạnh, quần jeans nam bền đẹp, thời trang nam công sở, đồ thể thao nam, áo polo nam giá tốt... đều có tại {BRAND.NAME}.</p>
@@ -61,6 +61,6 @@ export function AboutSection() {
         </div>
 
       </div>
-    </section>
+    </Container>
   );
 }

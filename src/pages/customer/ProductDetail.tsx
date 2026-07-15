@@ -16,6 +16,7 @@ import { Source } from '@/types/tracking/requests';
 import { SimilarProducts } from '@/components/customer/Recommendation/SimilarProducts';
 import { BoughtTogether } from '@/components/customer/Recommendation/BoughtTogether';
 import type { CategoryResponse } from '@/types/category/responses';
+import { Container } from '@/components/shared/Container';
 
 export function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -362,7 +363,7 @@ export function ProductDetail() {
 
   return (
     <div className="bg-white min-h-screen pb-20 font-sans text-gray-900">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <Container className="pt-6">
 
         {/* Breadcrumbs */}
         <div className="text-[12px] text-gray-500 mb-6 flex gap-1 uppercase tracking-wide">
@@ -684,7 +685,7 @@ export function ProductDetail() {
           </div>
         )}
 
-      </div>
+      </Container>
 
       {/* Modal Viết Đánh Giá */}
       {isReviewModalOpen && (

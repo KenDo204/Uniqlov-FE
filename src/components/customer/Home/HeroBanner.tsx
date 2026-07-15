@@ -5,6 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, EffectFade, Pagination, Navigation } from 'swiper/modules';
 import { useSlider } from "@/hooks/useSlider";
 import { HeaderMegaMenu } from "@/layouts/CustomerLayout/HeaderMegaMenu";
+import { Container } from "@/components/shared/Container";
 
 import 'swiper/css';
 import 'swiper/css/effect-fade';
@@ -42,7 +43,7 @@ export function HeroBanner() {
 
   return (
     <section className="w-full bg-white pt-0 lg:pt-4">
-      <div className="mx-auto px-0 lg:px-8 flex flex-col lg:flex-row gap-6">
+      <Container className="!px-0 lg:!px-4 flex flex-col lg:flex-row gap-6">
         
         {/* SIDEBAR DANH MỤC (Chỉ hiện trên Desktop) */}
         <div className="hidden lg:block w-[240px] shrink-0">
@@ -136,7 +137,7 @@ export function HeroBanner() {
             </Link>
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

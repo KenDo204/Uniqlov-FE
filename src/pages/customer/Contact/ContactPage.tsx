@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useContact } from '@/hooks/useContact';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { Container } from '@/components/shared/Container';
 
 const ContactPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -66,7 +67,7 @@ const ContactPage: React.FC = () => {
 
   return (
     <div className="bg-[#f8f8f8] min-h-screen py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-[800px] mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 text-left">
+      <Container className="max-w-[800px] bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10 text-left">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Liên hệ - Góp ý</h1>
         <p className="text-gray-500 mb-8">
           Chúng tôi luôn lắng nghe và đánh giá cao mọi ý kiến đóng góp của bạn. Vui lòng điền thông tin bên dưới để gửi phản hồi cho chúng tôi.
@@ -142,7 +143,7 @@ const ContactPage: React.FC = () => {
             </Button>
           </div>
         </form>
-      </div>
+      </Container>
     </div>
   );
 };

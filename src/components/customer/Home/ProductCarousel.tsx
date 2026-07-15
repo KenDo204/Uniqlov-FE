@@ -8,6 +8,7 @@ import {
 import { ProductCard } from "@/components/shared/ProductCard";
 import type { ProductResponse } from "@/types/product/responses";
 import { Source } from "@/types/tracking/requests";
+import { Container } from "@/components/shared/Container";
 
 interface ProductCarouselProps {
   title: string;
@@ -17,7 +18,7 @@ interface ProductCarouselProps {
 export function ProductCarousel({ title, products }: ProductCarouselProps) {
   return (
     <section className="py-6 md:py-10">
-      <div className="max-w-[1400px] mx-auto px-4 lg:px-8 relative">
+      <Container className="relative">
         <h2 className="text-2xl md:text-3xl font-bold mb-8 uppercase tracking-wide">{title}</h2>
         
         <Carousel
@@ -37,7 +38,7 @@ export function ProductCarousel({ title, products }: ProductCarouselProps) {
           <CarouselPrevious className="hidden xl:flex -left-12 bg-white hover:bg-gray-100 border-border-base h-12 w-12" />
           <CarouselNext className="hidden xl:flex -right-12 bg-white hover:bg-gray-100 border-border-base h-12 w-12" />
         </Carousel>
-      </div>
+      </Container>
     </section>
   );
 }

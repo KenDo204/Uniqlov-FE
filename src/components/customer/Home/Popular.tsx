@@ -3,6 +3,7 @@ import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { buildCollectionUrl } from '@/utils/urlHelpers';
 import { Source } from '@/types/tracking/requests';
 import { useFetchProducts } from '@/hooks/useFetchProducts';
+import { Container } from '@/components/shared/Container';
 
 export function Popular() {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export function Popular() {
 
   return (
     <section className="w-full py-4 md:py-10 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 lg:px-8">
+      <Container>
         <h2 className="text-2xl md:text-3xl font-heading font-black text-center mb-8 md:mb-12 m-0 uppercase tracking-tight text-gray-900">
           Xu Hướng Phổ Biến
         </h2>
@@ -37,7 +38,7 @@ export function Popular() {
             </button>
           </div>
         )}
-      </div>
+      </Container>
     </section>
   );
 }

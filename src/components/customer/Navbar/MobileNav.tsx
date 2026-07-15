@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "react-toastify";
 import React from "react";
-import EasyMall_Logo from '@/assets/icons/logo.png';
+import EasyMall_Logo from '@/assets/icons/logo1.png';
 import { BRAND } from "@/constants/brand";
 import { useCategory } from "@/hooks/useCategory";
 import { buildMegaMenuUrl } from "@/utils/urlHelpers";
@@ -44,7 +44,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
                     <img
                         src={EasyMall_Logo}
                         alt={`${BRAND.NAME} Logo`}
-                        className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain"
+                        className="h-7 sm:h-8 md:h-9 lg:h-10 w-auto object-contain object-left transition-opacity duration-300 group-hover:opacity-80"
                     />
                 </Link>
             </Box>

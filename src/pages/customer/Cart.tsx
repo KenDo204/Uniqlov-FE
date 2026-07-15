@@ -15,6 +15,7 @@ import { OrderSummary } from '@/components/customer/Cart/OrderSummary';
 
 import { VariantChangeModal } from '@/components/customer/Cart/VariantChangeModal';
 import ConfirmModal from '@/components/general/ConfirmModal';
+import { Container } from '@/components/shared/Container';
 
 export function Cart() {
   const { items, removeItem, updateQuantity } = useCartStore();
@@ -212,7 +213,7 @@ export function Cart() {
 
   return (
     <div className="bg-white min-h-screen pb-20 pt-8 font-sans text-gray-900">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-left">
+      <Container className="text-left">
         {/* Tiêu đề & Thông báo vận chuyển */}
         <h1 className="text-[28px] md:text-[32px] font-medium m-0 mb-4 tracking-tight">
           Giỏ hàng
@@ -257,7 +258,7 @@ export function Cart() {
             <ProductGrid products={crossSellItems} gridClassName="grid-cols-2 md:grid-cols-4" source={Source.CART_PAGE} />
           </div>
         )}
-      </div>
+      </Container>
 
       {/* Modal thay đổi phân loại */}
       <VariantChangeModal

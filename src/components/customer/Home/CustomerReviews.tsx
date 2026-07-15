@@ -1,8 +1,9 @@
 import {  Star  } from '@/components/ui/icons';
+import { Container } from '@/components/shared/Container';
 
 export function CustomerReviews() {
   return (
-    <section className="space-y-6 max-w-[1400px] mx-auto px-4 lg:px-8">
+    <Container className="space-y-6">
       <div>
         <h2 className="text-2xl md:text-3xl font-heading font-black m-0">UNILO Community Voices</h2>
         <p className="text-xs md:text-sm text-gray-500 m-0 mt-1 uppercase tracking-wider font-semibold">Feedback from real buyers</p>
@@ -59,6 +60,6 @@ export function CustomerReviews() {
           </div>
         ))}
       </div>
-    </section>
+    </Container>
   );
 }

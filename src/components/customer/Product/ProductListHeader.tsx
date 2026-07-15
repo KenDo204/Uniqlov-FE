@@ -5,6 +5,7 @@ import { SearchBox } from '@/components/shared/SearchBox';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode } from 'swiper/modules';
 import { CategoryCard } from './CategoryCard';
+import { Container } from '@/components/shared/Container';
 import 'swiper/css';
 import 'swiper/css/free-mode';
 
@@ -39,7 +40,7 @@ export function ProductListHeader({ keyword, categoryCode, fallbackTitle, fallba
   if (keyword) {
     return (
       <div className="bg-white border-b border-unilo-border dark:border-gray-800 py-6 md:py-10 mb-8">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+        <Container>
           <h1 className="text-2xl md:text-3xl font-primary font-black tracking-tight text-gray-900 mb-6 uppercase">
             Tìm kiếm
           </h1>
@@ -49,7 +50,7 @@ export function ProductListHeader({ keyword, categoryCode, fallbackTitle, fallba
               className="w-full h-12 md:h-14 border border-gray-300 rounded-full hover:bg-white bg-white focus-within:ring-1 focus-within:ring-gray-400 focus-within:border-gray-400 shadow-sm"
             />
           </div>
-        </div>
+        </Container>
       </div>
     );
   }
@@ -87,7 +88,7 @@ export function ProductListHeader({ keyword, categoryCode, fallbackTitle, fallba
 
       return (
         <div className="bg-white border-b border-unilo-border dark:border-gray-800 pt-6 pb-6 mb-8 overflow-hidden">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+          <Container>
             
             {/* Breadcrumb Động */}
             <div className="text-sm text-gray-500 mb-6 tracking-wide font-medium flex items-center space-x-2 flex-wrap gap-y-2">
@@ -146,7 +147,7 @@ export function ProductListHeader({ keyword, categoryCode, fallbackTitle, fallba
                 </Swiper>
               </div>
             )}
-          </div>
+          </Container>
         </div>
       );
     }
@@ -155,7 +156,7 @@ export function ProductListHeader({ keyword, categoryCode, fallbackTitle, fallba
   // 3. Fallback (dành cho Collection, Target Gender, v.v.)
   return (
     <div className="bg-white border-b border-unilo-border dark:border-gray-800 py-10 mb-8">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+      <Container>
         <div className="text-xs text-gray-400 mb-2 text-center tracking-widest font-semibold uppercase">
           <span className="hover:text-theme cursor-pointer" onClick={() => navigate('/')}>Trang chủ</span> / <span className="text-theme font-bold">{fallbackTitle}</span>
         </div>
@@ -165,7 +166,7 @@ export function ProductListHeader({ keyword, categoryCode, fallbackTitle, fallba
         <p className="mt-4 text-center text-gray-500 max-w-xl mx-auto text-sm font-medium">
           {fallbackSubtitle || "Khám phá bộ sưu tập mới nhất với mức giá hấp dẫn. Dành riêng cho bạn."}
         </p>
-      </div>
+      </Container>
     </div>
   );
 }

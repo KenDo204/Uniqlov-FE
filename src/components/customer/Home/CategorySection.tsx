@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useCategory } from '@/hooks/useCategory';
 import { useNavigate } from 'react-router-dom';
+import { Container } from '@/components/shared/Container';
 
 export function CategorySection() {
   const { categories, fetchPublicCategories } = useCategory();
@@ -16,7 +17,7 @@ export function CategorySection() {
   const displayCategories = categories.slice(0, 6);
 
   return (
-    <section className="max-w-[1200px] mx-auto px-4">
+    <Container>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-12 gap-x-6">
         {displayCategories.map((cat) => (
           <div
@@ -39,6 +40,6 @@ export function CategorySection() {
           </div>
         ))}
       </div>
-    </section>
+    </Container>
   );
 }

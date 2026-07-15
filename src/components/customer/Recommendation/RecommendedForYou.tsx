@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { useRecommendation } from '@/hooks/useRecommendation';
 import { Source } from '@/types/tracking/requests';
+import { Container } from '@/components/shared/Container';
 
 export function RecommendedForYou() {
   const { recommendedForYou, isFetching, fetchRecommendedForYou } = useRecommendation();
@@ -16,7 +17,7 @@ export function RecommendedForYou() {
 
   return (
     <section className="w-full py-8 md:py-16 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 lg:px-8">
+      <Container>
         <h2 className="text-2xl md:text-3xl font-heading font-black text-center mb-8 md:mb-12 m-0 uppercase tracking-tight text-gray-900">
           Gợi ý dành riêng cho bạn
         </h2>
@@ -31,7 +32,7 @@ export function RecommendedForYou() {
           aiModel="for_you_v1"
           emptyContent={<></>}
         />
-      </div>
+      </Container>
     </section>
   );
 }

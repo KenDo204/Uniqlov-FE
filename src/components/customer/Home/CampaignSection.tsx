@@ -8,6 +8,7 @@ import { useCategory } from '@/hooks/useCategory';
 import { useFetchProducts } from '@/hooks/useFetchProducts';
 import type { CategoryResponse } from '@/types/category/responses';
 import type { SliderResponse } from '@/types/slider/responses';
+import { Container } from '@/components/shared/Container';
 
 // --- Helpers ---
 const extractCategoryCode = (url: string | null): string | null => {
@@ -109,7 +110,7 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
 
       {/* Tabs */}
       {campaignTabs.length > 0 && (
-        <div className="max-w-[1200px] mx-auto px-4 py-8 md:py-12">
+        <Container className="py-8 md:py-12">
           <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-14">
             {campaignTabs.map((tab) => (
               <button
@@ -117,8 +118,8 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
                 onClick={() => setActiveTab(tab)}
                 className={`px-5 md:px-6 py-2 md:py-2.5 text-[11px] md:text-[13px] rounded-full border transition-all cursor-pointer ${
                   activeTab?.categoryId === tab.categoryId
-                    ? 'bg-black text-white border-black font-semibold shadow-md'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-black'
+                    ? 'bg-theme text-white border-theme font-semibold shadow-md'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-theme hover:text-theme'
                 }`}
               >
                 {tab.categoryName}
@@ -153,7 +154,7 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
               </button>
             </div>
           )}
-        </div>
+        </Container>
       )}
     </section>
   );

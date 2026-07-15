@@ -19,6 +19,7 @@ import CreateAddressModal from '@/components/customer/Account/createAdressModal'
 import OrderSuccess from '@/components/customer/Checkout/OrderSuccess';
 import { calculateOrderFinancials } from '@/utils/couponUtils';
 import type { CouponResponse } from '@/types/coupon/responses';
+import { Container } from '@/components/shared/Container';
 
 export function Checkout() {
   const navigate = useNavigate();
@@ -342,7 +343,7 @@ export function Checkout() {
 
   return (
     <div className="bg-[#f8f8f8] min-h-screen pb-20 pt-8 font-sans text-gray-900">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-left">
+      <Container className="text-left">
         
         {/* Title & Secure Connection */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-8 gap-4">
@@ -726,7 +727,7 @@ export function Checkout() {
 
           </form>
         )}
-      </div>
+      </Container>
     </div>
   );
 }

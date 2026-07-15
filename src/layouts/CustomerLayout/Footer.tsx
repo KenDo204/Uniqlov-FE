@@ -4,6 +4,7 @@ import {  Search, User, Heart, ShoppingCart  } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 import { useCartStore } from '@/stores/useCartStore';
 import { BRAND } from '@/constants/brand';
+import { Container } from '@/components/shared/Container';
 
 export function Footer() {
     const { items: cartItems} = useCartStore();
@@ -14,7 +15,7 @@ export function Footer() {
   return (
     <>
       <footer className="w-full border-t border-unilo-border dark:border-gray-800 bg-muted dark:bg-gray-950 pt-16 pb-12 md:pb-16 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+        <Container className="space-y-16">
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-8 text-left">
             {/* Branding Column */}
@@ -69,7 +70,7 @@ export function Footer() {
           <div className="border-t border-unilo-border dark:border-gray-800 pt-8 flex justify-center items-center text-sm text-gray-500 dark:text-gray-400 font-medium">
             <p className="m-0">&copy; {new Date().getFullYear()} {BRAND.COPYRIGHT}</p>
           </div>
-        </div>
+        </Container>
       </footer>
 
       {/* Mobile Bottom Thumb Navigation */}

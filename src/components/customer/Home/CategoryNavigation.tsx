@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import {  ArrowRight  } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
+import { Container } from '@/components/shared/Container';
 
 export function CategoryNavigation() {
   const navigate = useNavigate();
   return (
-    <section className="space-y-6 max-w-[1400px] mx-auto px-4 lg:px-8">
+    <Container className="space-y-6">
       <div>
         <h2 className="text-2xl md:text-3xl font-heading font-black m-0">Shop by Category</h2>
       </div>
@@ -39,6 +40,6 @@ export function CategoryNavigation() {
           </div>
         ))}
       </div>
-    </section>
+    </Container>
   );
 }

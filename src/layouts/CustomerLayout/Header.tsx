@@ -3,7 +3,7 @@ import { Heart, ShoppingCart, Menu } from '@/components/ui/icons';
 import { SearchBox } from '@/components/shared/SearchBox';
 import { Link, useLocation } from 'react-router-dom';
 import { useCartStore } from '@/stores/useCartStore';
-import EasyMall_Logo from '@/assets/icons/logo.png';
+import EasyMall_Logo from '@/assets/icons/logo1.png';
 import { BRAND } from '@/constants/brand';
 import { CartDrawer } from '@/components/shared/CartDrawer';
 
@@ -11,6 +11,9 @@ import { CartDrawer } from '@/components/shared/CartDrawer';
 import { useAuth } from '@/hooks/useAuth';
 import AvatarNav from '@/components/customer/Navbar/AvatarNav';
 import MobileNav from '@/components/customer/Navbar/MobileNav';
+import { Container } from '@/components/shared/Container';
+
+import { cn } from '@/lib/utils';
 
 export function Header() {
     const location = useLocation();
@@ -48,77 +51,74 @@ export function Header() {
     return (
         <>
             <header className={headerContainerClass}>
-                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 pointer-events-auto flex flex-wrap items-center justify-between pt-2 lg:pt-0">
+            <Container className="pointer-events-auto flex flex-wrap items-center justify-between py-2 lg:py-0 lg:h-20">
 
-                    {/* 1. LOGO */}
-                    <Link to="/" className="flex flex-col shrink-0 decoration-none group order-1 lg:w-[20%]">
-                        <img
-                            src={EasyMall_Logo}
-                            alt={`${BRAND.NAME} Logo`}
-                            className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain"
-                        />
+                <div className="flex items-center justify-start w-[25%] sm:w-[30%] lg:hidden order-1">
+                <button
+                    onClick={() => setIsMobileMenuOpen(true)}
+                    className={cn("p-1 rounded-md border-none bg-transparent cursor-pointer flex flex-col items-center justify-center text-neutral-800 dark:text-neutral-200 hover:bg-neutral-50", iconClass)}
+                >
+                    <Menu size={26} strokeWidth={1.5} />
+                    <span className="text-[10px] font-medium leading-none mt-1">Menu</span>
+                </button>
+                </div>
+
+                <div className="flex items-center justify-center lg:justify-start w-[50%] sm:w-[40%] lg:w-auto shrink-0 order-2 lg:order-1 transition-all duration-300">
+                <Link to="/" className="flex items-center justify-center lg:justify-start no-underline group">
+                    <img
+                    src={EasyMall_Logo}
+                    alt={`${BRAND.NAME} Logo`}
+                    className="h-5 sm:h-6 md:h-7 lg:h-9 w-auto object-contain transition-all duration-300 group-hover:opacity-80"
+                    />
+                </Link>
+                </div>
+
+                <div className="order-4 lg:order-2 w-full basis-full shrink-0 mt-3 lg:mt-0 lg:basis-auto lg:flex-1 lg:max-w-[480px] xl:max-w-[560px] lg:px-4">
+                <SearchBox
+                    placeholder="Tìm kiếm sản phẩm..."
+                    className="w-full h-10 lg:h-11 text-sm border border-gray-200 focus-within:border-neutral-900 transition-colors rounded-sm"
+                />
+                </div>
+
+                <div className="flex items-center justify-end w-[25%] sm:w-[30%] lg:w-auto gap-2 sm:gap-4 shrink-0 order-3 lg:order-3">
+                {isAuthenticated ? (
+                    <>
+                    <div className="scale-90 md:scale-100 hidden sm:block">
+                        <AvatarNav user={user} />
+                    </div>
+
+                    {/* Icon Trái Tim */}
+                    <Link
+                        to="/account/wishlists"
+                        className={cn("p-1.5 rounded-full transition-colors items-center justify-center hidden sm:flex hover:bg-neutral-100", iconClass)}
+                    >
+                        <Heart size={24} strokeWidth={1.5} />
                     </Link>
 
-                    {/* 2. DESKTOP SEARCH BOX */}
-                    <div className="hidden lg:block order-2 lg:w-[50%] px-4 py-4">
-                        <SearchBox 
-                            placeholder="Bạn đang tìm sản phẩm gì?"
-                            className="w-full h-11"
-                        />
-                    </div>
-
-                    {/* 3. CỤM PHẢI: MOBILE SEARCH + ICONS */}
-                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 order-2 lg:order-3 lg:w-[30%] justify-end">
-                        
-                        {/* MOBILE SEARCH BOX */}
-                        <div className="block lg:hidden flex-1 w-full max-w-[250px]">
-                            <SearchBox 
-                                placeholder="Bạn đang tìm sản phẩm gì?"
-                                className="w-full h-9 sm:h-10"
-                            />
-                        </div>
-
-                        {/* 3. KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP */}
-                        {isAuthenticated ? (
-                            <>
-                                <Link to="/account/wishlists" className={`p-1.5 sm:p-2 rounded-full transition-colors hidden sm:flex items-center justify-center ${iconClass}`}>
-                                    <Heart size={26} strokeWidth={1.5} />
-                                </Link>
-                                
-                                {/* Đã bổ sung sự kiện mở giỏ hàng và Badge hiển thị số lượng */}
-                                <button 
-                                    onClick={() => setIsCartOpen(true)}
-                                    className={`p-1.5 sm:p-2 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}
-                                >
-                                    <ShoppingCart size={26} strokeWidth={1.5} />
-                                    {totalQuantity > 0 && (
-                                        <span className="absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                                            {totalQuantity}
-                                        </span>
-                                    )}
-                                </button>
-                                
-                                <AvatarNav user={user} />
-                            </>
-                        ) : (
-                            // Nút Đăng nhập cho người dùng chưa auth
-                            <Link 
-                                to="/login" 
-                                className="px-4 py-2 bg-theme hover:bg-theme-hover text-white text-sm font-bold rounded-full transition-colors decoration-none hidden sm:block whitespace-nowrap"
-                            >
-                                Đăng nhập
-                            </Link>
+                    {/* Icon Giỏ Hàng & Badge */}
+                    <button
+                        onClick={() => setIsCartOpen(true)}
+                        className={cn("p-1.5 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center hover:bg-neutral-100", iconClass)}
+                    >
+                        <ShoppingCart size={26} strokeWidth={1.5} />
+                        {totalQuantity > 0 && (
+                        <span className="absolute top-0 right-0 transform translate-x-[10%] -translate-y-[10%] bg-[#E32636] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm">
+                            {totalQuantity}
+                        </span>
                         )}
-
-                        <button 
-                            onClick={() => setIsMobileMenuOpen(true)}
-                            className={`lg:hidden p-1.5 rounded-full border-none bg-transparent cursor-pointer flex items-center justify-center ${iconClass}`}
-                        >
-                            <Menu size={22} strokeWidth={1.5} />
-                        </button>
-
-                    </div>
+                    </button>
+                    </>
+                ) : (
+                    <Link
+                    to="/login"
+                    className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold tracking-wide uppercase transition-colors decoration-none hidden sm:block rounded-sm"
+                    >
+                    Đăng nhập
+                    </Link>
+                )}
                 </div>
+
+            </Container>
             </header>
 
             {/* Mobile Menu Drawer Overlay */}

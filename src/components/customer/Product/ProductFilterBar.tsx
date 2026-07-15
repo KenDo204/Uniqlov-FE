@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { useCategory } from '@/hooks/useCategory';
 import type { ProductFilterRequest } from '@/types/product';
 import { Drawer } from '@mui/material';
+import { Container } from '@/components/shared/Container';
 import { Close as CloseIcon, FilterList as FilterIcon, ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { cn } from '@/lib/utils';
 
@@ -452,7 +453,7 @@ export function ProductFilterBar({
 
   return (
     <div className="relative z-40 bg-white" ref={barRef}>
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+      <Container>
         
         {/* === MOBILE FILTER BUTTON === */}
         <div className="flex md:hidden items-center justify-between py-3">
@@ -521,16 +522,16 @@ export function ProductFilterBar({
           )}
         </div>
 
-      </div>
+      </Container>
 
       {/* === DESKTOP DROPDOWN FULL WIDTH PANEL === */}
       {activeDropdown && (
         <div className="hidden md:block absolute top-full left-0 w-full bg-white border-y border-gray-200 shadow-md z-50 animate-in fade-in slide-in-from-top-1 duration-200">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-8">
+          <Container>
             <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
               {renderPanelContent()}
             </div>
-          </div>
+          </Container>
         </div>
       )}
     </div>

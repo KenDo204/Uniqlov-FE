@@ -3,6 +3,7 @@ import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { useFetchProducts } from '@/hooks/useFetchProducts';
 import { Source } from '@/types/tracking/requests';
 import { buildCategoryUrl } from '@/utils/urlHelpers';
+import { Container } from '@/components/shared/Container';
 
 export function AccessorySection() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export function AccessorySection() {
 
   return (
     <section className="w-full py-8 md:py-10 bg-white">
-      <div className="max-w-[1200px] mx-auto px-4 lg:px-8">
+      <Container>
         
         {/* Tiêu đề Section (Section Header) */}
         <div className="text-center mb-10 md:mb-14">
@@ -47,7 +48,7 @@ export function AccessorySection() {
             </button>
           </div>
         )}
-      </div>
+      </Container>
     </section>
   );
 }

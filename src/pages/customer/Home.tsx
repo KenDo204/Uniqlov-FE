@@ -22,7 +22,7 @@ export function Home() {
         <RecommendedForYou />
         
         {/* SECTION: CATEGORIES */}
-        <CategorySection />
+        {/* <CategorySection /> */}
 
         {/* SECTION 3: BEST SELLERS */}
         <BestSellers />

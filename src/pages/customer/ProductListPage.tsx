@@ -5,6 +5,7 @@ import type { ProductFilterRequest, ProductResponse } from '@/types/product';
 import { ProductGrid } from '@/components/shared/ProductGrid';
 import { ProductFilterBar } from '@/components/customer/Product/ProductFilterBar';
 import { ProductListHeader } from '@/components/customer/Product/ProductListHeader';
+import { Container } from '@/components/shared/Container';
 import { Source } from '@/types/tracking/requests';
 
 export function ProductListPage() {
@@ -125,7 +126,7 @@ export function ProductListPage() {
       />
 
       {/* Main Grid */}
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 mt-6">
+      <Container className="mt-6">
         {/* Products List section */}
         <div className="space-y-6">
           {/* Controls Bar */}
@@ -140,7 +141,7 @@ export function ProductListPage() {
             products={productList}
             isLoading={isFetching}
             skeletonCount={8}
-            gridClassName="grid-cols-2 md:grid-cols-3"
+            gridClassName="grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             source={filterRequest.keyword ? Source.SEARCH_RESULT : Source.CATEGORY_GRID}
             emptyContent={
               <div className="flex flex-col items-center justify-center py-20 bg-white border border-unilo-border dark:bg-gray-900 dark:border-gray-800 rounded-xl text-center shadow-sm">
@@ -191,7 +192,7 @@ export function ProductListPage() {
             </div>
           )}
         </div>
-      </div>
+      </Container>
     </div>
   );
 }

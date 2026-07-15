@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-toastify';
+import { Container } from '@/components/shared/Container';
 
 export function Account() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ export function Account() {
 
   return (
     <div className="w-full bg-white min-h-screen text-gray-900 font-sans pb-24">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+      <Container className="py-10 md:py-16">
 
         {/* Layout 2 cột: Sidebar trái & Nội dung phải */}
         <div className="flex flex-col md:flex-row gap-12 lg:gap-24 items-start">
@@ -99,7 +100,7 @@ export function Account() {
           </div>
         </div>
 
-      </div>
+      </Container>
     </div>
   );
 }

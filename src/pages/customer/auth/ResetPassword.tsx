@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 
 // Import OTPField (Đảm bảo đường dẫn này khớp với cấu trúc thư mục của bạn)
 import OTPField from '@/components/customer/OtpField/OTPField';
+import { Container } from '@/components/shared/Container';
 
 const resetSchema = z.object({
   email: z.string().min(1, 'Vui lòng nhập email').email('Định dạng email không hợp lệ'),
@@ -49,7 +50,7 @@ export function ResetPassword() {
 
   return (
     <div className="w-full bg-white min-h-screen text-gray-900 font-sans pb-24">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
+      <Container className="py-10 md:py-16">
         
         <h1 className="text-[28px] md:text-[32px] font-medium m-0 mb-8 border-b border-gray-200 pb-4">
           Tạo mật khẩu mới
@@ -179,7 +180,7 @@ export function ResetPassword() {
 
           </form>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }

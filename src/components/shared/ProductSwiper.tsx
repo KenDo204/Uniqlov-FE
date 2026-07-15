@@ -1,13 +1,13 @@
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
+import { Pagination, Autoplay } from 'swiper/modules';
 import { ProductCard, type ProductCardProps } from './ProductCard';
 import { ProductCardSkeleton } from './ProductCardSkeleton';
 import type { ProductResponse } from '@/types/product/responses';
 import { Source } from '@/types/tracking/requests';
+import { cn } from '@/lib/utils';
 
 import 'swiper/css';
-import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 export interface ProductSwiperProps {
@@ -54,14 +54,44 @@ export const ProductSwiper: React.FC<ProductSwiperProps> = ({
         1536: { slidesPerView: 6, spaceBetween: 24 },  // Large Desktop
     };
 
+    const paginationClasses = cn(
+        // Base state (Desktop non-hover): invisible, 0 opacity
+        "md:[&_.swiper-pagination]:opacity-0 md:[&_.swiper-pagination]:invisible",
+        
+        // Hover state (Desktop only): visible, 100 opacity
+        "md:group-hover/swiper:[&_.swiper-pagination]:opacity-100 md:group-hover/swiper:[&_.swiper-pagination]:visible",
+        
+        // Transitions
+        "[&_.swiper-pagination]:transition-all [&_.swiper-pagination]:duration-300",
+        
+        // Bullet animations
+        "[&_.swiper-pagination-bullet]:transition-transform [&_.swiper-pagination-bullet]:duration-300",
+        "[&_.swiper-pagination-bullet-active]:scale-125"
+    );
+
+    const swiperStyle = {
+        "--swiper-pagination-color": "var(--color-theme)",
+        "--swiper-pagination-bullet-inactive-color": "#d1d5db",
+        "--swiper-pagination-bullet-inactive-opacity": "1",
+        "--swiper-pagination-bullet-size": "6px",
+        "--swiper-pagination-bullet-horizontal-gap": "5px"
+    } as React.CSSProperties;
+
     if (isLoading) {
         return (
-            <div className={`w-full ${className}`}>
+            <div className={cn("w-full group/swiper", className)}>
                 <Swiper
-                    modules={[Navigation]}
-                    navigation={true}
+                    style={swiperStyle}
+                    modules={[Pagination, Autoplay]}
+                    pagination={{ clickable: true }}
+                    autoplay={{ 
+                    delay: 3000, 
+                    disableOnInteraction: false ,
+                    pauseOnMouseEnter: true
+                    }}
+                    loop={true}
                     breakpoints={swiperBreakpoints}
-                    className="product-swiper"
+                    className={cn("product-swiper pb-10", paginationClasses)}
                 >
                     {Array.from({ length: skeletonCount }).map((_, i) => (
                         <SwiperSlide key={`skeleton-${i}`}>
@@ -82,19 +112,15 @@ export const ProductSwiper: React.FC<ProductSwiperProps> = ({
     }
 
     return (
-        <div className={`w-full ${className}`}>
+        <div className={cn("w-full group/swiper", className)}>
             <Swiper
-                style={{
-                    "--swiper-navigation-color": "var(--color-theme)", // Thay mã màu HEX theo ý muốn của bạn
-                    "--swiper-navigation-size": "24px",     // Thu nhỏ/phóng to mũi tên nếu cần
-                    "--swiper-pagination-color": "var(--color-theme)", // Sẵn tiện đổi luôn màu cho các dấu chấm tròn
-                } as React.CSSProperties}
-                modules={[Navigation, Pagination]}
-                navigation
-                pagination={{ clickable: true, dynamicBullets: true }}
+                style={swiperStyle}
+                modules={[Pagination, Autoplay]}
+                pagination={{ clickable: true }}
+                loop={true}
+                autoplay={{ delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: true }}
                 breakpoints={swiperBreakpoints}
-                loop={false}
-                className="product-swiper pb-10" // Padding bottom for pagination
+                className={cn("product-swiper pb-10", paginationClasses)}
             >
                 {displayProducts.map((product, index) => (
                     <SwiperSlide key={product.productId} className="h-full">

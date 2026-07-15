@@ -101,7 +101,7 @@ export function SearchBox({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "flex items-center w-full max-w-[500px] h-10 px-4 transition-all duration-300",
+        "flex items-center w-full h-10 px-4 transition-all duration-300",
         "bg-gray-100/80 rounded-full hover:bg-gray-200/80",
         "focus-within:bg-white focus-within:shadow-[0_4px_20px_rgba(0,0,0,0.08)] focus-within:ring-1 focus-within:ring-theme",
         className
