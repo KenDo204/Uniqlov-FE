@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategory } from '@/hooks/useCategory';
 import { buildMegaMenuUrl } from '@/utils/urlHelpers';
+import { truncateText } from '@/utils/stringHelpers';
 
 export function HeaderMegaMenu() {
   const { categories, isFetching, fetchPublicCategories } = useCategory();
@@ -35,7 +36,7 @@ export function HeaderMegaMenu() {
       </div>
 
       {/* DANH SÁCH DỌC */}
-      <div className="flex flex-col py-2 relative h-[380px] overflow-y-auto scrollbar-hide">
+      <div className="flex-1 h-full flex flex-col py-2 relative overflow-y-auto scrollbar-hide">
         {isFetching ? (
           <div className="flex items-center justify-center h-full">
             <div className="w-6 h-6 border-2 border-theme border-t-transparent rounded-full animate-spin"></div>
@@ -52,7 +53,7 @@ export function HeaderMegaMenu() {
                   }`}
               >
                 <img src={category.iconUrl || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=80'} className="w-10 h-10 object-cover rounded-full" alt="" />
-                <span className="flex-1 text-[17px] transition-colors">{category.categoryName}</span>
+                <span className="flex-1 text-[17px] transition-colors" title={category.categoryName}>{truncateText(category.categoryName, 10)}</span>
                 <span className="text-gray-400 text-[10px] group-hover:text-theme transition-colors">▶</span>
               </button>
             </div>
@@ -106,8 +107,8 @@ export function HeaderMegaMenu() {
                               className="w-full h-full object-cover mix-blend-multiply"
                             />
                           </div>
-                          <span className="text-[13px] font-normal uppercase text-gray-800 leading-snug px-1 group-hover/card:text-theme transition-colors line-clamp-2">
-                            {item.categoryName}
+                          <span className="text-[13px] font-normal uppercase text-gray-800 leading-snug px-1 group-hover/card:text-theme transition-colors line-clamp-2" title={item.categoryName}>
+                            {truncateText(item.categoryName, 10)}
                           </span>
                         </Link>
                       ))}

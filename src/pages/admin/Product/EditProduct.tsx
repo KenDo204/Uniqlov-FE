@@ -11,10 +11,12 @@ import { toast } from 'react-toastify';
 import { useProduct } from '@/hooks/useProduct';
 import { useCategory } from '@/hooks/useCategory';
 import ConfirmModal from '@/components/general/ConfirmModal';
+import Level3CategoryPicker from '@/components/admin/Category/Level3CategoryPicker';
 import { Gender } from '@/types/enums/genderType';
 import { uploadService } from '@/services/uploadService';
 import { useUpload } from '@/hooks/useUpload';
 import { CloudUpload } from '@mui/icons-material';
+import { VariantDefaultInputs } from '@/components/admin/Product/VariantDefaultInputs';
 
 interface TempOption {
   name: string; // e.g. "colorName" or "size"
@@ -62,6 +64,8 @@ export default function EditProduct() {
   const [productSlug, setProductSlug] = useState('');
   const [productDescription, setProductDescription] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
+  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
+  const [categoryPathText, setCategoryPathText] = useState('');
   const [targetGender, setTargetGender] = useState<Gender>(Gender.UNISEX);
   const [maxOrderQuantity, setMaxOrderQuantity] = useState<number>(5);
   const [inPopular, setInPopular] = useState(false);
@@ -91,6 +95,11 @@ export default function EditProduct() {
     { name: 'size', values: [], rawInput: '' }
   ]);
   const [variants, setVariants] = useState<VariantInput[]>([]);
+
+  // Form State - Default Variant Values
+  const [defaultVariantPrice, setDefaultVariantPrice] = useState<string>('');
+  const [defaultVariantCostPrice, setDefaultVariantCostPrice] = useState<string>('');
+  const [defaultVariantStock, setDefaultVariantStock] = useState<string>('');
 
   // Form State - Color Images
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
@@ -212,26 +221,30 @@ export default function EditProduct() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // Flatten categories list to display in select and identify leaf nodes
-  const flatCategoriesList = useMemo(() => {
-    const list: { categoryId: number; categoryName: string; isLeaf: boolean; level: number }[] = [];
-    const traverse = (nodes: any[], level = 0) => {
-      for (const node of nodes) {
-        const isLeaf = !node.children || node.children.length === 0;
-        list.push({
-          categoryId: node.categoryId,
-          categoryName: '— '.repeat(level) + node.categoryName,
-          isLeaf,
-          level
-        });
-        if (node.children && node.children.length > 0) {
-          traverse(node.children, level + 1);
+  // Helper to resolve full category path
+  const getCategoryPath = (id: number, tree: any[]): string => {
+    for (const l1 of tree) {
+      if (l1.categoryId === id) return l1.categoryName;
+      if (l1.children) {
+        for (const l2 of l1.children) {
+          if (l2.categoryId === id) return `${l1.categoryName} > ${l2.categoryName}`;
+          if (l2.children) {
+            for (const l3 of l2.children) {
+              if (l3.categoryId === id) return `${l1.categoryName} > ${l2.categoryName} > ${l3.categoryName}`;
+            }
+          }
         }
       }
-    };
-    if (categories) traverse(categories);
-    return list;
-  }, [categories]);
+    }
+    return '';
+  };
+
+  useEffect(() => {
+    if (categoryId && categories && categories.length > 0) {
+      const pathText = getCategoryPath(Number(categoryId), categories);
+      if (pathText) setCategoryPathText(pathText);
+    }
+  }, [categoryId, categories]);
 
   // Slug generator helper
   const handleNameChange = (val: string) => {
@@ -284,7 +297,7 @@ export default function EditProduct() {
           variant="outlined"
           size="small"
           disabled={isUploading}
-          sx={{ minWidth: 0, p: '6px', borderColor: '#e5e7eb', color: '#6b7280', '&:hover': { borderColor: 'theme', color: 'theme', bgcolor: '#f0fdfa' } }}
+          sx={{ minWidth: 0, p: '6px', borderColor: '#e5e7eb', color: '#6b7280', '&:hover': { borderColor: 'var(--color-theme)', color: 'var(--color-theme)', bgcolor: '#f0fdfa' } }}
           title={imageUrl ? 'Thay đổi ảnh' : 'Tải ảnh lên'}
         >
           {isUploading && !imageUrl ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : <CloudUpload fontSize="small" />}
@@ -394,9 +407,9 @@ export default function EditProduct() {
       const vColor = combo['color'] || combo['colorName'];
       return {
         attributes: combo,
-        price: existing?.price || Number(simplePrice) || 500000,
-        costPrice: existing?.costPrice || Number(simpleCostPrice) || 300000,
-        stockQuantity: existing?.stockQuantity !== undefined ? existing.stockQuantity : 10,
+        price: existing?.price || (defaultVariantPrice ? Number(defaultVariantPrice) : 0),
+        costPrice: existing?.costPrice || (defaultVariantCostPrice ? Number(defaultVariantCostPrice) : 0),
+        stockQuantity: existing?.stockQuantity !== undefined ? existing.stockQuantity : (defaultVariantStock ? Number(defaultVariantStock) : 10),
         skuCode: existing?.skuCode || '',
         variantImage: existing?.variantImage || (vColor && colorImages[vColor]) || (images[0]?.url || '')
       };
@@ -450,12 +463,6 @@ export default function EditProduct() {
     else if (productName.length > 150) newErrors.productName = 'Tên sản phẩm không quá 150 ký tự';
 
     if (!categoryId) newErrors.categoryId = 'Danh mục bắt buộc chọn';
-    else {
-      const cat = flatCategoriesList.find(c => c.categoryId === categoryId);
-      if (cat && !cat.isLeaf) {
-        newErrors.categoryId = 'Không thể chọn danh mục cha. Vui lòng chọn danh mục con cấp cuối.';
-      }
-    }
 
     if (maxOrderQuantity < 1 || maxOrderQuantity > 99) {
       newErrors.maxOrderQuantity = 'Số lượng đặt tối đa phải từ 1 đến 99';
@@ -623,7 +630,7 @@ export default function EditProduct() {
   if (isFetchingProduct && !productDetail) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '80vh', gap: 2 }}>
-        <CircularProgress sx={{ color: 'theme' }} />
+        <CircularProgress sx={{ color: 'var(--color-theme)' }} />
         <Typography variant="body2" className="text-gray-500 font-medium">Đang tải dữ liệu sản phẩm...</Typography>
       </Box>
     );
@@ -686,30 +693,35 @@ export default function EditProduct() {
               {/* Row 2 */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="md:col-span-2">
-                  <FormControl fullWidth size="small" error={!!errors.categoryId}>
-                    <InputLabel id="category-select-label">Danh mục sản phẩm *</InputLabel>
-                    <Select
-                      labelId="category-select-label"
-                      value={categoryId}
-                      label="Danh mục sản phẩm *"
-                      onChange={(e) => { setCategoryId(e.target.value as number); setIsDirty(true); }}
-                    >
-                      <MenuItem value=""><em>-- Chọn danh mục --</em></MenuItem>
-                      {flatCategoriesList.map(cat => (
-                        <MenuItem
-                          key={cat.categoryId}
-                          value={cat.categoryId}
-                          disabled={!cat.isLeaf}
-                          sx={{ pl: cat.level * 2 + 2 }}
-                        >
-                          {cat.categoryName} {!cat.isLeaf ? '(Mẹ - Khóa chọn)' : ''}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.categoryId && (
-                      <Typography className="text-red-500 text-xs mt-1">{errors.categoryId}</Typography>
-                    )}
-                  </FormControl>
+                  <TextField
+                    label="Danh mục sản phẩm *"
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    value={categoryPathText || 'Chưa chọn danh mục'}
+                    onClick={() => setIsCategoryPickerOpen(true)}
+                    error={!!errors.categoryId}
+                    helperText={errors.categoryId || 'Nhấn để chọn danh mục cấp 3'}
+                    slotProps={{
+                      htmlInput: { readOnly: true, style: { cursor: 'pointer' } }
+                    }}
+                    sx={{
+                      '& .MuiInputBase-root': {
+                         cursor: 'pointer',
+                         bgcolor: '#f9fafb'
+                      }
+                    }}
+                  />
+                  <Level3CategoryPicker
+                    open={isCategoryPickerOpen}
+                    onClose={() => setIsCategoryPickerOpen(false)}
+                    categoryTree={categories || []}
+                    onConfirm={(id, pathText) => {
+                      setCategoryId(id);
+                      setCategoryPathText(pathText);
+                      setIsDirty(true);
+                    }}
+                  />
                 </div>
 
                 <div className="md:col-span-1">
@@ -877,7 +889,7 @@ export default function EditProduct() {
                 variant="outlined"
                 startIcon={<AddCircle />}
                 disabled={isUploadingImage}
-                sx={{ textTransform: 'none', color: 'theme', borderColor: 'theme', '&:hover': { borderColor: '#007c69', bgcolor: 'rgba(0,146,124,0.04)' } }}
+                sx={{ textTransform: 'none', color: 'var(--color-theme)', borderColor: 'var(--color-theme)', '&:hover': { borderColor: '#007c69', bgcolor: 'rgba(0,146,124,0.04)' } }}
               >
                 {isUploadingImage ? 'Đang tải lên...' : 'Tải ảnh lên'}
                 <input
@@ -1016,7 +1028,7 @@ export default function EditProduct() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {options.map((opt, idx) => (
                       <div key={idx} className="p-3 bg-white border border-gray-200 rounded-xl space-y-3">
-                        <Typography variant="caption" className="font-bold text-[theme] block" sx={{ mb: 1.5 }}>
+                        <Typography variant="caption" className="font-bold text-theme block" sx={{ mb: 1.5 }}>
                           NHÓM THUỘC TÍNH {idx + 1}
                         </Typography>
 
@@ -1052,13 +1064,23 @@ export default function EditProduct() {
                     ))}
                   </div>
 
+                  <VariantDefaultInputs
+                    price={defaultVariantPrice}
+                    setPrice={setDefaultVariantPrice}
+                    costPrice={defaultVariantCostPrice}
+                    setCostPrice={setDefaultVariantCostPrice}
+                    stock={defaultVariantStock}
+                    setStock={setDefaultVariantStock}
+                    onDirty={() => setIsDirty(true)}
+                  />
+
                   <div className="flex justify-end pt-2">
                     <Button
                       type="button"
                       variant="contained"
                       onClick={handleGenerateVariants}
                       startIcon={<Refresh />}
-                      sx={{ bgcolor: 'theme', textTransform: 'none', px: 3, py: 1, borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
+                      sx={{ bgcolor: 'var(--color-theme)', textTransform: 'none', px: 3, py: 1, borderRadius: '10px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
                     >
                       Sinh lại tổ hợp biến thể
                     </Button>
@@ -1204,7 +1226,7 @@ export default function EditProduct() {
               type="submit"
               disabled={isSubmitting}
               variant="contained"
-              sx={{ bgcolor: 'theme', textTransform: 'none', px: 6, py: 1.2, fontWeight: 'bold', borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
+              sx={{ bgcolor: 'var(--color-theme)', textTransform: 'none', px: 6, py: 1.2, fontWeight: 'bold', borderRadius: '12px', boxShadow: 'none', '&:hover': { bgcolor: '#007c69', boxShadow: 'none' } }}
             >
               {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật sản phẩm'}
             </Button>

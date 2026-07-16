@@ -102,9 +102,9 @@ const RoleList: React.FC = () => {
               onClick={handleOpenAdd}
               variant="contained"
               sx={{
-                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                bgcolor: 'var(--color-theme)', textTransform: 'none', px: 3, py: 1.2,
                 fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+                '&:hover': { bgcolor: 'var(--color-theme-hover)', boxShadow: 'none' }
               }}
             >
               <Add fontSize="medium" />
@@ -116,7 +116,7 @@ const RoleList: React.FC = () => {
         {/* ROLE LIST (CARDS) */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <CircularProgress size={40} sx={{ color: 'theme' }} />
+            <CircularProgress size={40} sx={{ color: 'var(--color-theme)' }} />
             <p className="mt-3 text-gray-500 font-medium m-0">Đang tải danh sách vai trò...</p>
           </div>
         ) : paginatedRoles.length > 0 ? (

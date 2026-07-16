@@ -42,7 +42,7 @@ export function AccessorySection() {
           <div className="text-center mt-12 md:mt-16">
             <button 
               onClick={() => navigate(buildCategoryUrl('phu-kien'))}
-              className="px-12 py-3.5 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest text-gray-900 hover:border-black hover:bg-black hover:text-white transition-all duration-300 cursor-pointer rounded-[2px]"
+              className="px-12 py-3.5 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest text-gray-900 hover:border-theme hover:bg-theme hover:text-white transition-all duration-300 cursor-pointer rounded-[2px]"
             >
               XEM TẤT CẢ
             </button>

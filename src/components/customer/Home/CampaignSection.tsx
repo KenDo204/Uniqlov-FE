@@ -148,7 +148,7 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
             <div className="text-center mt-12">
               <button 
                 onClick={() => navigate(buildCategoryUrl(activeTab.categoryCode))}
-                className="px-10 py-3 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest hover:border-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                className="px-10 py-3 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest hover:border-theme hover:bg-theme hover:text-white transition-all cursor-pointer"
               >
                 XEM TẤT CẢ
               </button>

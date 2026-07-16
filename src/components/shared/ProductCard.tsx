@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Heart, ShoppingBag, Star, ChevronLeft, ChevronRight } from '@/components/ui/icons';
+import { Heart, ShoppingBag, Star } from '@/components/ui/icons';
 import { cn } from "@/lib/utils";
 import { formatVND } from '@/utils/formatters';
 import { paths } from '@/config/paths';

@@ -4,7 +4,6 @@ import {
   BestSellers,
   NewArrivals,
   Popular,
-  CategorySection,
   CampaignSection,
   AccessorySection,
   AboutSection,

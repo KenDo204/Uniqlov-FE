@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Heart, ShoppingCart, Menu } from '@/components/ui/icons';
+import { Heart, ShoppingCart, Menu, AccountIcon } from '@/components/ui/icons';
 import { SearchBox } from '@/components/shared/SearchBox';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCartStore } from '@/stores/useCartStore';
 import EasyMall_Logo from '@/assets/icons/logo1.png';
 import { BRAND } from '@/constants/brand';
@@ -14,10 +14,11 @@ import MobileNav from '@/components/customer/Navbar/MobileNav';
 import { Container } from '@/components/shared/Container';
 
 import { cn } from '@/lib/utils';
+import { Button } from '@mui/material';
 
 export function Header() {
     const location = useLocation();
-    
+    const navigate = useNavigate();
     // 2. Lấy trạng thái đăng nhập từ Hook
     const { isAuthenticated, user } = useAuth();
     
@@ -109,12 +110,14 @@ export function Header() {
                     </button>
                     </>
                 ) : (
-                    <Link
-                    to="/login"
-                    className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold tracking-wide uppercase transition-colors decoration-none hidden sm:block rounded-sm"
+                    <Button
+                        variant="contained"
+                        startIcon={<AccountIcon sx={{ fontSize: "12px" }} />}
+                        onClick={() => navigate("/login")}
+                        sx={{ bgcolor: '#00927c', '&:hover': { bgcolor: '#007a68' } }}
                     >
-                    Đăng nhập
-                    </Link>
+                        Đăng nhập
+                    </Button>
                 )}
                 </div>
 

@@ -106,9 +106,9 @@ const CouponList: React.FC = () => {
               onClick={handleOpenAdd}
               variant="contained"
               sx={{
-                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                bgcolor: 'var(--color-theme)', textTransform: 'none', px: 3, py: 1.2,
                 fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+                '&:hover': { bgcolor: 'var(--color-theme-hover)', boxShadow: 'none' }
               }}
             >
               <Add fontSize="medium" />
@@ -138,7 +138,7 @@ const CouponList: React.FC = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
-                      <CircularProgress size={32} sx={{ color: 'theme' }} />
+                      <CircularProgress size={32} sx={{ color: 'var(--color-theme)' }} />
                       <p className="mt-2 text-gray-500 m-0">Đang tải danh sách coupon...</p>
                     </td>
                   </tr>
@@ -149,7 +149,7 @@ const CouponList: React.FC = () => {
                       <tr key={coupon.couponId} className={`hover:bg-gray-50/50 transition-colors ${isExpired ? 'opacity-60' : ''}`}>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[theme]/10 text-[theme] flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-full bg-[theme]/10 text-theme flex items-center justify-center">
                               <Ticket size={18} />
                             </div>
                             <div>
@@ -171,7 +171,7 @@ const CouponList: React.FC = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-center font-semibold text-[theme]">
+                        <td className="px-6 py-4 text-center font-semibold text-theme">
                           {coupon.discountType === 'PERCENTAGE'
                             ? `${coupon.discountValue}%`
                             : formatCurrency(coupon.discountValue)}

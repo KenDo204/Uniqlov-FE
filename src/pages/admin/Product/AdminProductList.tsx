@@ -173,9 +173,9 @@ const AdminProductList: React.FC = () => {
               onClick={() => navigate('/admin/products/add')}
               variant="contained"
               sx={{
-                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                bgcolor: 'var(--color-theme)', textTransform: 'none', px: 3, py: 1.2,
                 fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+                '&:hover': { bgcolor: 'var(--color-theme-hover)', boxShadow: 'none' }
               }}
             >
               <Add fontSize="medium" />
@@ -193,7 +193,7 @@ const AdminProductList: React.FC = () => {
               placeholder="Tìm kiếm theo tên sản phẩm hoặc slug..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors text-[14px]"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-theme transition-colors text-[14px]"
             />
           </div>
 
@@ -201,7 +201,7 @@ const AdminProductList: React.FC = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-theme transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
             >
               <option value="">Tất cả danh mục</option>
               {flatCategoriesList.map(cat => (
@@ -214,7 +214,7 @@ const AdminProductList: React.FC = () => {
             <select
               value={genderFilter}
               onChange={(e) => setGenderFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-theme transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
             >
               <option value="">Tất cả giới tính</option>
               <option value={Gender.MALE}>Nam</option>
@@ -245,7 +245,7 @@ const AdminProductList: React.FC = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="px-6 py-12 text-center">
-                      <CircularProgress size={32} sx={{ color: 'theme' }} />
+                      <CircularProgress size={32} sx={{ color: 'var(--color-theme)' }} />
                       <p className="mt-2 text-gray-500 m-0">Đang tải danh sách sản phẩm...</p>
                     </td>
                   </tr>
@@ -487,7 +487,7 @@ const AdminProductList: React.FC = () => {
                           className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                         />
                         {img.isThumbnail && (
-                          <span className="absolute top-1 left-1 bg-[theme] text-white text-[9px] px-1 rounded font-bold">
+                          <span className="absolute top-1 left-1 bg-theme text-white text-[9px] px-1 rounded font-bold">
                             Ảnh bìa
                           </span>
                         )}

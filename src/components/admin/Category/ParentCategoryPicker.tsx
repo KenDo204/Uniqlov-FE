@@ -7,7 +7,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import type { CategoryResponse } from "@/types/category";
 
-const THEME_PRIMARY = "theme";
+const THEME_PRIMARY = "var(--color-theme)";
 
 interface ParentCategoryPickerProps {
   open: boolean;
@@ -83,11 +83,39 @@ const ParentCategoryPicker: React.FC<ParentCategoryPickerProps> = ({ open, onClo
           variant={isRootSelected ? "contained" : "outlined"}
           onClick={handleSelectRoot}
           sx={{ 
-            py: 1.5, justifyContent: 'flex-start', textTransform: 'none', fontSize: '15px', borderRadius: 2,
-            bgcolor: isRootSelected ? 'rgba(0, 146, 124, 0.1)' : 'transparent',
-            color: isRootSelected ? THEME_PRIMARY : '#6b7280',
-            borderColor: isRootSelected ? THEME_PRIMARY : '#e5e7eb',
-            boxShadow: 'none', '&:hover': { boxShadow: 'none', bgcolor: 'rgba(0, 146, 124, 0.05)', borderColor: THEME_PRIMARY }
+            py: 1.5, 
+            justifyContent: 'flex-start', 
+            textTransform: 'none', 
+            fontSize: '15px', 
+            borderRadius: 2,
+            boxShadow: 'none',
+            
+            // Tách riêng Style dựa trên trạng thái Select
+            ...(isRootSelected 
+              ? {
+                  // --- KHI ĐƯỢC CHỌN ---
+                  bgcolor: 'var(--color-theme)', // Hoặc THEME_PRIMARY (#00927c)
+                  color: '#ffffff', // Đổi thành màu trắng để nổi bật trên nền xanh đậm
+                  borderColor: 'var(--color-theme)',
+                  '&:hover': { 
+                    bgcolor: 'var(--color-theme-hover)', // Màu hover đậm hơn (#007a68)
+                    borderColor: 'var(--color-theme-hover)',
+                    boxShadow: 'none',
+                  }
+                }
+              : {
+                  // --- KHI CHƯA ĐƯỢC CHỌN ---
+                  bgcolor: 'transparent',
+                  color: '#6b7280', // Xám
+                  borderColor: '#e5e7eb', // Xám nhạt
+                  '&:hover': { 
+                    bgcolor: 'var(--color-theme-light)', // Nền xanh nhạt (#ccfbf1)
+                    color: 'var(--color-theme)', // Chữ đổi sang xanh khi hover (tùy chọn)
+                    borderColor: 'var(--color-theme)', // Viền đổi sang xanh
+                    boxShadow: 'none',
+                  }
+                }
+            )
           }}
         >
           {isRootSelected ? "✓ Đang chọn: Không có cha (Làm danh mục gốc)" : "⚪ Bấm vào đây để làm Danh mục gốc"}
@@ -98,48 +126,100 @@ const ParentCategoryPicker: React.FC<ParentCategoryPickerProps> = ({ open, onClo
           
           {/* CỘT 1: Danh mục cấp 1 */}
           <List sx={{ width: '50%', borderRight: '1px solid #e5e7eb', overflowY: 'auto', p: 0 }}>
-            {categoryTree.map(cat => (
-              <ListItemButton 
-                key={cat.categoryId} onClick={() => handleSelectL1(cat)}
-                sx={{ 
-                  py: 1.2, px: 2, 
-                  bgcolor: selectedParent?.categoryId === cat.categoryId ? 'rgba(0, 146, 124, 0.1)' : (activeL1?.categoryId === cat.categoryId ? '#f9fafb' : 'transparent'),
-                  borderLeft: selectedParent?.categoryId === cat.categoryId ? `3px solid ${THEME_PRIMARY}` : '3px solid transparent'
-                }}
-              >
-                <ListItemText 
-                  primary={
-                    <Typography sx={{ fontSize: '14px', color: activeL1?.categoryId === cat.categoryId ? THEME_PRIMARY : '#374151', fontWeight: activeL1?.categoryId === cat.categoryId ? 'bold' : 'normal' }}>
-                      {cat.categoryName}
-                    </Typography>
-                  } 
-                />
-                {(cat.children && cat.children.length > 0) && <ChevronRightIcon sx={{ fontSize: 20, color: activeL1?.categoryId === cat.categoryId ? THEME_PRIMARY : '#9ca3af' }} />}
-              </ListItemButton>
-            ))}
+            {categoryTree.map(cat => {
+              const isSelected = selectedParent?.categoryId === cat.categoryId;
+              const isActive = activeL1?.categoryId === cat.categoryId;
+
+              return (
+                <ListItemButton 
+                  key={cat.categoryId} 
+                  onClick={() => handleSelectL1(cat)}
+                  sx={{ 
+                    py: 1.2, px: 2, 
+                    // Thay rgba bằng var(--color-theme-light)
+                    bgcolor: isSelected ? 'var(--color-theme-light)' : (isActive ? '#f9fafb' : 'transparent'),
+                    borderLeft: '3px solid',
+                    borderColor: isSelected ? THEME_PRIMARY : 'transparent',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      // Giữ nguyên nền sáng nếu đã chọn, nếu chưa thì hiển thị xám nhạt
+                      bgcolor: isSelected ? 'var(--color-theme-light)' : '#f3f4f6',
+                      '& .MuiTypography-root, & .MuiSvgIcon-root': {
+                        color: 'var(--color-theme-hover)' // Hover vào chữ/icon sẽ đậm hơn
+                      }
+                    }
+                  }}
+                >
+                  <ListItemText 
+                    primary={
+                      <Typography sx={{ 
+                        fontSize: '14px', 
+                        color: isActive || isSelected ? THEME_PRIMARY : '#374151', 
+                        fontWeight: isActive || isSelected ? 600 : 400,
+                        transition: 'color 0.2s'
+                      }}>
+                        {cat.categoryName}
+                      </Typography>
+                    } 
+                  />
+                  {(cat.children && cat.children.length > 0) && (
+                    <ChevronRightIcon sx={{ 
+                      fontSize: 20, 
+                      color: isActive || isSelected ? THEME_PRIMARY : '#9ca3af',
+                      transition: 'color 0.2s'
+                    }} />
+                  )}
+                </ListItemButton>
+              );
+            })}
           </List>
 
           {/* CỘT 2: Danh mục cấp 2 */}
           <List sx={{ width: '50%', borderRight: '1px solid #e5e7eb', overflowY: 'auto', p: 0, bgcolor: '#fafafa' }}>
-            {activeL1?.children?.map((cat: CategoryResponse) => (
-              <ListItemButton 
-                key={cat.categoryId} onClick={() => handleSelectL2(cat)}
-                sx={{ 
-                  py: 1.2, px: 2,
-                  bgcolor: selectedParent?.categoryId === cat.categoryId ? 'rgba(0, 146, 124, 0.1)' : 'transparent',
-                  borderLeft: selectedParent?.categoryId === cat.categoryId ? `3px solid ${THEME_PRIMARY}` : '3px solid transparent'
-                }}
-              >
-                <ListItemText 
-                  primary={
-                    <Typography sx={{ fontSize: '14px', color: activeL2?.categoryId === cat.categoryId ? THEME_PRIMARY : '#374151', fontWeight: activeL2?.categoryId === cat.categoryId ? 'bold' : 'normal' }}>
-                      {cat.categoryName}
-                    </Typography>
-                  } 
-                />
-                {(cat.children && cat.children.length > 0) && <ChevronRightIcon sx={{ fontSize: 20, color: '#9ca3af' }} />}
-              </ListItemButton>
-            ))}
+            {activeL1?.children?.map((cat: CategoryResponse) => {
+              const isSelected = selectedParent?.categoryId === cat.categoryId;
+              const isActive = activeL2?.categoryId === cat.categoryId;
+
+              return (
+                <ListItemButton 
+                  key={cat.categoryId} 
+                  onClick={() => handleSelectL2(cat)}
+                  sx={{ 
+                    py: 1.2, px: 2,
+                    bgcolor: isSelected ? 'var(--color-theme-light)' : 'transparent',
+                    borderLeft: '3px solid',
+                    borderColor: isSelected ? THEME_PRIMARY : 'transparent',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      bgcolor: isSelected ? 'var(--color-theme-light)' : '#f3f4f6',
+                      '& .MuiTypography-root, & .MuiSvgIcon-root': {
+                        color: 'var(--color-theme-hover)'
+                      }
+                    }
+                  }}
+                >
+                  <ListItemText 
+                    primary={
+                      <Typography sx={{ 
+                        fontSize: '14px', 
+                        color: isActive || isSelected ? THEME_PRIMARY : '#374151', 
+                        fontWeight: isActive || isSelected ? 600 : 400,
+                        transition: 'color 0.2s' 
+                      }}>
+                        {cat.categoryName}
+                      </Typography>
+                    } 
+                  />
+                  {(cat.children && cat.children.length > 0) && (
+                    <ChevronRightIcon sx={{ 
+                      fontSize: 20, 
+                      color: isActive || isSelected ? THEME_PRIMARY : '#9ca3af',
+                      transition: 'color 0.2s' 
+                    }} />
+                  )}
+                </ListItemButton>
+              );
+            })}
           </List>
 
           {/* CỘT 3: Danh mục cấp 3 (HIỂN THỊ NHƯNG KHÔNG ĐƯỢC CHỌN LÀM CHA) */}
@@ -170,9 +250,9 @@ const ParentCategoryPicker: React.FC<ParentCategoryPickerProps> = ({ open, onClo
             sx={{ 
                 color: '#FFFFFF', 
                 borderColor: '#d1d5db', textTransform: 'none', px: 3,
-                backgroundColor: '#ef4444',
+                backgroundColor: 'var(--color-cancel)',
                 fontWeight: 'bold', fontSize: '14px',
-                '&:hover': { backgroundColor: '#dc2626' }
+                '&:hover': { backgroundColor: 'var(--color-cancel-hover)' }
             }}
           >
             Hủy
@@ -183,7 +263,7 @@ const ParentCategoryPicker: React.FC<ParentCategoryPickerProps> = ({ open, onClo
             sx={{ 
               bgcolor: THEME_PRIMARY, textTransform: 'none',
               fontWeight: 'bold', fontSize: '14px',
-              px: 4, '&:hover': { bgcolor: '#007a68' } 
+              px: 4, '&:hover': { bgcolor: 'var(--color-theme-hover)' } 
             }}
           >
             Xác nhận

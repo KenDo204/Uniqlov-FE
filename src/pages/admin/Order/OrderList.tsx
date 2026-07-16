@@ -295,7 +295,7 @@ const OrderList: React.FC = () => {
         <DialogContent className="pt-6 pb-6 px-6 max-h-[75vh] overflow-y-auto">
           {loading && !currentOrderDetail ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <CircularProgress size={32} sx={{ color: 'theme' }} />
+              <CircularProgress size={32} sx={{ color: 'var(--color-theme)' }} />
               <p className="mt-2 text-gray-500 text-sm">Đang tải thông tin đơn hàng...</p>
             </div>
           ) : currentOrderDetail ? (
@@ -312,7 +312,7 @@ const OrderList: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Mã vận chuyển</div>
-                  <div className="mt-1 font-mono font-bold text-[theme]">
+                  <div className="mt-1 font-mono font-bold text-theme">
                     {currentOrderDetail.trackingNumber || 'Chưa cập nhật'}
                   </div>
                 </div>
@@ -480,9 +480,9 @@ const OrderList: React.FC = () => {
                       disabled={actionLoading}
                       variant="contained"
                       sx={{
-                        bgcolor: 'theme', textTransform: 'none', px: 4, height: '40px',
+                        bgcolor: 'var(--color-theme)', textTransform: 'none', px: 4, height: '40px',
                         fontWeight: 'bold', fontSize: '13px', borderRadius: '10px', boxShadow: 'none',
-                        '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
+                        '&:hover': { bgcolor: 'var(--color-theme-hover)', boxShadow: 'none' }
                       }}
                     >
                       {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Cập nhật'}

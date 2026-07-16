@@ -266,9 +266,9 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
             disabled={actionLoading}
             variant="contained"
             sx={{
-              bgcolor: 'theme', textTransform: 'none', px: 4,
+              bgcolor: 'var(--color-theme)', textTransform: 'none', px: 4,
               fontWeight: 'bold', fontSize: '13px', borderRadius: '12px', boxShadow: 'none',
-              '&:hover': { bgcolor: '#007a68', boxShadow: 'none' }
+              '&:hover': { bgcolor: 'var(--color-theme-hover)', boxShadow: 'none' }
             }}
           >
             {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Lưu lại'}

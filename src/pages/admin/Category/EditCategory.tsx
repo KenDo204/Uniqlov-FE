@@ -126,7 +126,7 @@ const EditCategory: React.FC = () => {
   if (isPageLoading || isFetching) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <CircularProgress sx={{ color: 'theme' }} />
+        <CircularProgress sx={{ color: 'var(--color-theme)' }} />
         <p className="mt-2 text-gray-500 font-medium">Đang tải thông tin danh mục...</p>
       </div>
     );
@@ -164,10 +164,10 @@ const EditCategory: React.FC = () => {
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '0.75rem',
                     transition: 'all 0.3s ease',
-                    '&:hover fieldset': { borderColor: 'theme' },
-                    '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
+                    '&:hover fieldset': { borderColor: 'var(--color-theme)' },
+                    '&.Mui-focused fieldset': { borderColor: 'var(--color-theme)', borderWidth: '2px' },
                   },
-                  '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: 'var(--color-theme)' },
                 }}
               />
             </Box>
@@ -200,10 +200,10 @@ const EditCategory: React.FC = () => {
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0.75rem',
                       transition: 'all 0.3s ease',
-                      '&:hover fieldset': { borderColor: 'theme' },
-                      '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '2px' },
+                      '&:hover fieldset': { borderColor: 'var(--color-theme)' },
+                      '&.Mui-focused fieldset': { borderColor: 'var(--color-theme)', borderWidth: '2px' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': { color: 'theme' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: 'var(--color-theme)' },
                   }}
                 />
               </Box> */}
@@ -213,14 +213,14 @@ const EditCategory: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="relative w-16 h-16 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50 flex-shrink-0">
                     {isUploading ? (
-                      <CircularProgress size={24} sx={{ color: 'theme' }} />
+                      <CircularProgress size={24} sx={{ color: 'var(--color-theme)' }} />
                     ) : iconUrl ? (
                       <img src={iconUrl} alt="Icon preview" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-[10px] text-gray-400 text-center">Trống</span>
                     )}
                   </div>
-                  <div className="flex-1 space-y-2">
+                  <div className="flex-1 flex flex-col sm:flex-row gap-3">
                     <TextField
                       fullWidth
                       variant="outlined"
@@ -230,10 +230,11 @@ const EditCategory: React.FC = () => {
                       size="small"
                       sx={{
                         backgroundColor: 'white',
+                        flex : 1,
                         '& .MuiOutlinedInput-root': {
                           borderRadius: '0.5rem',
-                          '&:hover fieldset': { borderColor: 'theme' },
-                          '&.Mui-focused fieldset': { borderColor: 'theme', borderWidth: '1px' },
+                          '&:hover fieldset': { borderColor: 'var(--color-theme)' },
+                          '&.Mui-focused fieldset': { borderColor: 'var(--color-theme)', borderWidth: '1px' },
                         }
                       }}
                     />
@@ -243,11 +244,11 @@ const EditCategory: React.FC = () => {
                       disabled={isUploading}
                       size="small"
                       sx={{
-                        color: 'theme',
-                        borderColor: 'theme',
+                        color: 'var(--color-theme)',
+                        borderColor: 'var(--color-theme)',
                         textTransform: 'none',
                         borderRadius: '0.5rem',
-                        '&:hover': { borderColor: 'theme', backgroundColor: '#f0fdfa' }
+                        '&:hover': { borderColor: 'var(--color-theme)', backgroundColor: '#f0fdfa' }
                       }}
                     >
                       {isUploading ? 'Đang tải...' : 'Chọn ảnh tải lên'}
@@ -270,8 +271,8 @@ const EditCategory: React.FC = () => {
                     checked={categoryStatus === 1}
                     onChange={(e) => setCategoryStatus(e.target.checked ? 1 : 0)}
                     sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': { color: 'theme' },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'theme' },
+                      '& .MuiSwitch-switchBase.Mui-checked': { color: 'var(--color-theme)' },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'var(--color-theme)' },
                     }}
                   />
                 }
@@ -308,7 +309,7 @@ const EditCategory: React.FC = () => {
                 disabled={isSubmitting}
                 startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <Save />}
                 sx={{
-                  bgcolor: 'theme',
+                  bgcolor: 'var(--color-theme)',
                   borderRadius: '0.75rem',
                   textTransform: 'none',
                   px: 4,
