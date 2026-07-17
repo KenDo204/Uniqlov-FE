@@ -171,6 +171,7 @@ export function ProductDetail() {
       await addCartItem({
         id: `${activeVariant.variant_id}`,
         variantId: activeVariant.variant_id,
+        productId: product.product_id,
         name: product.product_name,
         price: activeVariant.price || product.variants[0]?.price,
         variantImage: activeVariant.variant_image || galleryImages[0] || '',
@@ -542,22 +543,32 @@ export function ProductDetail() {
 
             {/* Màu sắc */}
             <div className="mt-4">
-              <p className="text-[13px] text-gray-600 mb-3">
-                Màu sắc: <span className="font-medium text-black uppercase">{selectedColor}</span>
-              </p>
-              <div className="flex gap-3 flex-wrap">
-                {product.options_config.colors.map((color) => (
-                  <button
-                    key={color.colorName}
-                    onClick={() => setSelectedColor(color.colorName)}
-                    style={{ backgroundColor: color.colorCode }}
-                    className={`w-10 h-10 rounded-full cursor-pointer relative transition-all ${selectedColor === color.colorName
-                      ? 'ring-1 ring-offset-2 ring-theme outline-none border border-black'
-                      : 'border border-black hover:border-theme-hover'
-                      }`}
-                    title={color.colorName}
-                  />
-                ))}
+              <div className="flex justify-between items-center mb-3">
+                <p className="text-[13px] text-gray-600 m-0">Màu sắc: <span className="font-medium text-black uppercase">{selectedColor}</span></p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {product.options_config.colors.map((color) => {
+                  const isColorOutOfStock = product.variants
+                    .filter((v) => v.variant_attributes.colorName === color.colorName)
+                    .every((v) => v.stock_quantity === 0);
+                  
+                  return (
+                    <button
+                      key={color.colorName}
+                      disabled={isColorOutOfStock}
+                      onClick={() => setSelectedColor(color.colorName)}
+                      className={`min-w-[48px] h-10 px-3 text-[13px] font-medium border flex items-center justify-center transition-all cursor-pointer bg-white
+                        ${isColorOutOfStock
+                          ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50 bg-[url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'100%\'><line x1=\'0\' y1=\'100%\' x2=\'100%\' y2=\'0\' stroke=\'%23d1d5db\' stroke-width=\'1\'/></svg>")]'
+                          : selectedColor === color.colorName
+                            ? 'border-theme border-[2px] text-theme font-bold'
+                            : 'border-gray-500 text-gray-800 hover:border-theme-hover hover:text-theme-hover'
+                        }`}
+                    >
+                      {color.colorName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -578,7 +589,7 @@ export function ProductDetail() {
                         ${isOutOfStock
                           ? 'border-gray-200 text-gray-300 cursor-not-allowed bg-gray-50 bg-[url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%\' height=\'100%\'><line x1=\'0\' y1=\'100%\' x2=\'100%\' y2=\'0\' stroke=\'%23d1d5db\' stroke-width=\'1\'/></svg>")]'
                           : selectedSize === s.size
-                            ? 'border-theme border-[2px] text-black font-bold'
+                            ? 'border-theme border-[2px] text-theme font-bold'
                             : 'border-gray-500 text-gray-800 hover:border-theme-hover hover:text-theme-hover'
                         }`}
                     >

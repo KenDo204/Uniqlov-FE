@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Heart, ShoppingBag, Star } from '@/components/ui/icons';
+import { Heart, Star } from '@/components/ui/icons';
 import { cn } from "@/lib/utils";
 import { formatVND } from '@/utils/formatters';
 import { paths } from '@/config/paths';
@@ -8,13 +8,13 @@ import { getColorCode } from '@/utils/mappers';
 import type { ProductResponse } from '@/types/product/responses';
 import { toast } from 'react-toastify';
 import { useWishlist } from '@/hooks/useWishlist';
-import { useCart } from '@/hooks/useCart';
+
 import { useAppSelector } from '@/stores/hooks';
 import { useTracking } from '@/hooks/useTracking';
 import { Source } from '@/types/tracking/requests';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, EffectFade } from 'swiper/modules';
+import { Navigation, EffectFade, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/effect-fade';
@@ -39,13 +39,11 @@ export function ProductCard({
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedColor, setSelectedColor] = useState<string>('');
-  const [isAdding, setIsAdding] = useState(false);
   const [swiperInstance, setSwiperInstance] = useState<any>(null);
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const { wishlist, toggleWishlist } = useWishlist();
-  const { addItem } = useCart();
-  const { trackClickRecommendation, trackAddToCart, trackWishlist } = useTracking();
+  const { trackClickRecommendation, trackWishlist } = useTracking();
 
   const isInWishlist = useMemo(() => {
     if (!wishlist || !product) return false;
@@ -88,37 +86,63 @@ export function ProductCard({
   }, [product]);
 
   const colorImages = useMemo(() => {
-    const results: { colorName: string; code: string; image: string }[] = [];
-    const availableColors = product.optionsConfig?.colors || [];
+    const results: { colorName: string; image: string }[] = [];
+    
+    if (!product.variants || product.variants.length === 0) {
+      const defaultImg = product.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80';
+      return [{ colorName: 'Default', image: defaultImg }];
+    }
 
-    availableColors.forEach((c: any) => {
-      const parsed = parseColor(c);
-      if (!parsed.name) return;
+    product.variants.forEach(variant => {
+      let colorName = '';
+      if (variant.variantAttributes) {
+        const colorKey = Object.keys(variant.variantAttributes).find(key => 
+          ['color', 'màu', 'màu sắc', 'colorname'].includes(key.toLowerCase())
+        );
+        if (colorKey) {
+          colorName = String(variant.variantAttributes[colorKey]);
+        }
+      }
+      
+      if (!colorName && product.optionsConfig?.colors) {
+        const attrValues = Object.values(variant.variantAttributes || {}).map(v => String(v).toLowerCase());
+        for (const c of product.optionsConfig.colors) {
+          const parsed = parseColor(c);
+          if (parsed.name && attrValues.includes(parsed.name.toLowerCase())) {
+            colorName = parsed.name;
+            break;
+          }
+        }
+      }
 
-      const matchingVariant = product.variants?.find((v) => {
-        const attrs = Object.values(v.variantAttributes || {}).map(attr => String(attr).toLowerCase());
-        return attrs.includes(parsed.name.toLowerCase()) && v.variantImage;
-      });
+      if (!colorName) {
+        colorName = 'Default';
+      }
 
-      const image = matchingVariant?.variantImage || product.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80';
+      const image = variant.variantImage || product.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80';
 
-      if (!results.some(r => r.colorName.toLowerCase() === parsed.name.toLowerCase())) {
-        results.push({ colorName: parsed.name, code: parsed.code, image });
+      if (!results.some(r => r.colorName.toLowerCase() === colorName.toLowerCase())) {
+        results.push({ colorName, image });
       }
     });
 
     if (results.length === 0) {
-      const defaultImage = product.variants?.[0]?.variantImage || product.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80';
-      results.push({ colorName: 'Default', code: '#ccc', image: defaultImage });
+      const defaultImage = product.images?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80';
+      results.push({ colorName: 'Default', image: defaultImage });
     }
+
     return results;
   }, [product]);
 
   useEffect(() => {
     if (swiperInstance && colorImages.length > 0) {
       const index = colorImages.findIndex(c => c.colorName.toLowerCase() === (selectedColor || '').toLowerCase());
-      if (index !== -1 && swiperInstance.activeIndex !== index) {
-        swiperInstance.slideTo(index);
+      if (index !== -1 && swiperInstance.realIndex !== index) {
+        if (swiperInstance.params.loop) {
+          swiperInstance.slideToLoop(index);
+        } else {
+          swiperInstance.slideTo(index);
+        }
       }
     }
   }, [selectedColor, colorImages, swiperInstance]);
@@ -127,7 +151,7 @@ export function ProductCard({
     let sizes = product.variants?.map(v => v.variantAttributes?.size || v.variantAttributes?.['Kích cỡ'])
       .filter(Boolean) as string[];
     sizes = Array.from(new Set(sizes));
-    
+
     const sizeOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL'];
     sizes.sort((a, b) => {
       const idxA = sizeOrder.indexOf(a.toUpperCase());
@@ -170,64 +194,13 @@ export function ProductCard({
 
   const productUrl = paths.customer.productDetail.replace(':id', product.productSlug || String(product.productId));
 
-  const handleAddToCartClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (isOutOfStock || isAdding) return;
-
-    const activeColorStr = selectedColor || (product.optionsConfig?.colors?.length > 0 ? parseColor(product.optionsConfig.colors[0]).name : '');
-    const variantsForColor = product.variants?.filter((v) => {
-      if (!activeColorStr) return true;
-      const attrValues = Object.values(v.variantAttributes || {}).map(attr => String(attr).toLowerCase());
-      return attrValues.includes(activeColorStr.toLowerCase());
-    }) || [];
-
-    let targetVariant = null;
-
-    if (variantsForColor.length === 1) {
-      targetVariant = variantsForColor[0];
-    } else if (variantsForColor.length > 1) {
-      navigate(productUrl);
-      return;
-    } else {
-      if (product.variants?.length === 1) {
-        targetVariant = product.variants[0];
-      } else {
-        navigate(productUrl);
-        return;
-      }
-    }
-
-    if (!targetVariant || !targetVariant.variantId) {
-      toast.error('Không tìm thấy thông tin biến thể hợp lệ.');
-      return;
-    }
-
-    setIsAdding(true);
-    try {
-      await addItem({
-        id: String(targetVariant.variantId),
-        variantId: targetVariant.variantId,
-        name: product.productName,
-        price: targetVariant.price || product.minPrice || 0,
-        variantImage: targetVariant.variantImage || colorImages[0]?.image,
-        variantAttributes: targetVariant.variantAttributes
-      }, 1);
-
-      const attrSize = targetVariant.variantAttributes?.size || targetVariant.variantAttributes?.['Kích cỡ'] || '';
-      trackAddToCart(targetVariant.variantId, 1, activeColorStr, String(attrSize), source);
-
-      toast.success(`Đã thêm ${product.productName} vào giỏ hàng`);
-      window.dispatchEvent(new CustomEvent('open-cart-drawer'));
-    } catch (err: any) {
-      toast.error(err || 'Thêm vào giỏ hàng thất bại');
-    } finally {
-      setIsAdding(false);
-    }
-  };
+  const displayProductName =
+    product.productName.length > 23
+      ? `${product.productName.substring(0, 23)}...`
+      : product.productName;
 
   const handleClick = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.quick-add-btn, .wishlist-btn, .color-swatch, .swiper-button-prev, .swiper-button-next')) {
+    if ((e.target as HTMLElement).closest('.wishlist-btn, .color-swatch, .swiper-button-prev, .swiper-button-next')) {
       return;
     }
     if (isRecommendation && aiModel && rankPosition) {
@@ -251,31 +224,33 @@ export function ProductCard({
             "--swiper-navigation-color": "var(--color-theme)",
             "--swiper-navigation-size": "24px",
           } as React.CSSProperties}
-          modules={[Navigation, EffectFade]}
+          modules={[Navigation, EffectFade, Autoplay]}
           effect="fade"
           fadeEffect={{ crossFade: true }}
-          navigation={colorImages.length > 1}
+          navigation={colorImages.length >= 2}
+          loop={colorImages.length >= 3}
+          autoplay={colorImages.length >= 2 ? {
+            delay: 3000,
+            pauseOnMouseEnter: true,
+            disableOnInteraction: false,
+          } : false}
           className={cn(
             "w-full h-full",
-            // Base state (Mobile & Desktop non-hover): invisible, 0 opacity, unclickable
+            // Base state: 0 opacity on mobile and desktop non-hover
             "[&_.swiper-button-next]:opacity-0 [&_.swiper-button-prev]:opacity-0",
-            "[&_.swiper-button-next]:invisible [&_.swiper-button-prev]:invisible",
-            "[&_.swiper-button-next]:pointer-events-none [&_.swiper-button-prev]:pointer-events-none",
-            
-            // Hover state (Desktop only): visible, 100 opacity, clickable
+
+            // Hover state (Desktop only): 100 opacity
             "md:group-hover:[&_.swiper-button-next]:opacity-100 md:group-hover:[&_.swiper-button-prev]:opacity-100",
-            "md:group-hover:[&_.swiper-button-next]:visible md:group-hover:[&_.swiper-button-prev]:visible",
-            "md:group-hover:[&_.swiper-button-next]:pointer-events-auto md:group-hover:[&_.swiper-button-prev]:pointer-events-auto",
-            
+
             // Transition and Hover colors
             "[&_.swiper-button-next]:transition-all [&_.swiper-button-prev]:transition-all",
             "[&_.swiper-button-next]:duration-300 [&_.swiper-button-prev]:duration-300",
             "[&_.swiper-button-next]:hover:!text-theme [&_.swiper-button-prev]:hover:!text-theme"
           )}
-          allowTouchMove={colorImages.length > 1}
+          allowTouchMove={colorImages.length >= 2}
           onSwiper={setSwiperInstance}
           onSlideChange={(swiper) => {
-            const newIndex = swiper.activeIndex;
+            const newIndex = swiper.realIndex;
             if (colorImages[newIndex]) {
               const newColor = colorImages[newIndex].colorName;
               if (newColor !== 'Default' && newColor.toLowerCase() !== (selectedColor || '').toLowerCase()) {
@@ -315,50 +290,12 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Floating Add to Cart Button */}
-        {!isOutOfStock && (
-          <button
-            onClick={handleAddToCartClick}
-            disabled={isAdding}
-            className={cn(
-              "quick-add-btn absolute bottom-3 right-3 w-9 h-9 md:w-10 md:h-10 flex shrink-0 items-center justify-center text-gray-800 bg-white hover:bg-theme hover:text-white rounded-full transition-all duration-300 shadow-md border border-gray-100 z-20",
-              "opacity-100 translate-y-0 md:opacity-0 md:translate-y-3 md:group-hover:opacity-100 md:group-hover:translate-y-0",
-              isAdding ? "opacity-50 cursor-wait md:opacity-50" : ""
-            )}
-            title="Thêm vào giỏ"
-          >
-            <ShoppingBag className="w-4 h-4 md:w-4.5 md:h-4.5" />
-          </button>
-        )}
       </div>
 
       {/* Product Info */}
       <div className="flex flex-col flex-1 pt-3 pb-2 gap-1 px-1 relative">
         <div className="flex flex-col px-1 pb-2 md:pb-3 mt-auto">
-        {/* Color Swatches */}
-        {product.optionsConfig?.colors?.length > 0 && (
-          <div className="flex flex-wrap gap-1 md:gap-1.5 pt-0.5" onClick={(e) => e.stopPropagation()}>
-            {product.optionsConfig.colors.map((colorItem: any, index: number) => {
-              const parsed = parseColor(colorItem);
-              if (!parsed.name) return null;
-              return (
-                <button
-                  key={parsed.name || index}
-                  onClick={() => setSelectedColor(parsed.name)}
-                  style={{ backgroundColor: parsed.code }}
-                  className={cn(
-                    "color-swatch w-3 h-3 md:w-3.5 md:h-3.5 rounded-full border border-gray-300 cursor-pointer transition-all duration-200 outline-none shrink-0",
-                    (selectedColor || '').toLowerCase() === parsed.name.toLowerCase()
-                      ? "ring-1 ring-offset-1 ring-theme scale-110"
-                      : "hover:scale-110"
-                  )}
-                  title={parsed.name}
-                />
-              );
-            })}
-          </div>
-        )}
-        <button
+          <button
             onClick={handleToggleWishlist}
             className={cn(
               "wishlist-btn absolute top-1.5 right-1 p-1.5 flex items-center justify-center transition-all duration-300 border-none cursor-pointer bg-white/40 hover:bg-white rounded-full z-10",
@@ -368,35 +305,34 @@ export function ProductCard({
           >
             <Heart className={`w-3.5 h-3.5 md:w-4 md:h-4 transition-transform duration-300 ${isInWishlist ? 'fill-current scale-110' : 'hover:scale-110'}`} />
           </button>
-        
-        {/* Gender & Size Info */}
-        <div className="flex items-center justify-between min-h-[16px] mt-1.5">
-          <span className="text-[11px] md:text-[12px] text-gray-500 font-medium truncate pr-2">
-            {sizeInfo}
-          </span>
-          
+
+          {/* Gender & Size Info */}
+          <div className="flex items-center justify-between min-h-[16px] mt-1.5">
+            <span className="text-[11px] md:text-[12px] text-gray-500 font-medium truncate pr-2">
+              {sizeInfo}
+            </span>
+
+          </div>
+
+          <h4 className="text-[13px] sm:text-[14px] md:text-[15px] font-primary text-gray-900 leading-snug m-0 group-hover:text-theme transition-colors line-clamp-2 mt-0.5" title={product.productName}>
+            {displayProductName}
+          </h4>
+
+          {/* Price */}
+          <div className="flex items-end gap-1 md:gap-2 pt-1">
+            {product.maxPrice && product.maxPrice > product.minPrice ? (
+              <span className="text-[13px] sm:text-[14px] md:text-[15px] font-secondary font-bold tracking-tight text-gray-900">
+                {formatVND(product.minPrice)} - {formatVND(product.maxPrice)}
+              </span>
+            ) : (
+              <span className="text-[13px] sm:text-[14px] md:text-[15px] font-secondary font-bold tracking-tight text-gray-900">
+                {formatVND(product.minPrice || 0)}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Name */}
-        <h4 className="text-[13px] sm:text-[14px] md:text-[15px] font-primary text-gray-900 leading-snug m-0 group-hover:text-theme transition-colors line-clamp-2 mt-0.5">
-          {product.productName}
-        </h4>
-
-        {/* Price */}
-        <div className="flex items-end gap-1 md:gap-2 pt-1">
-          {product.maxPrice && product.maxPrice > product.minPrice ? (
-            <span className="text-[13px] sm:text-[14px] md:text-[15px] font-secondary font-bold tracking-tight text-gray-900">
-              {formatVND(product.minPrice)} - {formatVND(product.maxPrice)}
-            </span>
-          ) : (
-            <span className="text-[13px] sm:text-[14px] md:text-[15px] font-secondary font-bold tracking-tight text-gray-900">
-              {formatVND(product.minPrice || 0)}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Footer / Actions */}
+        {/* Footer / Actions */}
         {/* Rating & Reviews */}
         {(product.ratingCount || 0) > 0 && (
           <div className="flex items-center gap-1 md:gap-1.5 mt-1 px-1 pb-1">

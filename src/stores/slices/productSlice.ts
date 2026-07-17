@@ -56,6 +56,18 @@ export const fetchPublicProductBySlugThunk = createAsyncThunk(
   }
 );
 
+export const fetchPublicProductByIdThunk = createAsyncThunk(
+  'product/fetchPublicProductById',
+  async (id: number, { rejectWithValue }) => {
+    try {
+      const response = await productService.getPublicProductById(id);
+      return response.result;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Lỗi tải chi tiết sản phẩm');
+    }
+  }
+);
+
 export const fetchPublicProductVariantsThunk = createAsyncThunk(
   'product/fetchPublicProductVariants',
   async (productId: number, { rejectWithValue }) => {
@@ -191,6 +203,9 @@ const productSlice = createSlice({
       .addCase(fetchPublicProductBySlugThunk.pending, handleFetchDetailPending)
       .addCase(fetchPublicProductBySlugThunk.fulfilled, handleFetchDetailFulfilled)
       .addCase(fetchPublicProductBySlugThunk.rejected, handleFetchDetailRejected)
+      .addCase(fetchPublicProductByIdThunk.pending, handleFetchDetailPending)
+      .addCase(fetchPublicProductByIdThunk.fulfilled, handleFetchDetailFulfilled)
+      .addCase(fetchPublicProductByIdThunk.rejected, handleFetchDetailRejected)
       .addCase(fetchAdminProductByIdThunk.pending, handleFetchDetailPending)
       .addCase(fetchAdminProductByIdThunk.fulfilled, handleFetchDetailFulfilled)
       .addCase(fetchAdminProductByIdThunk.rejected, handleFetchDetailRejected);

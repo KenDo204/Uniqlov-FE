@@ -9,7 +9,6 @@ import {
   AboutSection,
 } from '@/components/customer/Home';
 import { RecommendedForYou } from '@/components/customer/Recommendation/RecommendedForYou';
-import { FloatingContactWidget } from '@/components/shared/FloatingContactWidget';
 export function Home() {
   return (
     <>
@@ -41,8 +40,6 @@ export function Home() {
         {/* SECTION: ABOUT & SEO */}
         <AboutSection />
       </div>
-
-      <FloatingContactWidget />
     </>
   );
 }

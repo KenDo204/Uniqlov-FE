@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/stores/hooks';
 import { 
   fetchPublicProductsThunk,
   fetchPublicProductBySlugThunk,
+  fetchPublicProductByIdThunk,
   fetchPublicProductVariantsThunk,
   fetchAdminProductsThunk,
   fetchAdminProductByIdThunk,
@@ -27,6 +28,10 @@ export const useProduct = () => {
 
   const fetchProductBySlug = useCallback(async (slug: string) => {
     return await dispatch(fetchPublicProductBySlugThunk(slug)).unwrap();
+  }, [dispatch]);
+
+  const fetchPublicProductById = useCallback(async (id: number) => {
+    return await dispatch(fetchPublicProductByIdThunk(id)).unwrap();
   }, [dispatch]);
 
   const fetchProductVariants = useCallback(async (productId: number) => {
@@ -68,6 +73,7 @@ export const useProduct = () => {
     error,
     fetchPublicProducts,
     fetchProductBySlug,
+    fetchPublicProductById,
     fetchProductVariants,
     fetchAdminProducts,
     createProduct,
@@ -75,5 +81,5 @@ export const useProduct = () => {
     deleteProduct,
     fetchAdminProductById,
     clearDetail
-  }), [productsList, publicProductsData, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchProductVariants, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
+  }), [productsList, publicProductsData, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchPublicProductById, fetchProductVariants, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
 };

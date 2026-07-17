@@ -17,6 +17,7 @@ interface ConfirmCancelOrderModalProps {
     onConfirm: (reason: string) => void;
     confirmText?: string;
     cancelText?: string;
+    isSubmitting?: boolean;
 }
 
 const ConfirmCancelOrderModal = ({ 
@@ -26,7 +27,8 @@ const ConfirmCancelOrderModal = ({
     content, 
     onConfirm, 
     confirmText = "Xác nhận", 
-    cancelText = "Hủy" 
+    cancelText = "Hủy",
+    isSubmitting = false
 }: ConfirmCancelOrderModalProps) => {
 
     const [reason, setReason] = useState("");
@@ -38,7 +40,6 @@ const ConfirmCancelOrderModal = ({
 
     const handleConfirm = () => {
         onConfirm(reason);
-        handleClose();
     };
 
     return (
@@ -69,6 +70,7 @@ const ConfirmCancelOrderModal = ({
                     onChange={(e) => setReason(e.target.value)}
                     multiline
                     rows={3}
+                    disabled={isSubmitting}
                 />
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -83,6 +85,7 @@ const ConfirmCancelOrderModal = ({
                         color: 'white',
                         '&:hover': { bgcolor: '#d73211' }
                     }}
+                    disabled={isSubmitting}
                 >
                     {cancelText}
                 </Button>
@@ -91,14 +94,14 @@ const ConfirmCancelOrderModal = ({
                     variant="contained"
                     disableElevation
                     color="inherit"
-                    disabled={!reason.trim()} // disable if no reason
+                    disabled={!reason.trim() || isSubmitting} // disable if no reason or submitting
                     sx={{ 
                         textTransform: 'uppercase', 
                         font: '14pt',
                         fontWeight: 'bold',
                     }}
                 >
-                    {confirmText}
+                    {isSubmitting ? "Đang xử lý..." : confirmText}
                 </Button>
             </DialogActions>
         </Dialog>

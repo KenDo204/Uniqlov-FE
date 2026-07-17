@@ -55,7 +55,7 @@ export function FloatingContactWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end">
+    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
       {/* Expanded window */}
       {isOpen && (
         <div className="w-[320px] md:w-[380px] bg-white border border-gray-200 shadow-2xl rounded-2xl flex flex-col mb-4 overflow-hidden animate-slide-up text-left">

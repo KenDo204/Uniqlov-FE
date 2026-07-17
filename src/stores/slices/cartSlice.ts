@@ -16,6 +16,7 @@ export interface CartItem {
   // DB cart fields
   cartItemId?: number;
   variantId?: number;
+  productId?: number;
   totalMoney?: number;
   note?: string;
   available?: boolean;
@@ -36,17 +37,17 @@ const parseAttributes = (variantAttributes: Record<string, string>) => {
   let color = undefined;
   let size = undefined;
   if (variantAttributes && typeof variantAttributes === 'object') {
-    color = variantAttributes.color || 
-            variantAttributes.colorName || 
-            variantAttributes.màu_sắc || 
-            variantAttributes.màu || 
-            variantAttributes.Color || 
-            variantAttributes['Màu sắc'];
-    size = variantAttributes.size || 
-           variantAttributes.kích_cỡ || 
-           variantAttributes.kích_thước || 
-           variantAttributes.Size || 
-           variantAttributes['Kích cỡ'];
+    color = variantAttributes.color ||
+      variantAttributes.colorName ||
+      variantAttributes.màu_sắc ||
+      variantAttributes.màu ||
+      variantAttributes.Color ||
+      variantAttributes['Màu sắc'];
+    size = variantAttributes.size ||
+      variantAttributes.kích_cỡ ||
+      variantAttributes.kích_thước ||
+      variantAttributes.Size ||
+      variantAttributes['Kích cỡ'];
   }
   return { color, size };
 };
@@ -63,6 +64,7 @@ const mapDbItemToLocal = (dbItem: CartItemResponse): CartItem => {
     quantity: dbItem.quantity,
     cartItemId: dbItem.cartItemId,
     variantId: dbItem.variantId,
+    productId: dbItem.productId,
     totalMoney: dbItem.totalMoney,
     note: dbItem.note,
     available: dbItem.available,
@@ -219,11 +221,11 @@ const cartSlice = createSlice({
       if (existingItemIndex !== -1) {
         const item = state.items[existingItemIndex];
         const quantity = item.quantity;
-        
+
         const duplicateIndex = state.items.findIndex(i => (i.variantId === newVariant.variantId || i.id === `${newVariant.variantId}`) && i.variantId !== oldVariantId);
-        
+
         const { color, size } = parseAttributes(newVariant.variantAttributes);
-        
+
         if (duplicateIndex !== -1) {
           // Merge quantities and remove old item
           state.items[duplicateIndex].quantity += quantity;

@@ -1,8 +1,10 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Heart } from '@/components/ui/icons';
 import { formatVND, translateAttribute } from '@/utils/formatters';
 import type { CartItem } from '@/stores/slices/cartSlice';
+import { paths } from '@/config/paths';
+import { useProduct } from '@/hooks/useProduct';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -19,24 +21,57 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
   onOpenVariantModal,
 }) => {
   const location = useLocation();
-  const originState = { from: location.pathname + location.search };
+  const navigate = useNavigate();
+  const { fetchPublicProductById } = useProduct();
+  const [productSlug, setProductSlug] = useState<string>();
+
+  useEffect(() => {
+    const slug = (item as any).productSlug;
+    if (item.productId && !slug) {
+      fetchPublicProductById(item.productId)
+        .then((res) => {
+          if (res && res.productSlug) {
+            setProductSlug(res.productSlug);
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching product slug", err);
+        });
+    } else if (slug) {
+      setProductSlug(slug);
+    }
+  }, [item.productId, (item as any).productSlug, fetchPublicProductById]);
+
+  const handleProductClick = () => {
+    const productUrl = paths.customer.productDetail.replace(
+      ':id',
+      productSlug || String(item.productId)
+    );
+    navigate(productUrl, {
+      state: { from: location.pathname + location.search },
+    });
+  };
 
   return (
     <div className="py-6 border-b border-gray-200 flex gap-4 md:gap-6">
       {/* Hình ảnh to, vuông vức */}
-      <div className="w-[120px] h-[150px] md:w-[150px] md:h-[180px] shrink-0 bg-gray-50">
-        <Link to={`/products/${item.id}`} state={originState}>
-          <img src={item.variantImage} alt={item.name} className="w-full h-full object-cover" />
-        </Link>
+      <div 
+        className="w-[120px] h-[150px] md:w-[150px] md:h-[180px] shrink-0 bg-gray-50 cursor-pointer"
+        onClick={handleProductClick}
+      >
+        <img src={item.variantImage} alt={item.name} className="w-full h-full object-cover" />
       </div>
 
       {/* Thông tin sản phẩm */}
       <div className="flex-1 flex flex-col">
         <div className="flex justify-between items-start gap-4">
           <h3 className="font-medium text-[15px] md:text-[16px] m-0 leading-snug">
-            <Link to={`/products/${item.id}`} state={originState} className="text-gray-900 hover:text-theme no-underline">
+            <span 
+              onClick={handleProductClick} 
+              className="text-gray-900 hover:text-theme cursor-pointer"
+            >
               {item.name}
-            </Link>
+            </span>
           </h3>
           <button className="text-gray-400 hover:text-theme bg-transparent border-none cursor-pointer p-0 shrink-0">
             <Heart className="w-5 h-5" strokeWidth={1.5} />

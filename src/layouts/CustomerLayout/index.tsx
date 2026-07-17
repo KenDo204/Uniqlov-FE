@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { FloatingContactWidget } from '@/components/shared/FloatingContactWidget';
 
 export default function CustomerLayout() {
   return (
@@ -15,6 +16,9 @@ export default function CustomerLayout() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Floating Contact Widget (Global for Customer) */}
+      <FloatingContactWidget />
     </div>
   );
 }

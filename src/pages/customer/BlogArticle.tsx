@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import {  ArrowLeft, Clock, Share2, ShoppingCart  } from '@/components/ui/icons';
+import { ArrowLeft, Clock, Share2, ShoppingCart } from '@/components/ui/icons';
 import { mockBlogEntries } from './Blog';
 import { paths } from '../../config/paths';
 import { useProduct } from '@/hooks/useProduct';
@@ -52,6 +52,7 @@ export function BlogArticle() {
     addItem({
       id: `${matchingProduct.productId}-${color}-${size}`,
       variantId: firstVar?.variantId,
+      productId: matchingProduct.productId,
       name: `${matchingProduct.productName} (${color} / ${size})`,
       price: price,
       variantImage: image,

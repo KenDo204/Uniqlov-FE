@@ -18,14 +18,14 @@ import AddressSelectionModal from '@/components/customer/Account/AddressSelectio
 import CreateAddressModal from '@/components/customer/Account/createAdressModal';
 import OrderSuccess from '@/components/customer/Checkout/OrderSuccess';
 import { calculateOrderFinancials } from '@/utils/couponUtils';
-import type { CouponResponse } from '@/types/coupon/responses';
+import type { CouponResponse, CouponApplyResponse } from '@/types/coupon/responses';
 import { Container } from '@/components/shared/Container';
 
 export function Checkout() {
   const navigate = useNavigate();
   const { items, clearCart } = useCart();
   const { checkout } = useOrder();
-  const { availableCoupons, fetchAvailableCoupons, isFetching } = useCoupon();
+  const { availableCoupons, fetchAvailableCoupons, isFetching, previewApplyCoupon } = useCoupon();
   const { user, isAuthenticated } = useAuth();
   const { addresses, fetchAddresses } = useAddress();
   const { shippingFee, calculateShippingFee } = useGhn();
@@ -34,14 +34,11 @@ export function Checkout() {
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('TP. Hồ Chí Minh');
 
   const [selectedAddress, setSelectedAddress] = useState<AddressResponse | null>(null);
   const [isAddressListOpen, setIsAddressListOpen] = useState(false);
   const [isCreateAddressOpen, setIsCreateAddressOpen] = useState(false);
+  const [orderNote, setOrderNote] = useState('');
 
   React.useEffect(() => {
     if (user) {
@@ -74,21 +71,10 @@ export function Checkout() {
   React.useEffect(() => {
     if (selectedAddress) {
       setPhone(selectedAddress.phone);
-      setAddress(selectedAddress.fullAddress);
-      setCity(selectedAddress.provinceName);
-      
-      const nameParts = selectedAddress.recipientName.trim().split(/\s+/);
-      const first = nameParts[nameParts.length - 1] || '';
-      const last = nameParts.slice(0, nameParts.length - 1).join(' ') || '';
-      setFirstName(first);
-      setLastName(last);
     } else {
       // Clear if no address
       if (!user) {
         setPhone('');
-        setAddress('');
-        setFirstName('');
-        setLastName('');
       }
     }
   }, [selectedAddress, user]);
@@ -132,6 +118,11 @@ export function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
+  // Coupon validation states
+  const [validCoupons, setValidCoupons] = useState<{ coupon: CouponResponse; result: CouponApplyResponse }[]>([]);
+  const [invalidCoupons, setInvalidCoupons] = useState<{ coupon: CouponResponse; reason: string }[]>([]);
+  const [isValidatingCoupons, setIsValidatingCoupons] = useState(false);
+
   // Redirect if not logged in
   React.useEffect(() => {
     if (!isAuthenticated) {
@@ -171,40 +162,57 @@ export function Checkout() {
     }
   }, [financials.errors, financials.validCoupons]);
 
-  // Auto-suggest optimal coupon (Simplified to first applicable)
+  // Validation and Auto-suggest optimal coupon
   React.useEffect(() => {
-    if (availableCoupons.length > 0 && rawSubtotal > 0 && !hasUserInteractedWithCoupon) {
-      const applicableOrderCoupons = availableCoupons.filter(c => 
-        (c.couponType === 'SHOP_VOUCHER' || c.couponType === 'PAYMENT_VOUCHER') &&
-        (!c.minOrderAmount || rawSubtotal >= c.minOrderAmount) &&
-        c.couponType !== 'PAYMENT_VOUCHER' // Không auto-apply mã thanh toán
-      );
-      const applicableShippingCoupons = availableCoupons.filter(c => 
-        c.couponType === 'FREE_SHIPPING' &&
-        (!c.minOrderAmount || rawSubtotal >= c.minOrderAmount)
+    if (availableCoupons.length === 0 || rawSubtotal === 0) return;
+
+    const validate = async () => {
+      setIsValidatingCoupons(true);
+      const valid: { coupon: CouponResponse; result: CouponApplyResponse }[] = [];
+      const invalid: { coupon: CouponResponse; reason: string }[] = [];
+
+      await Promise.all(
+        availableCoupons.map(async (coupon) => {
+          try {
+            const res = await previewApplyCoupon({
+              couponCode: coupon.code,
+              orderAmount: rawSubtotal,
+            });
+            if (res) {
+              valid.push({ coupon, result: res });
+            } else {
+              invalid.push({ coupon, reason: 'Không đủ điều kiện áp dụng' });
+            }
+          } catch (error: any) {
+            invalid.push({ coupon, reason: String(error) || 'Không đủ điều kiện áp dụng' });
+          }
+        })
       );
 
-      const autoSelected: CouponResponse[] = [];
-      if (applicableOrderCoupons.length > 0) autoSelected.push(applicableOrderCoupons[0]);
-      if (applicableShippingCoupons.length > 0) autoSelected.push(applicableShippingCoupons[0]);
+      valid.sort((a, b) => b.result.discountAmount - a.result.discountAmount);
 
-      if (autoSelected.length > 0) {
+      setValidCoupons(valid);
+      setInvalidCoupons(invalid);
+      setIsValidatingCoupons(false);
+
+      if (!hasUserInteractedWithCoupon) {
+        const orderCoupons = valid.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER');
+        const shippingCoupons = valid.filter(c => c.coupon.couponType === 'FREE_SHIPPING');
+        
+        const autoSelected: CouponResponse[] = [];
+        if (orderCoupons.length > 0) autoSelected.push(orderCoupons[0].coupon);
+        if (shippingCoupons.length > 0) autoSelected.push(shippingCoupons[0].coupon);
+
         setAppliedCoupons(autoSelected);
-        setIsAutoApplied(true);
-      } else {
-        setAppliedCoupons([]);
-        setIsAutoApplied(false);
+        setIsAutoApplied(autoSelected.length > 0);
       }
-    }
-  }, [availableCoupons, rawSubtotal, hasUserInteractedWithCoupon]);
+    };
 
-
+    const debounceTimer = setTimeout(validate, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [availableCoupons, rawSubtotal, rawShippingCost, hasUserInteractedWithCoupon, previewApplyCoupon]);
 
   const handleSelectCoupon = (coupon: CouponResponse) => {
-    if (coupon.minOrderAmount && rawSubtotal < coupon.minOrderAmount) {
-      toast.error(`Đơn hàng chưa đạt giá trị tối thiểu ${formatVND(coupon.minOrderAmount)}`);
-      return;
-    }
     
     setAppliedCoupons(prev => {
       if (coupon.couponType === 'FREE_SHIPPING') {
@@ -255,7 +263,7 @@ export function Checkout() {
         couponCode: appliedCoupons.length > 0 ? appliedCoupons.map(c => c.code).join(',') : undefined,
         paymentMethod: paymentMethod.toUpperCase() as any, // 'COD' | 'VNPAY' | 'MOMO'
         shippingMethod: 'STANDARD' as const,
-        note: `Tên: ${lastName} ${firstName}. Địa chỉ: ${address}, ${city}`
+        note: orderNote.trim()
       };
 
       const res = await checkout(payload);
@@ -277,8 +285,7 @@ export function Checkout() {
     }
   };
 
-  const renderCouponItem = (coupon: CouponResponse) => {
-    const isApplicable = !coupon.minOrderAmount || financials.subtotal >= coupon.minOrderAmount;
+  const renderCouponItem = (coupon: CouponResponse, isApplicable: boolean, reason?: string, discountAmount?: number) => {
     const isSelected = appliedCoupons.some(c => c.couponId === coupon.couponId);
     
     return (
@@ -301,9 +308,15 @@ export function Checkout() {
             </div>
             <p className={`text-xs ${isApplicable ? 'text-gray-600' : 'text-gray-400'} m-0 leading-snug`}>{coupon.description}</p>
             
-            {coupon.minOrderAmount && !isApplicable && (
+            {discountAmount && isApplicable ? (
+              <p className="text-[12px] text-green-600 font-medium m-0 mt-1.5">
+                Mức giảm: {formatVND(discountAmount)}
+              </p>
+            ) : null}
+
+            {!isApplicable && reason && (
               <p className="text-[11px] text-red-500 m-0 mt-1.5">
-                Cần mua thêm {formatVND(coupon.minOrderAmount - financials.subtotal)} để sử dụng
+                {reason}
               </p>
             )}
           </div>
@@ -469,6 +482,29 @@ export function Checkout() {
                 />
               </div>
 
+              {/* Note: Ghi chú đơn hàng */}
+              <div className="bg-white border border-gray-200 p-6 rounded-[4px] space-y-4 shadow-sm">
+                <h3 className="text-base font-bold uppercase tracking-wider text-gray-800 m-0 border-b border-gray-100 pb-3 flex items-center gap-2">
+                  Ghi chú đơn hàng
+                </h3>
+                <div className="relative">
+                  <textarea
+                    className="w-full border border-gray-300 rounded-[4px] p-3 text-sm text-gray-700 outline-none focus:border-theme focus:ring-1 focus:ring-theme transition-all resize-y min-h-[80px]"
+                    placeholder="Nhập ghi chú cho đơn hàng (không bắt buộc)..."
+                    value={orderNote}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 255) {
+                        setOrderNote(e.target.value);
+                      }
+                    }}
+                    maxLength={255}
+                  />
+                  <div className="text-right text-[11px] text-gray-400 mt-1">
+                    {orderNote.length}/255
+                  </div>
+                </div>
+              </div>
+
               {/* Step 3: Payment Options */}
               <div className="bg-white border border-gray-200 p-6 rounded-[4px] space-y-5 shadow-sm">
                 <h3 className="text-base font-bold uppercase tracking-wider text-gray-800 m-0 border-b border-gray-100 pb-3 flex items-center gap-2">
@@ -581,10 +617,10 @@ export function Checkout() {
                 )}
 
                 {/* Available coupons list */}
-                {isFetching ? (
+                {isFetching || isValidatingCoupons ? (
                   <div className="mt-4 flex flex-col items-center justify-center p-6 border border-gray-200 border-dashed rounded-[4px] bg-gray-50">
                     <div className="w-6 h-6 border-2 border-theme border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <span className="text-sm text-gray-500">Đang tải mã giảm giá...</span>
+                    <span className="text-sm text-gray-500">Đang kiểm tra mã giảm giá...</span>
                   </div>
                 ) : availableCoupons.length > 0 ? (
                   <div className="mt-4 space-y-6">
@@ -592,8 +628,11 @@ export function Checkout() {
                     <div>
                       <h4 className="text-sm font-bold text-gray-800 mb-3">Mã giảm giá đơn hàng (Tối đa 1 mã)</h4>
                       <div className="max-h-60 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
-                        {availableCoupons.filter(c => c.couponType === 'SHOP_VOUCHER' || c.couponType === 'PAYMENT_VOUCHER').length > 0 ? (
-                          availableCoupons.filter(c => c.couponType === 'SHOP_VOUCHER' || c.couponType === 'PAYMENT_VOUCHER').map(renderCouponItem)
+                        {validCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').length > 0 || invalidCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').length > 0 ? (
+                          <>
+                            {validCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').map(c => renderCouponItem(c.coupon, true, undefined, c.result.discountAmount))}
+                            {invalidCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').map(c => renderCouponItem(c.coupon, false, c.reason))}
+                          </>
                         ) : (
                           <p className="text-xs text-gray-500 italic">Không có mã nào.</p>
                         )}
@@ -604,8 +643,11 @@ export function Checkout() {
                     <div>
                       <h4 className="text-sm font-bold text-gray-800 mb-3">Mã miễn phí vận chuyển (Tối đa 1 mã)</h4>
                       <div className="max-h-60 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
-                        {availableCoupons.filter(c => c.couponType === 'FREE_SHIPPING').length > 0 ? (
-                          availableCoupons.filter(c => c.couponType === 'FREE_SHIPPING').map(renderCouponItem)
+                        {validCoupons.filter(c => c.coupon.couponType === 'FREE_SHIPPING').length > 0 || invalidCoupons.filter(c => c.coupon.couponType === 'FREE_SHIPPING').length > 0 ? (
+                          <>
+                            {validCoupons.filter(c => c.coupon.couponType === 'FREE_SHIPPING').map(c => renderCouponItem(c.coupon, true, undefined, c.result.discountAmount))}
+                            {invalidCoupons.filter(c => c.coupon.couponType === 'FREE_SHIPPING').map(c => renderCouponItem(c.coupon, false, c.reason))}
+                          </>
                         ) : (
                           <p className="text-xs text-gray-500 italic">Không có mã nào.</p>
                         )}

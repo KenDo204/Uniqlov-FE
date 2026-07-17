@@ -99,11 +99,20 @@ export function Cart() {
     setIsVariantModalOpen(true);
     setLoadingVariants(true);
 
-    const vId = item.variantId || Number(item.id);
-    const product = products.find((p) => p.variants.some((v) => v.variantId === vId));
-    if (product) {
+    let targetProductId = item.productId;
+
+    // Fallback logic cho local cart cũ không có productId
+    if (!targetProductId) {
+      const vId = item.variantId || Number(item.id);
+      const product = products.find((p) => p.variants.some((v) => v.variantId === vId));
+      if (product) {
+        targetProductId = product.productId;
+      }
+    }
+
+    if (targetProductId) {
       try {
-        const variantsData = await fetchProductVariants(product.productId);
+        const variantsData = await fetchProductVariants(targetProductId);
         setItemVariants(variantsData || []);
 
         const initialAttrs: Record<string, string> = {};
@@ -114,8 +123,8 @@ export function Cart() {
             const colorKey =
               variantsData && variantsData.length > 0
                 ? Object.keys(variantsData[0].variantAttributes).find(
-                    (k) => k.toLowerCase().includes('color') || k.toLowerCase().includes('màu')
-                  )
+                  (k) => k.toLowerCase().includes('color') || k.toLowerCase().includes('màu')
+                )
                 : null;
             if (colorKey) initialAttrs[colorKey] = item.color;
           }
@@ -123,8 +132,8 @@ export function Cart() {
             const sizeKey =
               variantsData && variantsData.length > 0
                 ? Object.keys(variantsData[0].variantAttributes).find(
-                    (k) => k.toLowerCase().includes('size') || k.toLowerCase().includes('kích')
-                  )
+                  (k) => k.toLowerCase().includes('size') || k.toLowerCase().includes('kích')
+                )
                 : null;
             if (sizeKey) initialAttrs[sizeKey] = item.size;
           }

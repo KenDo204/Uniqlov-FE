@@ -1,6 +1,7 @@
 export interface CartItemResponse {
     cartItemId: number;
     variantId: number;
+    productId: number;
     productName: string;
     variantAttributes: Record<string, string>;
     variantImage: string;
