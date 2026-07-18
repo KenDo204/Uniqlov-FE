@@ -260,7 +260,7 @@ export function Checkout() {
       const payload = {
         cartItemIds,
         addressId: selectedAddress.addressId,
-        couponCode: appliedCoupons.length > 0 ? appliedCoupons.map(c => c.code).join(',') : undefined,
+        couponCodes: appliedCoupons.map(c => c.code),
         paymentMethod: paymentMethod.toUpperCase() as any, // 'COD' | 'VNPAY' | 'MOMO'
         shippingMethod: 'STANDARD' as const,
         note: orderNote.trim()
@@ -270,7 +270,7 @@ export function Checkout() {
       if (res) {
         toast.success('Đặt đơn hàng thành công!');
         clearCart();
-        trackPurchase(res.orderId, paymentMethod, financials.grandTotal, payload.couponCode || '', Source.CHECKOUT_PAGE);
+        trackPurchase(res.orderId, paymentMethod, financials.grandTotal, payload.couponCodes?.join(',') || '', Source.CHECKOUT_PAGE);
         
         if (res.paymentUrl) {
           window.location.href = res.paymentUrl;

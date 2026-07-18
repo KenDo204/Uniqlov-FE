@@ -22,4 +22,4 @@ export { Reviews } from '../../components/customer/Account/Reviews';
 export { ProfileDetails } from '../../components/customer/Account/ProfileDetails';
 export { Addresses } from '../../components/customer/Account/Addresses';
 export { ChangePassword } from '../../components/customer/Account/ChangePassword';
-
+export { default as PaymentResult } from './PaymentResult/PaymentResult';

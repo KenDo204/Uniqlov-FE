@@ -298,8 +298,8 @@ const ContactManagement: React.FC = () => {
         <DialogTitle className="font-bold text-gray-800 border-b border-gray-100">
           Cập nhật trạng thái
         </DialogTitle>
-        <DialogContent className="py-6">
-          <Typography className="text-gray-600 mb-4 text-sm">
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 3, pb: 3 }}>
+          <Typography className="text-gray-600 text-sm">
             Thay đổi trạng thái cho phản hồi: <strong className="text-gray-800">{contactToUpdate?.subject}</strong>
           </Typography>
           
@@ -315,13 +315,13 @@ const ContactManagement: React.FC = () => {
               <MenuItem value="RESOLVED">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  Đã xử lý (Giải quyết xong)
+                  Đã xử lý
                 </div>
               </MenuItem>
               <MenuItem value="REJECTED">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                  Từ chối (Spam/Không hợp lệ)
+                  Từ chối
                 </div>
               </MenuItem>
             </Select>

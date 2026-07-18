@@ -89,9 +89,9 @@ const SliderList: React.FC = () => {
               onClick={() => navigate('/admin/sliders/add')}
               variant="contained"
               sx={{
-                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                bgcolor: 'var(--color-theme)', textTransform: 'none', px: 3, py: 1.2,
                 fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+                '&:hover': { bgcolor: 'var(--color-theme-hover)', boxShadow: 'none' }
               }}
             >
               <Add fontSize="medium" />

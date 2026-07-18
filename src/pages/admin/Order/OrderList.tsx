@@ -463,16 +463,16 @@ const OrderList: React.FC = () => {
                         onChange={(e) => setNewStatus(e.target.value as OrderStatus)}
                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
                       >
-                        <MenuItem value={OrderStatus.PENDING}>Chờ xử lý (PENDING)</MenuItem>
-                        <MenuItem value={OrderStatus.PENDING_REVIEW}>Chờ duyệt (PENDING_REVIEW)</MenuItem>
-                        <MenuItem value={OrderStatus.PENDING_PAYMENT}>Chờ thanh toán (PENDING_PAYMENT)</MenuItem>
-                        <MenuItem value={OrderStatus.AWAITING_SHIPMENT}>Chờ giao hàng (AWAITING_SHIPMENT)</MenuItem>
-                        <MenuItem value={OrderStatus.SHIPPING}>Đang vận chuyển (SHIPPING)</MenuItem>
-                        <MenuItem value={OrderStatus.DELIVERED}>Đã giao hàng (DELIVERED)</MenuItem>
-                        <MenuItem value={OrderStatus.COMPLETED}>Hoàn tất đơn (COMPLETED)</MenuItem>
-                        <MenuItem value={OrderStatus.CANCELLED}>Hủy bỏ đơn (CANCELLED)</MenuItem>
-                        <MenuItem value={OrderStatus.RETURNED}>Đã trả hàng (RETURNED)</MenuItem>
-                        <MenuItem value={OrderStatus.REFUND_FAILED}>Hoàn tiền lỗi (REFUND_FAILED)</MenuItem>
+                        <MenuItem value={OrderStatus.PENDING}>Chờ xử lý</MenuItem>
+                        <MenuItem value={OrderStatus.PENDING_REVIEW}>Chờ duyệt</MenuItem>
+                        <MenuItem value={OrderStatus.PENDING_PAYMENT}>Chờ thanh toán</MenuItem>
+                        <MenuItem value={OrderStatus.AWAITING_SHIPMENT}>Chờ giao hàng</MenuItem>
+                        <MenuItem value={OrderStatus.SHIPPING}>Đang vận chuyển</MenuItem>
+                        <MenuItem value={OrderStatus.DELIVERED}>Đã giao hàng</MenuItem>
+                        <MenuItem value={OrderStatus.COMPLETED}>Hoàn tất đơn</MenuItem>
+                        <MenuItem value={OrderStatus.CANCELLED}>Hủy bỏ đơn</MenuItem>
+                        <MenuItem value={OrderStatus.RETURNED}>Đã trả hàng</MenuItem>
+                        <MenuItem value={OrderStatus.REFUND_FAILED}>Hoàn tiền lỗi</MenuItem>
                       </TextField>
                     </div>
                     <Button

@@ -1,13 +1,14 @@
 export interface GhnWebhookRequest {
-  orderCode: string;
-  status: string;
-  exCode: string | null;
-  reason: string | null;
-  time: string;
+  OrderCode: string;
+  Status: string;
+  ExCode: string | null;
+  Reason: string | null;
+  Time: string;
 }
 
 export interface ShippingFeeRequest {
   toDistrictId: number;
   toWardCode: string;
   weightGram: number;
+  serviceId?: number;
 }

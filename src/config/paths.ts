@@ -12,6 +12,7 @@ export const paths = {
     orders: '/admin/orders',
     coupons: '/admin/coupons',
     contacts: '/admin/contacts',
+    risk: '/admin/risk',
   },
   owner: {
     dashboard: '/owner/dashboard',
@@ -39,6 +40,7 @@ export const paths = {
     contact: '/contact',
     blog: '/blog',
     blogArticle: '/blog/:id',
+    paymentResult: '/payment-result',
   },
 } as const;
 

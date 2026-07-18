@@ -115,9 +115,9 @@ const UserList: React.FC = () => {
               onClick={handleOpenAdd}
               variant="contained"
               sx={{
-                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                bgcolor: 'var(--color-theme)', textTransform: 'none', px: 3, py: 1.2,
                 fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+                '&:hover': { bgcolor: 'var(--color-theme-hover)', boxShadow: 'none' }
               }}
             >
               <Add fontSize="medium" />
@@ -135,7 +135,7 @@ const UserList: React.FC = () => {
               placeholder="Tìm kiếm theo họ tên hoặc email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors text-[14px]"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-theme transition-colors text-[14px]"
             />
           </div>
 
@@ -143,7 +143,7 @@ const UserList: React.FC = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-theme transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
             >
               <option value="">Tất cả vai trò</option>
               {roles?.map(r => (
@@ -154,7 +154,7 @@ const UserList: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-[theme] transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-theme transition-colors bg-white text-[14px] flex-1 md:flex-none cursor-pointer"
             >
               <option value="">Tất cả trạng thái</option>
               <option value="active">Hoạt động</option>
@@ -182,7 +182,7 @@ const UserList: React.FC = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center">
-                      <CircularProgress size={32} sx={{ color: 'theme' }} />
+                      <CircularProgress size={32} sx={{ color: 'var(--color-theme)' }} />
                       <p className="mt-2 text-gray-500 m-0">Đang tải dữ liệu người dùng...</p>
                     </td>
                   </tr>
@@ -191,7 +191,7 @@ const UserList: React.FC = () => {
                     <tr key={user.userId} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[theme]/10 text-[theme] flex items-center justify-center font-bold text-sm uppercase">
+                          <div className="w-9 h-9 rounded-full bg-[var(--color-theme)]/10 text-theme flex items-center justify-center font-bold text-sm uppercase">
                             {user.fullName.charAt(0)}
                           </div>
                           <div>
@@ -237,7 +237,7 @@ const UserList: React.FC = () => {
                               <IconButton
                                 onClick={() => handleOpenEdit(user)}
                                 size="small"
-                                sx={{ color: 'theme', bgcolor: '#f0fdfa', '&:hover': { bgcolor: '#ccfbf1' } }}
+                                sx={{ color: 'var(--color-theme)', bgcolor: '#f0fdfa', '&:hover': { bgcolor: 'var(--color-theme-light)' } }}
                               >
                                 <Edit fontSize="small" />
                               </IconButton>

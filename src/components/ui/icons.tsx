@@ -56,6 +56,7 @@ import {
   MenuOpen as MuiMenuOpen,
   ChatBubbleOutlined as MuiChatBubbleOutline,
   AccountCircle as MuiAccountIcon,
+  GppMaybeOutlined as MuiGppMaybeOutlined,
 } from '@mui/icons-material';
 
 // Helper to create a component compatible with lucide-react props (size, style, etc.)
@@ -129,6 +130,7 @@ export const Checkroom = createIcon(CheckroomIcon);
 export const MenuOpen = createIcon(MuiMenuOpen);
 export const MessageSquare = createIcon(MuiChatBubbleOutline);
 export const AccountIcon = createIcon(MuiAccountIcon);
+export const GppMaybeOutlined = createIcon(MuiGppMaybeOutlined);
 
 // Custom Star with dynamic outline/fill based on classes
 export const Star = React.forwardRef(({ size, className, style, strokeWidth, ...props }: any, ref: any) => {

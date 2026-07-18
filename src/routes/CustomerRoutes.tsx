@@ -22,7 +22,8 @@ import {
   ProfileDetails,
   Addresses,
   ChangePassword,
-  ResetPassword
+  ResetPassword,
+  PaymentResult
 } from '../pages/customer';
 
 import ContactPage from '../pages/customer/Contact/ContactPage';
@@ -73,6 +74,7 @@ export const customerRoutes: RouteObject = {
     { path: 'contact', element: <ContactPage /> },
     { path: 'blog', element: <Blog /> },
     { path: 'blog/:id', element: <BlogArticle /> },
+    { path: 'payment-result', element: <PaymentResult /> },
     { path: '*', element: <NotFound /> }
   ],
 };
