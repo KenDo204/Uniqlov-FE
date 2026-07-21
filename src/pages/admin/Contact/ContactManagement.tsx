@@ -95,7 +95,7 @@ const ContactManagement: React.FC = () => {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto min-h-[400px]">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100">
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-16 text-center">STT</th>
@@ -131,7 +131,7 @@ const ContactManagement: React.FC = () => {
                           <span className="font-medium text-gray-800">{contact.guestName || 'Khách vãng lai'}</span>
                           <span className="text-sm text-gray-500">{contact.guestEmail || 'Không có email'}</span>
                           {contact.userId && (
-                            <span className="inline-flex mt-1 items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 w-fit">
+                            <span className="inline-flex mt-1 items-center px-2 py-0.5 rounded text-[10px] font-medium bg-theme-light text-theme w-fit">
                               Thành viên
                             </span>
                           )}

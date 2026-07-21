@@ -17,6 +17,7 @@ import sliderReducer from './slices/sliderSlice';
 import contactReducer from './slices/contactSlice';
 import { recommendationReducer } from './slices/recommendationSlice';
 import riskReducer from './slices/riskSlice';
+import dashboardReducer from './slices/dashboardSlice';
 
 export const store = configureStore({
   reducer: {
@@ -38,6 +39,7 @@ export const store = configureStore({
     theme: themeReducer,
     recommendation: recommendationReducer,
     risk: riskReducer,
+    dashboard: dashboardReducer,
   },
 });
 

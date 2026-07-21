@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import EasyMall_Logo from '@/assets/icons/EasyMall_Logo.png';
 import AvatarNav from '@/components/admin/Navbar/AvatarNav';
 import MobileNav from '@/components/admin/Navbar/MobileNav';
+import ConfirmModal from '@/components/general/ConfirmModal';
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -15,9 +16,10 @@ export default function AdminLayout() {
   const { logout, user, hasPermission } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const menuItems = [
-    { label: 'Tổng quan', path: paths.admin.dashboard, icon: LayoutDashboard },
+    { label: 'Tổng quan', path: paths.admin.dashboard, icon: LayoutDashboard, permission: 'dashboard:view' },
     { label: 'Quản lý Slider', path: paths.admin.sliders, icon: Image, permission: 'slider:read' },
     { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree, permission: 'category:read' },
     { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom, permission: 'product:read' },
@@ -30,7 +32,12 @@ export default function AdminLayout() {
     { label: 'Quản lý Rủi ro', path: paths.admin.risk, icon: GppMaybeOutlined, permission: 'risk_rule:manage' },
   ];
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const performLogout = async () => {
+    setIsLogoutModalOpen(false);
     try {
       await logout();
       toast.success('Đã đăng xuất thành công!');
@@ -131,6 +138,16 @@ export default function AdminLayout() {
 
       {/* Mobile Menu Drawer Overlay */}
       <MobileNav isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+      
+      <ConfirmModal
+        open={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={performLogout}
+        title="Xác nhận đăng xuất"
+        content="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+        confirmText="Đăng xuất"
+        cancelText="Hủy"
+      />
     </div>
   );
 }

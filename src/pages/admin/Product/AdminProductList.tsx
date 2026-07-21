@@ -227,7 +227,7 @@ const AdminProductList: React.FC = () => {
         {/* TABLE */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold w-24">Hình ảnh</th>
@@ -434,7 +434,7 @@ const AdminProductList: React.FC = () => {
                 <h4 className="text-sm font-bold text-gray-800 mb-3 m-0">Biến thể ({selectedProduct.variants?.length || 0})</h4>
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-xs">
+                    <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
                       <thead>
                         <tr className="bg-gray-100 text-gray-500 font-semibold uppercase tracking-wider border-b border-gray-200">
                           <th className="px-4 py-2">Mã SKU</th>

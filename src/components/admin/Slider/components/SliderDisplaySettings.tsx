@@ -10,8 +10,8 @@ import {
 import { Tag } from '@mui/icons-material';
 
 interface SliderDisplaySettingsProps {
-  displayOrder: number;
-  setDisplayOrder: (val: number) => void;
+  displayOrder: string;
+  setDisplayOrder: (val: string) => void;
   isActive: boolean;
   setIsActive: (val: boolean) => void;
   disabled?: boolean;
@@ -34,7 +34,7 @@ export const SliderDisplaySettings: React.FC<SliderDisplaySettingsProps> = ({
           variant="outlined"
           value={displayOrder}
           disabled={disabled}
-          onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
+          onChange={(e) => setDisplayOrder(e.target.value)}
           slotProps={{ 
             htmlInput: { min: 0 },
             input: {

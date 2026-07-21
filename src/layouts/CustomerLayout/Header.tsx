@@ -20,7 +20,7 @@ export function Header() {
     const location = useLocation();
     const navigate = useNavigate();
     // 2. Lấy trạng thái đăng nhập từ Hook
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, isCustomer, user } = useAuth();
     
     const { items: cartItems } = useCartStore();
 
@@ -96,18 +96,20 @@ export function Header() {
                         <Heart size={24} strokeWidth={1.5} />
                     </Link>
 
-                    {/* Icon Giỏ Hàng & Badge */}
-                    <button
-                        onClick={() => setIsCartOpen(true)}
-                        className={cn("p-1.5 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center hover:bg-neutral-100", iconClass)}
-                    >
-                        <ShoppingCart size={26} strokeWidth={1.5} />
-                        {totalQuantity > 0 && (
-                        <span className="absolute top-0 right-0 transform translate-x-[10%] -translate-y-[10%] bg-[#E32636] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm">
-                            {totalQuantity}
-                        </span>
-                        )}
-                    </button>
+                    {/* Icon Giỏ Hàng & Badge - Chỉ hiển thị cho Khách hàng hoặc Khách vãng lai */}
+                    {(!isAuthenticated || isCustomer) && (
+                      <button
+                          onClick={() => setIsCartOpen(true)}
+                          className={cn("p-1.5 rounded-full transition-colors relative border-none bg-transparent cursor-pointer flex items-center justify-center hover:bg-neutral-100", iconClass)}
+                      >
+                          <ShoppingCart size={26} strokeWidth={1.5} />
+                          {totalQuantity > 0 && (
+                          <span className="absolute top-0 right-0 transform translate-x-[10%] -translate-y-[10%] bg-[#E32636] text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm">
+                              {totalQuantity}
+                          </span>
+                          )}
+                      </button>
+                    )}
                     </>
                 ) : (
                     <Button

@@ -11,7 +11,8 @@ import {
 
 interface ConfirmModalProps {
     open: boolean;
-    setOpen: Dispatch<SetStateAction<boolean>>;
+    setOpen?: Dispatch<SetStateAction<boolean>>;
+    onClose?: () => void;
     title: string;
     content: ReactNode | string;
     onConfirm: () => void;
@@ -23,7 +24,8 @@ interface ConfirmModalProps {
 
 const ConfirmModal = ({ 
     open, 
-    setOpen, 
+    setOpen,
+    onClose,
     title, 
     content, 
     onConfirm, 
@@ -34,7 +36,8 @@ const ConfirmModal = ({
 }: ConfirmModalProps) => {
 
     const handleClose = () => {
-        setOpen(false);
+        if (onClose) onClose();
+        else if (setOpen) setOpen(false);
     };
 
     const handleConfirm = () => {

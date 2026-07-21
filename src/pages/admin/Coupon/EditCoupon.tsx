@@ -19,11 +19,11 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
 
   // Form Fields State
   const [description, setDescription] = useState('');
-  const [discountValue, setDiscountValue] = useState<number>(0);
-  const [maxDiscountAmount, setMaxDiscountAmount] = useState<number>(0);
-  const [minOrderAmount, setMinOrderAmount] = useState<number>(0);
-  const [maxUsage, setMaxUsage] = useState<number>(100);
-  const [userUsageLimit, setUserUsageLimit] = useState<number>(1);
+  const [discountValue, setDiscountValue] = useState<string>('');
+  const [maxDiscountAmount, setMaxDiscountAmount] = useState<string>('');
+  const [minOrderAmount, setMinOrderAmount] = useState<string>('');
+  const [maxUsage, setMaxUsage] = useState<string>('100');
+  const [userUsageLimit, setUserUsageLimit] = useState<string>('1');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [applicableConditions, setApplicableConditions] = useState('');
@@ -32,11 +32,11 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
   useEffect(() => {
     if (open && coupon) {
       setDescription(coupon.description || '');
-      setDiscountValue(coupon.discountValue);
-      setMaxDiscountAmount(coupon.maxDiscountAmount || 0);
-      setMinOrderAmount(coupon.minOrderAmount || 0);
-      setMaxUsage(coupon.maxUsage || 100);
-      setUserUsageLimit(coupon.userUsageLimit || 1);
+      setDiscountValue(String(coupon.discountValue));
+      setMaxDiscountAmount(String(coupon.maxDiscountAmount || ''));
+      setMinOrderAmount(String(coupon.minOrderAmount || ''));
+      setMaxUsage(String(coupon.maxUsage || 100));
+      setUserUsageLimit(String(coupon.userUsageLimit || 1));
 
       // Format dates to ISO local for inputs
       const startStr = coupon.startDate ? coupon.startDate.substring(0, 16) : '';
@@ -51,12 +51,13 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
     e.preventDefault();
     if (!coupon) return;
 
-    if (discountValue <= 0) {
+    const parsedDiscountValue = Number(discountValue) || 0;
+    if (parsedDiscountValue <= 0) {
       toast.error('Giá trị giảm giá phải lớn hơn 0');
       return;
     }
 
-    if (coupon.discountType === 'PERCENTAGE' && discountValue > 100) {
+    if (coupon.discountType === 'PERCENTAGE' && parsedDiscountValue > 100) {
       toast.error('Phần trăm giảm giá tối đa là 100%');
       return;
     }
@@ -71,11 +72,11 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
     try {
       await updateCoupon(coupon.couponId, {
         description: description.trim() || undefined,
-        discountValue,
-        maxDiscountAmount: coupon.discountType === 'PERCENTAGE' ? maxDiscountAmount || undefined : undefined,
-        minOrderAmount: minOrderAmount || undefined,
-        maxUsage: maxUsage || undefined,
-        userUsageLimit: userUsageLimit || undefined,
+        discountValue: parsedDiscountValue,
+        maxDiscountAmount: coupon.discountType === 'PERCENTAGE' ? (Number(maxDiscountAmount) || undefined) : undefined,
+        minOrderAmount: Number(minOrderAmount) || undefined,
+        maxUsage: Number(maxUsage) || undefined,
+        userUsageLimit: Number(userUsageLimit) || undefined,
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         applicableConditions: applicableConditions.trim() || undefined
@@ -147,8 +148,8 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 type="number"
                 fullWidth
                 required
-                value={discountValue || ''}
-                onChange={(e) => setDiscountValue(Math.max(0, Number(e.target.value)))}
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -167,8 +168,8 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 label="Giá trị đơn hàng tối thiểu"
                 type="number"
                 fullWidth
-                value={minOrderAmount || ''}
-                onChange={(e) => setMinOrderAmount(Math.max(0, Number(e.target.value)))}
+                value={minOrderAmount}
+                onChange={(e) => setMinOrderAmount(e.target.value)}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -182,8 +183,8 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 type="number"
                 fullWidth
                 disabled={coupon?.discountType === 'FIXED_AMOUNT'}
-                value={coupon?.discountType === 'FIXED_AMOUNT' ? '' : (maxDiscountAmount || '')}
-                onChange={(e) => setMaxDiscountAmount(Math.max(0, Number(e.target.value)))}
+                value={coupon?.discountType === 'FIXED_AMOUNT' ? '' : maxDiscountAmount}
+                onChange={(e) => setMaxDiscountAmount(e.target.value)}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -198,8 +199,8 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 label="Tổng số lượt phát hành"
                 type="number"
                 fullWidth
-                value={maxUsage || ''}
-                onChange={(e) => setMaxUsage(Math.max(1, Number(e.target.value)))}
+                value={maxUsage}
+                onChange={(e) => setMaxUsage(e.target.value)}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
 
@@ -207,8 +208,8 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 label="Lượt dùng tối đa / 1 Khách hàng"
                 type="number"
                 fullWidth
-                value={userUsageLimit || ''}
-                onChange={(e) => setUserUsageLimit(Math.max(1, Number(e.target.value)))}
+                value={userUsageLimit}
+                onChange={(e) => setUserUsageLimit(e.target.value)}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
             </div>

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import ConfirmModal from '@/components/general/ConfirmModal';
 import { Star, Heart, ChevronRight } from '@/components/ui/icons';
 import { useCart } from '@/hooks/useCart';
 import { toast } from 'react-toastify';
@@ -46,15 +47,10 @@ export function ProductDetail() {
     productReviews,
     productSummary,
     fetchProductReviews,
-    fetchProductReviewSummary,
-    createReview
+    fetchProductReviewSummary
   } = useReview();
 
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [newRating, setNewRating] = useState<number>(5);
-  const [newComment, setNewComment] = useState<string>('');
-  const [newImagesInput, setNewImagesInput] = useState<string>('');
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const { trackView, trackAddToCart, trackWishlist } = useTracking();
 
@@ -106,7 +102,7 @@ export function ProductDetail() {
   // States
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [selectedSize, setSelectedSize] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(1);
+  const [quantityInput, setQuantityInput] = useState<string>("1");
 
   // Sync selected color if product changes
   useEffect(() => {
@@ -114,7 +110,7 @@ export function ProductDetail() {
       const defaultColor = product.options_config.colors[0]?.colorName || '';
       setSelectedColor(defaultColor);
       setSelectedSize('');
-      setQuantity(1);
+      setQuantityInput("1");
     }
   }, [product]);
 
@@ -158,6 +154,10 @@ export function ProductDetail() {
   }, [product, activeVariant]);
 
   const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     if (!product) return;
     if (!selectedSize) {
       toast.error('Vui lòng chọn kích cỡ.');
@@ -181,8 +181,8 @@ export function ProductDetail() {
           'Màu sắc': selectedColor,
           'Kích cỡ': selectedSize
         }
-      }, quantity);
-      trackAddToCart(activeVariant.variant_id, quantity, selectedColor, selectedSize, Source.PRODUCT_MAIN_INFO);
+      }, parseInt(quantityInput) || 1);
+      trackAddToCart(activeVariant.variant_id, parseInt(quantityInput) || 1, selectedColor, selectedSize, Source.PRODUCT_MAIN_INFO);
       toast.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (err: any) {
       toast.error(err || 'Không thể thêm sản phẩm vào giỏ hàng.');
@@ -229,51 +229,6 @@ export function ProductDetail() {
       toast.success(isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
     } catch (err: any) {
       toast.error(err || 'Không thể cập nhật danh sách yêu thích');
-    }
-  };
-
-  const handleOpenReviewModal = () => {
-    if (!isAuthenticated) {
-      toast.warn('Vui lòng đăng nhập để viết đánh giá.');
-      navigate('/login');
-      return;
-    }
-    setNewRating(5);
-    setNewComment('');
-    setNewImagesInput('');
-    setIsReviewModalOpen(true);
-  };
-
-  const handleSubmitReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!product) return;
-    if (!newComment.trim()) {
-      toast.warn('Vui lòng viết nhận xét.');
-      return;
-    }
-    setIsSubmittingReview(true);
-    try {
-      const imageUrls = newImagesInput
-        .split(',')
-        .map((url) => url.trim())
-        .filter((url) => url.length > 0);
-
-      await createReview({
-        productId: product.product_id,
-        orderId: null,
-        rating: newRating,
-        comment: newComment.trim(),
-        imageUrls,
-      });
-
-      toast.success('Đã gửi đánh giá của bạn. Đang chờ duyệt!');
-      setIsReviewModalOpen(false);
-      fetchProductReviews(product.product_id, 0, 10);
-      fetchProductReviewSummary(product.product_id);
-    } catch (err: any) {
-      toast.error(err || 'Gửi đánh giá thất bại.');
-    } finally {
-      setIsSubmittingReview(false);
     }
   };
 
@@ -443,12 +398,7 @@ export function ProductDetail() {
               <section id="reviews-section" className="mt-10 pt-4 border-t border-gray-200 scroll-mt-24">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-[24px] font-medium m-0">Đánh giá</h2>
-                  <button
-                    onClick={handleOpenReviewModal}
-                    className="text-[14px] bg-transparent border-none flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span className="text-lg">✎</span> <p className='text-theme hover:text-theme-hover font-semibold m-0'>Viết bài đánh giá</p>
-                  </button>
+                  {/* Nút Viết đánh giá đã bị ẩn (Option 3) */}
                 </div>
 
                 {/* Tổng quan đánh giá (Nằm full chiều ngang) */}
@@ -623,14 +573,74 @@ export function ProductDetail() {
             <div className="mt-8 flex flex-wrap gap-4 items-center">
               {/* Box Tăng giảm số lượng */}
               <div className="flex items-center justify-between bg-[#f4f4f4] w-[140px] h-12 rounded-full px-1.5">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-full text-gray-600 hover:bg-gray-50 bg-transparent border-none cursor-pointer">
+                <button onClick={() => {
+                  const currentQty = parseInt(quantityInput) || 1;
+                  const newQty = Math.max(1, currentQty - 1);
+                  setQuantityInput(String(newQty));
+                }} className="w-10 h-full text-gray-600 hover:bg-gray-50 bg-transparent border-none cursor-pointer">
                   -
                 </button>
-                <span className="w-10 text-center text-[14px] font-medium">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-full text-gray-600 hover:bg-gray-50 bg-transparent border-none cursor-pointer">
+                <input
+                  type="text"
+                  value={quantityInput}
+                  onChange={(e) => {
+                    setQuantityInput(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      let val = parseInt(quantityInput);
+                      const maxQty = activeVariant ? Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999) : 999;
+                      if (isNaN(val) || quantityInput === '') {
+                        toast.error("Số lượng không được để trống.");
+                        setQuantityInput("1");
+                      } else if (val < 1) {
+                        toast.error("Số lượng tối thiểu là 1.");
+                        setQuantityInput("1");
+                      } else if (val > maxQty) {
+                        toast.error(`Chỉ được mua tối đa ${maxQty} sản phẩm.`);
+                        setQuantityInput(String(maxQty));
+                      } else {
+                        setQuantityInput(String(val));
+                      }
+                    }
+                  }}
+                  onBlur={() => {
+                    let val = parseInt(quantityInput);
+                    const maxQty = activeVariant ? Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999) : 999;
+                    if (isNaN(val) || quantityInput === '') {
+                      toast.error("Số lượng không được để trống.");
+                      setQuantityInput("1");
+                    } else if (val < 1) {
+                      toast.error("Số lượng tối thiểu là 1.");
+                      setQuantityInput("1");
+                    } else if (val > maxQty) {
+                      toast.error(`Chỉ được mua tối đa ${maxQty} sản phẩm.`);
+                      setQuantityInput(String(maxQty));
+                    } else {
+                      setQuantityInput(String(val));
+                    }
+                  }}
+                  className="w-10 text-center text-[14px] font-medium bg-transparent border-none outline-none hide-spin-button"
+                />
+                <button onClick={() => {
+                  const currentQty = parseInt(quantityInput) || 1;
+                  const maxQty = activeVariant ? Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999) : 999;
+                  if (currentQty >= maxQty) {
+                    toast.error(`Chỉ được mua tối đa ${maxQty} sản phẩm.`);
+                    setQuantityInput(String(maxQty));
+                  } else {
+                    setQuantityInput(String(currentQty + 1));
+                  }
+                }} className="w-10 h-full text-gray-600 hover:bg-gray-50 bg-transparent border-none cursor-pointer">
                   +
                 </button>
               </div>
+              
+              {activeVariant && (
+                <div className="text-[13px] text-gray-500 font-medium">
+                  Mua tối đa: {Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999)} sản phẩm
+                </div>
+              )}
 
               {/* Nút Thêm vào giỏ hàng đen tuyền */}
               <button
@@ -698,85 +708,19 @@ export function ProductDetail() {
 
       </Container>
 
-      {/* Modal Viết Đánh Giá */}
-      {isReviewModalOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-[500px] shadow-xl animate-fade-in text-left">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-[18px] font-bold m-0 text-black">Viết đánh giá sản phẩm</h3>
-              <button
-                onClick={() => setIsReviewModalOpen(false)}
-                className="bg-transparent border-none text-[20px] font-light cursor-pointer text-gray-400 hover:text-black"
-              >
-                ✕
-              </button>
-            </div>
-            <form onSubmit={handleSubmitReview} className="space-y-4">
-              {/* Chọn số sao */}
-              <div>
-                <label className="block text-[13px] font-semibold mb-2 text-gray-700">Đánh giá sao *</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      type="button"
-                      key={star}
-                      onClick={() => setNewRating(star)}
-                      className="bg-transparent border-none cursor-pointer p-0 text-black hover:scale-110 transition-transform"
-                    >
-                      <Star
-                        size={24}
-                        className={star <= newRating ? "fill-black text-black" : "text-gray-300"}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Nhận xét */}
-              <div>
-                <label className="block text-[13px] font-semibold mb-1 text-gray-700 font-sans">Nhận xét của bạn *</label>
-                <textarea
-                  rows={4}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
-                  className="w-full border border-gray-300 rounded p-2 text-[14px] focus:outline-none focus:border-black font-sans"
-                  required
-                />
-              </div>
-
-              {/* Đường dẫn ảnh */}
-              <div>
-                <label className="block text-[13px] font-semibold mb-1 text-gray-700">Đường dẫn ảnh đính kèm (tùy chọn, cách nhau bằng dấu phẩy)</label>
-                <input
-                  type="text"
-                  value={newImagesInput}
-                  onChange={(e) => setNewImagesInput(e.target.value)}
-                  placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-[13px] focus:outline-none focus:border-black"
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsReviewModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-full text-[13px] font-bold bg-white text-gray-700 hover:bg-gray-55 cursor-pointer"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingReview}
-                  className="px-6 py-2 rounded-full text-[13px] font-bold bg-theme hover:bg-theme-hover text-white cursor-pointer border-none disabled:opacity-50"
-                >
-                  {isSubmittingReview ? 'Đang gửi...' : 'Gửi đánh giá'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onConfirm={() => {
+          setIsLoginModalOpen(false);
+          navigate('/login', { state: { from: location.pathname } });
+        }}
+        title="Yêu cầu đăng nhập"
+        content="Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Bạn có muốn chuyển đến trang đăng nhập không?"
+        confirmText="Đăng nhập ngay"
+        cancelText="Hủy"
+      />
     </div>
   );
 }

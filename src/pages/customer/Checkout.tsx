@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { CreditCard, ArrowRight, ChevronLeft, Ticket, CheckCircle2 } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
 import BackHome from '@/components/general/BackHomeButton';
@@ -23,7 +23,13 @@ import { Container } from '@/components/shared/Container';
 
 export function Checkout() {
   const navigate = useNavigate();
-  const { items, clearCart } = useCart();
+  const location = useLocation();
+  const { items: allCartItems, fetchCart } = useCart();
+  
+  // Lấy danh sách item được chọn từ Cart
+  const selectedItemIds = useMemo(() => (location.state as any)?.selectedItemIds || [], [location.state]);
+  const items = useMemo(() => allCartItems.filter(item => selectedItemIds.includes(item.id)), [allCartItems, selectedItemIds]);
+
   const { checkout } = useOrder();
   const { availableCoupons, fetchAvailableCoupons, isFetching, previewApplyCoupon } = useCoupon();
   const { user, isAuthenticated } = useAuth();
@@ -79,35 +85,29 @@ export function Checkout() {
     }
   }, [selectedAddress, user]);
 
-  // Helper to calculate shipping fee via GHN
-  const calculateFeeForAddress = React.useCallback(async (addr: AddressResponse) => {
-    if (!addr) return;
-    
-    // Calculate total weight of cart
+  // Calculate total weight of cart
+  const totalWeightGram = useMemo(() => {
+    if (items.length === 0 || products.length === 0) return 0;
     const totalWeightKg = items.reduce((sum, item) => {
       const product = products.find(p => p.variants.some(v => v.variantId === item.variantId));
       const itemWeight = product ? (product.weightKg || 0.2) : 0.2;
       return sum + itemWeight * item.quantity;
     }, 0);
-    const totalWeightGram = Math.max(100, Math.round(totalWeightKg * 1000));
-    
-    try {
-      await calculateShippingFee({
-        toDistrictId: addr.districtId,
-        toWardCode: addr.wardCode,
-        weightGram: totalWeightGram,
-      });
-    } catch (err) {
-      console.error("Failed to calculate shipping fee:", err);
-    }
-  }, [items, products, calculateShippingFee]);
+    return Math.max(100, Math.round(totalWeightKg * 1000));
+  }, [items, products]);
 
-  // Recalculate shipping fee when selected address or items change
+  // Recalculate shipping fee when selected address or total weight change
   React.useEffect(() => {
-    if (selectedAddress && items.length > 0 && products.length > 0) {
-      calculateFeeForAddress(selectedAddress);
+    if (selectedAddress?.districtId && selectedAddress?.wardCode && totalWeightGram > 0) {
+      calculateShippingFee({
+        toDistrictId: selectedAddress.districtId,
+        toWardCode: selectedAddress.wardCode,
+        weightGram: totalWeightGram,
+      }).catch(err => {
+        console.error("Failed to calculate shipping fee:", err);
+      });
     }
-  }, [selectedAddress, items, products, calculateFeeForAddress]);
+  }, [selectedAddress?.districtId, selectedAddress?.wardCode, totalWeightGram, calculateShippingFee]);
   
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'vnpay' | 'momo'>('cod');
   const [appliedCoupons, setAppliedCoupons] = useState<CouponResponse[]>([]);
@@ -117,6 +117,13 @@ export function Checkout() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  React.useEffect(() => {
+    if (items.length === 0 && !orderSuccess && !isRedirecting) {
+      navigate('/cart', { replace: true });
+    }
+  }, [items.length, orderSuccess, isRedirecting, navigate]);
 
   // Coupon validation states
   const [validCoupons, setValidCoupons] = useState<{ coupon: CouponResponse; result: CouponApplyResponse }[]>([]);
@@ -156,11 +163,13 @@ export function Checkout() {
   // Handle errors from financial calculations (e.g., payment method changed)
   React.useEffect(() => {
     if (financials.errors.length > 0) {
-      financials.errors.forEach(err => toast.error(err));
+      if (hasUserInteractedWithCoupon) {
+        financials.errors.forEach(err => toast.error(err));
+      }
       // Remove invalid coupons
       setAppliedCoupons(financials.validCoupons);
     }
-  }, [financials.errors, financials.validCoupons]);
+  }, [financials.errors, financials.validCoupons, hasUserInteractedWithCoupon]);
 
   // Validation and Auto-suggest optimal coupon
   React.useEffect(() => {
@@ -177,6 +186,7 @@ export function Checkout() {
             const res = await previewApplyCoupon({
               couponCode: coupon.code,
               orderAmount: rawSubtotal,
+              shippingFee: rawShippingCost,
             });
             if (res) {
               valid.push({ coupon, result: res });
@@ -213,18 +223,33 @@ export function Checkout() {
   }, [availableCoupons, rawSubtotal, rawShippingCost, hasUserInteractedWithCoupon, previewApplyCoupon]);
 
   const handleSelectCoupon = (coupon: CouponResponse) => {
+    // Determine what the applied coupons would look like
+    let candidateCoupons: CouponResponse[] = [];
+    if (coupon.couponType === 'FREE_SHIPPING') {
+      const others = appliedCoupons.filter(c => c.couponType !== 'FREE_SHIPPING');
+      candidateCoupons = [...others, coupon];
+    } else {
+      // SHOP_VOUCHER or PAYMENT_VOUCHER
+      const others = appliedCoupons.filter(c => c.couponType === 'FREE_SHIPPING');
+      candidateCoupons = [...others, coupon];
+    }
+
+    // Validate using existing financial calculations
+    const candidateFinancials = calculateOrderFinancials(items, rawShippingCost, candidateCoupons, paymentMethod);
     
-    setAppliedCoupons(prev => {
-      if (coupon.couponType === 'FREE_SHIPPING') {
-        const others = prev.filter(c => c.couponType !== 'FREE_SHIPPING');
-        return [...others, coupon];
-      }
-      
-      // Nếu là SHOP_VOUCHER hoặc PAYMENT_VOUCHER (thay thế lẫn nhau)
-      const others = prev.filter(c => c.couponType === 'FREE_SHIPPING');
-      return [...others, coupon];
-    });
+    // Check if the newly added coupon caused an error
+    // (If the coupon was dropped from candidateFinancials.validCoupons, it means it was invalid)
+    const isCouponValid = candidateFinancials.validCoupons.some(c => c.couponId === coupon.couponId);
     
+    if (!isCouponValid) {
+      // Find the specific error related to this coupon type or just show the first error
+      const errorMsg = candidateFinancials.errors[0] || 'Mã giảm giá không hợp lệ với phương thức thanh toán hiện tại.';
+      toast.error(errorMsg);
+      return;
+    }
+
+    // If valid, apply it
+    setAppliedCoupons(candidateCoupons);
     setHasUserInteractedWithCoupon(true);
     setIsAutoApplied(false);
     toast.success(`Đã chọn mã: ${coupon.code}`);
@@ -269,10 +294,11 @@ export function Checkout() {
       const res = await checkout(payload);
       if (res) {
         toast.success('Đặt đơn hàng thành công!');
-        clearCart();
+        fetchCart();
         trackPurchase(res.orderId, paymentMethod, financials.grandTotal, payload.couponCodes?.join(',') || '', Source.CHECKOUT_PAGE);
         
         if (res.paymentUrl) {
+          setIsRedirecting(true);
           window.location.href = res.paymentUrl;
         } else {
           setOrderSuccess(true);

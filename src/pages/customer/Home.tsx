@@ -6,7 +6,6 @@ import {
   Popular,
   CampaignSection,
   AccessorySection,
-  AboutSection,
 } from '@/components/customer/Home';
 import { RecommendedForYou } from '@/components/customer/Recommendation/RecommendedForYou';
 export function Home() {
@@ -38,7 +37,7 @@ export function Home() {
         <AccessorySection />
 
         {/* SECTION: ABOUT & SEO */}
-        <AboutSection />
+        {/* <AboutSection /> */}
       </div>
     </>
   );

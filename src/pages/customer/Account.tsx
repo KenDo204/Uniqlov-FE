@@ -1,5 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import ConfirmModal from '@/components/general/ConfirmModal';
 import { toast } from 'react-toastify';
 import { Container } from '@/components/shared/Container';
 
@@ -7,7 +9,14 @@ export function Account() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const handleLogout = async () => {
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const handleLogout = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const performLogout = async () => {
+    setIsLogoutModalOpen(false);
     try {
       await logout();
       toast.success('Đã đăng xuất thành công!');
@@ -101,6 +110,15 @@ export function Account() {
         </div>
 
       </Container>
+      <ConfirmModal
+        open={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={performLogout}
+        title="Xác nhận đăng xuất"
+        content="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+        confirmText="Đăng xuất"
+        cancelText="Hủy"
+      />
     </div>
   );
 }

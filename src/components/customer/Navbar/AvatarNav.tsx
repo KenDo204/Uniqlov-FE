@@ -7,6 +7,7 @@ import { useCart } from '@/hooks/useCart'
 import { type UserResponse } from '@/types/auth'
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import { toast } from 'react-toastify';
+import ConfirmModal from '@/components/general/ConfirmModal';
 
 import { accountNavItems } from '@/config/navigation.config';
 
@@ -14,13 +15,16 @@ const AvatarNav = ({ user }: { user: UserResponse | null }) => {
   const navigate = useNavigate();
   const { items, fetchCart } = useCart();
   const [open, setOpen] = React.useState(false);
-  const { logout } = useAuth();
+  const { logout, isCustomer } = useAuth();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
   const [placement, setPlacement] = React.useState<PopperPlacementType>();
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
 
   React.useEffect(() => {
-    fetchCart();
-  }, [fetchCart, user]);
+    if (isCustomer) {
+      fetchCart();
+    }
+  }, [fetchCart, user, isCustomer]);
 
   const totalQuantity = React.useMemo(() => {
     return items.reduce((sum, item) => sum + item.quantity, 0);
@@ -28,6 +32,11 @@ const AvatarNav = ({ user }: { user: UserResponse | null }) => {
 
   const handleLogout = async () => {
     setOpen(false);
+    setIsLogoutModalOpen(true);
+  }
+
+  const performLogout = async () => {
+    setIsLogoutModalOpen(false);
     try {
       await logout();
       toast.success("Đăng xuất thành công");
@@ -85,8 +94,10 @@ const AvatarNav = ({ user }: { user: UserResponse | null }) => {
             <Fade {...TransitionProps} timeout={350}>
               <Paper sx={{ width: 300 }}>
                 <MenuList>
-                  {accountNavItems.map((item) => {
-                    const isCart = item.path === "/cart";
+                  {accountNavItems
+                    .filter((item) => item.path !== '/cart' || isCustomer)
+                    .map((item) => {
+                      const isCart = item.path === "/cart";
 
                     return (
                       <MenuItem
@@ -160,6 +171,15 @@ const AvatarNav = ({ user }: { user: UserResponse | null }) => {
         </Popper>
       </Box>
 
+      <ConfirmModal
+        open={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={performLogout}
+        title="Xác nhận đăng xuất"
+        content="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+        confirmText="Đăng xuất"
+        cancelText="Hủy"
+      />
     </>
   )
 }

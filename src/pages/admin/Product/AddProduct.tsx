@@ -32,9 +32,9 @@ interface ImageInput {
 
 interface VariantInput {
   attributes: Record<string, string>;
-  price: number;
-  costPrice: number;
-  stockQuantity: number;
+  price: string;
+  costPrice: string;
+  stockQuantity: string;
   skuCode: string;
   variantImage: string;
 }
@@ -56,7 +56,7 @@ export default function AddProduct() {
   const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
   const [categoryPathText, setCategoryPathText] = useState('');
   const [targetGender, setTargetGender] = useState<Gender>(Gender.UNISEX); // Unisex default
-  const [maxOrderQuantity, setMaxOrderQuantity] = useState<number>(5);
+  const [maxOrderQuantity, setMaxOrderQuantity] = useState<string>('5');
   const [inPopular, setInPopular] = useState(false);
   const [tagsInput, setTagsInput] = useState('');
 
@@ -275,14 +275,21 @@ export default function AddProduct() {
         Object.entries(combo).every(([k, val]) => v.attributes[k] === val)
       );
 
+      if (existing) {
+        return {
+          ...existing,
+          attributes: combo
+        };
+      }
+
       const vColor = combo['color'] || combo['colorName'];
       return {
         attributes: combo,
-        price: existing?.price || (defaultVariantPrice ? Number(defaultVariantPrice) : 0),
-        costPrice: existing?.costPrice || (defaultVariantCostPrice ? Number(defaultVariantCostPrice) : 0),
-        stockQuantity: existing?.stockQuantity !== undefined ? existing.stockQuantity : (defaultVariantStock ? Number(defaultVariantStock) : 10),
-        skuCode: existing?.skuCode || '',
-        variantImage: existing?.variantImage || (vColor && colorImages[vColor]) || (images[0]?.url || '')
+        price: defaultVariantPrice,
+        costPrice: defaultVariantCostPrice,
+        stockQuantity: defaultVariantStock || '10',
+        skuCode: '',
+        variantImage: (vColor && colorImages[vColor]) || (images[0]?.url || '')
       };
     });
 
@@ -383,7 +390,8 @@ export default function AddProduct() {
 
     if (!categoryId) newErrors.categoryId = 'Danh mục bắt buộc chọn';
 
-    if (maxOrderQuantity < 1 || maxOrderQuantity > 99) {
+    const parsedMaxOrderQuantity = Number(maxOrderQuantity);
+    if (isNaN(parsedMaxOrderQuantity) || parsedMaxOrderQuantity < 1 || parsedMaxOrderQuantity > 99) {
       newErrors.maxOrderQuantity = 'Số lượng đặt tối đa phải từ 1 đến 99';
     }
 
@@ -441,16 +449,20 @@ export default function AddProduct() {
 
         // Validate each variant fields
         variants.forEach((v, idx) => {
-          if (v.price <= 0) {
+          const vPrice = Number(v.price) || 0;
+          const vCost = Number(v.costPrice) || 0;
+          const vStock = Number(v.stockQuantity) || 0;
+
+          if (vPrice <= 0) {
             newErrors[`variant_price_${idx}`] = 'Giá bán phải > 0';
           }
-          if (v.costPrice <= 0) {
+          if (vCost <= 0) {
             newErrors[`variant_cost_${idx}`] = 'Giá vốn phải > 0';
           }
-          if (v.price < v.costPrice) {
+          if (vPrice < vCost) {
             newErrors[`variant_price_${idx}`] = 'Giá bán phải >= Giá vốn';
           }
-          if (v.stockQuantity < -1) {
+          if (vStock < -1) {
             newErrors[`variant_stock_${idx}`] = 'Tồn kho phải >= -1';
           }
         });
@@ -502,10 +514,10 @@ export default function AddProduct() {
       optionsConfigObj = {};
     } else {
       productVariants = variants.map(v => ({
-        price: v.price,
-        costPrice: v.costPrice,
+        price: v.price === '' ? 0 : Number(v.price),
+        costPrice: v.costPrice === '' ? 0 : Number(v.costPrice),
         variantAttributes: v.attributes,
-        stockQuantity: v.stockQuantity,
+        stockQuantity: v.stockQuantity === '' ? 0 : Number(v.stockQuantity),
         variantImage: v.variantImage.trim() || images.find(img => img.isThumbnail)?.url || images[0]?.url || ''
       }));
 
@@ -669,7 +681,7 @@ export default function AddProduct() {
                     variant="outlined"
                     fullWidth
                     value={maxOrderQuantity}
-                    onChange={(e) => { setMaxOrderQuantity(Number(e.target.value)); setIsDirty(true); }}
+                    onChange={(e) => { setMaxOrderQuantity(e.target.value); setIsDirty(true); }}
                     error={!!errors.maxOrderQuantity}
                     helperText={errors.maxOrderQuantity || 'Giới hạn từ 1 đến 99'}
                     slotProps={{ htmlInput: { min: 1, max: 99 } }}
@@ -1062,7 +1074,7 @@ export default function AddProduct() {
                     </Typography>
 
                     <TableContainer component={Paper} className="border border-gray-200 rounded-xl overflow-hidden shadow-none">
-                      <Table size="small">
+                      <Table size="small" className="whitespace-nowrap">
                         <TableHead className="bg-gray-50">
                           <TableRow>
                             <TableCell className="font-bold text-gray-600">Thuộc tính</TableCell>
@@ -1087,7 +1099,7 @@ export default function AddProduct() {
                                 <TextField
                                   type="number"
                                   value={v.price}
-                                  onChange={(e) => handleUpdateVariant(idx, 'price', Number(e.target.value))}
+                                  onChange={(e) => handleUpdateVariant(idx, 'price', e.target.value)}
                                   error={!!errors[`variant_price_${idx}`]}
                                   helperText={errors[`variant_price_${idx}`]}
                                   size="small"
@@ -1098,7 +1110,7 @@ export default function AddProduct() {
                                 <TextField
                                   type="number"
                                   value={v.costPrice}
-                                  onChange={(e) => handleUpdateVariant(idx, 'costPrice', Number(e.target.value))}
+                                  onChange={(e) => handleUpdateVariant(idx, 'costPrice', e.target.value)}
                                   error={!!errors[`variant_cost_${idx}`]}
                                   helperText={errors[`variant_cost_${idx}`]}
                                   size="small"
@@ -1109,7 +1121,7 @@ export default function AddProduct() {
                                 <TextField
                                   type="number"
                                   value={v.stockQuantity}
-                                  onChange={(e) => handleUpdateVariant(idx, 'stockQuantity', Number(e.target.value))}
+                                  onChange={(e) => handleUpdateVariant(idx, 'stockQuantity', e.target.value)}
                                   error={!!errors[`variant_stock_${idx}`]}
                                   helperText={errors[`variant_stock_${idx}`] || '>= -1'}
                                   size="small"

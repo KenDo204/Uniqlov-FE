@@ -79,9 +79,28 @@ export const useAuth = () => {
     }
   }, [accessToken]);
 
+  const isCustomer = useMemo(() => {
+    if (!isAuthenticated || !accessToken) return false;
+    try {
+      const decoded = jwtDecode<CustomJwtPayload>(accessToken);
+      const scopes = (decoded.scope || '').split(' ');
+      const nonCustomerRoles = ['ROLE_ADMIN', 'ADMIN', 'SUPER_ADMIN', 'ROLE_SUPER_ADMIN', 'STAFF', 'ROLE_STAFF', 'OWNER', 'ROLE_OWNER'];
+      if (scopes.some(s => nonCustomerRoles.includes(s))) {
+        return false;
+      }
+      if (user?.roleName && nonCustomerRoles.includes(user.roleName)) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }, [isAuthenticated, accessToken, user]);
+
   return useMemo(() => ({
     user,
     isAuthenticated,
+    isCustomer,
     accessToken,
     loading: isLoading,
     error,
@@ -96,5 +115,5 @@ export const useAuth = () => {
     resetPassword,
     introspectToken,
     hasPermission
-  }), [user, isAuthenticated, accessToken, isLoading, error, login, logout, fetchProfile, resetAuth, register, forgotPassword, activateAccount, resendOtp, resetPassword, introspectToken, hasPermission]);
-};
+  }), [user, isAuthenticated, isCustomer, accessToken, isLoading, error, login, logout, fetchProfile, resetAuth, register, forgotPassword, activateAccount, resendOtp, resetPassword, introspectToken, hasPermission]);
+};

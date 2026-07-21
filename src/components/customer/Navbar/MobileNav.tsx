@@ -3,7 +3,8 @@ import { Logout, ExpandMore as ExpandMoreIcon, Home } from "@mui/icons-material"
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "react-toastify";
-import React from "react";
+import React, { useState } from "react";
+import ConfirmModal from '@/components/general/ConfirmModal';
 import EasyMall_Logo from '@/assets/icons/logo1.png';
 import { BRAND } from "@/constants/brand";
 import { useCategory } from "@/hooks/useCategory";
@@ -13,6 +14,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
     const { logout } = useAuth();
     const { categories, fetchPublicCategories } = useCategory();
     const navigate = useNavigate();
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     React.useEffect(() => {
         if (isOpen && (!categories || categories.length === 0)) {
@@ -24,7 +26,13 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
         return (categories || []).filter((c: any) => c.categoryStatus === 1 && (c.parentId === null || c.level === 1)).slice(0, 12);
     }, [categories]);
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
+        setIsOpen(false);
+        setIsLogoutModalOpen(true);
+    }
+
+    const performLogout = async () => {
+        setIsLogoutModalOpen(false);
         try {
             await logout();
             toast.success("Đăng xuất thành công");
@@ -33,7 +41,6 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
             console.error("Lỗi đăng xuất:", error);
             navigate("/");
         }
-        setIsOpen(false);
     }
 
     const DrawerList = (
@@ -147,7 +154,7 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
                     variant="outlined"
                     size="large"
                     startIcon={<Logout sx={{ fontSize: "1.25rem" }} />}
-                    onClick={() => { handleLogout(); setIsOpen(false); }}
+                    onClick={() => { handleLogout(); }}
                     sx={{
                         py: 1.25,
                         fontSize: '1.05rem',
@@ -167,8 +174,19 @@ export default function MobileNav({ isOpen, setIsOpen }: { isOpen: boolean, setI
     );
 
     return (
-        <Drawer anchor="left" open={isOpen} onClose={() => setIsOpen(false)}>
-            {DrawerList}
-        </Drawer>
+        <>
+            <Drawer anchor="left" open={isOpen} onClose={() => setIsOpen(false)}>
+                {DrawerList}
+            </Drawer>
+            <ConfirmModal
+                open={isLogoutModalOpen}
+                onClose={() => setIsLogoutModalOpen(false)}
+                onConfirm={performLogout}
+                title="Xác nhận đăng xuất"
+                content="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+                confirmText="Đăng xuất"
+                cancelText="Hủy"
+            />
+        </>
     );
 }

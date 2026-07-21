@@ -17,13 +17,16 @@ import type { CartItem } from '@/stores/slices/cartSlice';
 import { toast } from 'react-toastify';
 import type { ProductVariantResponse } from '@/types/product';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export const useCart = () => {
   const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { isAuthenticated, isCustomer } = useAuth();
   const { items, totalAmount, isLoading, error } = useAppSelector((state) => state.cart);
 
   const fetchCart = useCallback(async () => {
-    if (isAuthenticated) {
+    // Chỉ gọi API giỏ hàng đối với khách hàng (Customer)
+    if (isAuthenticated && isCustomer) {
       try {
         return await dispatch(fetchCartDbThunk()).unwrap();
       } catch (err) {
@@ -31,10 +34,11 @@ export const useCart = () => {
       }
     }
     return null;
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isCustomer]);
 
   const addCartItem = useCallback(async (item: Omit<CartItem, 'quantity'>, quantity: number = 1) => {
     if (isAuthenticated) {
+      if (!isCustomer) return; // Non-customers can't add to cart
       // Extract variantId. Sometimes it is stored in item.variantId or item.id
       const vId = item.variantId || Number(item.id) || 0;
       if (vId > 0) {
@@ -47,28 +51,29 @@ export const useCart = () => {
     }
     // Fallback/Guest
     dispatch(addItem({ item, quantity }));
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isCustomer]);
 
-  const updateCartItemQuantity = useCallback(async (id: string, quantity: number) => {
+  const updateCartItemQuantity = useCallback(async (id: string, quantity: number, note?: string) => {
     try {
       if (isAuthenticated) {
+        if (!isCustomer) return;
         const vId = Number(id);
         if (!isNaN(vId)) {
-          await dispatch(updateItemDbThunk({ variantId: vId, quantity })).unwrap();
+          await dispatch(updateItemDbThunk({ variantId: vId, quantity, note })).unwrap();
         }
       } else {
-        dispatch(updateQuantity({ id, quantity }));
+        dispatch(updateQuantity({ id, quantity, note }));
       }
-      // Không nên toast success khi tăng giảm số lượng quá nhiều để tránh spam UX, nhưng theo yêu cầu:
       toast.success('Đã cập nhật số lượng sản phẩm.');
     } catch (err: any) {
       toast.error(err || 'Không thể cập nhật số lượng sản phẩm.');
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isCustomer]);
 
   const removeCartItem = useCallback(async (id: string) => {
     try {
       if (isAuthenticated) {
+        if (!isCustomer) return;
         const vId = Number(id);
         if (!isNaN(vId)) {
           await dispatch(removeItemDbThunk(vId)).unwrap();
@@ -80,17 +85,19 @@ export const useCart = () => {
     } catch (err: any) {
       toast.error(err || 'Không thể xóa sản phẩm khỏi giỏ hàng.');
     }
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isCustomer]);
 
   const clearAllCart = useCallback(async () => {
     if (isAuthenticated) {
+      if (!isCustomer) return;
       return await dispatch(clearCartDbThunk()).unwrap();
     }
     dispatch(clearCart());
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isCustomer]);
 
   const changeCartItemVariant = useCallback(async (oldVariantId: number, newVariant: ProductVariantResponse, quantity: number, note?: string) => {
     if (isAuthenticated) {
+      if (!isCustomer) return;
       return await dispatch(changeItemVariantDbThunk({ 
         oldVariantId, 
         newVariantId: newVariant.variantId, 
@@ -99,7 +106,7 @@ export const useCart = () => {
       })).unwrap();
     }
     dispatch(changeVariant({ oldVariantId, newVariant }));
-  }, [dispatch, isAuthenticated]);
+  }, [dispatch, isAuthenticated, isCustomer]);
 
   return useMemo(() => ({
     items,

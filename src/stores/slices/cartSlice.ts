@@ -3,7 +3,7 @@ import { cartService } from '@/services/cartService';
 import type { CartItemResponse } from '@/types/cart/responses';
 import type { CartItemRequest } from '@/types/cart/requests';
 import type { ProductVariantResponse } from '@/types/product';
-
+import { clearAuth, logoutThunk, getCurrentUserThunk } from '@/stores/slices/authSlice';
 
 export interface CartItem {
   id: string; // For guest: variantId or slug-attribute combination. For DB: stringified variantId.
@@ -201,11 +201,12 @@ const cartSlice = createSlice({
       persistCart(state.items);
       state.totalAmount = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     },
-    updateQuantity(state, action: PayloadAction<{ id: string; quantity: number }>) {
-      const { id, quantity } = action.payload;
+    updateQuantity(state, action: PayloadAction<{ id: string; quantity: number; note?: string }>) {
+      const { id, quantity, note } = action.payload;
       const item = state.items.find((i) => i.id === id);
       if (item) {
         item.quantity = Math.max(1, quantity);
+        if (note !== undefined) item.note = note;
       }
       persistCart(state.items);
       state.totalAmount = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -347,6 +348,39 @@ const cartSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       });
+
+    // Clear cart state & storage on Logout or ClearAuth
+    builder.addCase(clearAuth, (state) => {
+      state.items = [];
+      state.totalAmount = 0;
+      state.error = null;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('cart-storage');
+      }
+    });
+    builder.addCase(logoutThunk.fulfilled, (state) => {
+      state.items = [];
+      state.totalAmount = 0;
+      state.error = null;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('cart-storage');
+      }
+    });
+
+    // Clear cart state & storage if logged-in user is not a Customer
+    builder.addCase(getCurrentUserThunk.fulfilled, (state, action) => {
+      const user = action.payload;
+      if (user) {
+        const nonCustomerRoles = ['ROLE_ADMIN', 'ADMIN', 'SUPER_ADMIN', 'ROLE_SUPER_ADMIN', 'STAFF', 'ROLE_STAFF', 'OWNER', 'ROLE_OWNER'];
+        if (user.roleName && nonCustomerRoles.includes(user.roleName)) {
+          state.items = [];
+          state.totalAmount = 0;
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('cart-storage');
+          }
+        }
+      }
+    });
   }
 });
 

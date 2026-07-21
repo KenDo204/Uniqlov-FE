@@ -2,17 +2,20 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatVND } from '@/utils/formatters';
 import { paths } from '@/config/paths';
+import { toast } from 'react-toastify';
 
 interface OrderSummaryProps {
   itemCount: number;
   rawSubtotal: number;
   total: number;
+  selectedItemIds?: string[];
 }
 
 export const OrderSummary: React.FC<OrderSummaryProps> = ({
   itemCount,
   rawSubtotal,
   total,
+  selectedItemIds = [],
 }) => {
   const navigate = useNavigate();
 
@@ -40,7 +43,13 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
 
       {/* Nút thanh toán bo tròn hình viên thuốc đặc trưng */}
       <button
-        onClick={() => navigate(paths.customer.checkout)}
+        onClick={() => {
+          if (selectedItemIds.length === 0) {
+            toast.warn('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.');
+            return;
+          }
+          navigate(paths.customer.checkout, { state: { selectedItemIds } });
+        }}
         className="w-full bg-theme text-white py-4 rounded-full font-bold text-[14px] tracking-wide hover:bg-theme-hover transition-colors border-none cursor-pointer mt-6"
       >
         THANH TOÁN

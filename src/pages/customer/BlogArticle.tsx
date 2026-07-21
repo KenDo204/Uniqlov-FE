@@ -1,5 +1,7 @@
-import { useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import ConfirmModal from '@/components/general/ConfirmModal';
 import { ArrowLeft, Clock, Share2, ShoppingCart } from '@/components/ui/icons';
 import { mockBlogEntries } from './Blog';
 import { paths } from '../../config/paths';
@@ -13,6 +15,8 @@ export function BlogArticle() {
   const navigate = useNavigate();
   const location = useLocation();
   const addItem = useCartStore((state) => state.addItem);
+  const { isAuthenticated } = useAuth();
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // Retrieve current entry
   const entry = useMemo(() => {
@@ -42,6 +46,10 @@ export function BlogArticle() {
   };
 
   const handleQuickAdd = () => {
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     if (!matchingProduct) return;
     const firstVar = matchingProduct.variants[0];
     const size = firstVar?.variantAttributes?.size || 'M';
@@ -151,6 +159,19 @@ export function BlogArticle() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onConfirm={() => {
+          setIsLoginModalOpen(false);
+          navigate('/login', { state: { from: location.pathname } });
+        }}
+        title="Yêu cầu đăng nhập"
+        content="Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Bạn có muốn chuyển đến trang đăng nhập không?"
+        confirmText="Đăng nhập ngay"
+        cancelText="Hủy"
+      />
     </div>
   );
 }

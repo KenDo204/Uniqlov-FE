@@ -4,6 +4,7 @@ import { type CouponType } from '../enums/couponType';
 export interface CouponApplyRequest {
     couponCode: string;
     orderAmount: number;
+    shippingFee?: number;
 }
 
 export interface CouponCreateRequest {

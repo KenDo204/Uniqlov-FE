@@ -33,7 +33,7 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
   const [imageUrl, setImageUrl] = useState('');
   const [targetUrl, setTargetUrl] = useState('');
   const [isActive, setIsActive] = useState(true);
-  const [displayOrder, setDisplayOrder] = useState<number>(0);
+  const [displayOrder, setDisplayOrder] = useState<string>('0');
 
   const { isUploading, uploadFile } = useUpload(uploadService.uploadSliderImage);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +43,7 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
       setImageUrl(initialData.imageUrl);
       setTargetUrl(initialData.targetUrl || '');
       setIsActive(initialData.isActive);
-      setDisplayOrder(initialData.displayOrder);
+      setDisplayOrder(String(initialData.displayOrder));
     }
   }, [initialData]);
 
@@ -71,7 +71,8 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
       return;
     }
 
-    if (displayOrder < 0) {
+    const parsedDisplayOrder = Number(displayOrder);
+    if (isNaN(parsedDisplayOrder) || parsedDisplayOrder < 0) {
       toast.error('Thứ tự hiển thị phải lớn hơn hoặc bằng 0');
       return;
     }
@@ -85,7 +86,7 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
       imageUrl: imageUrl.trim(),
       targetUrl: targetUrl.trim() || undefined,
       isActive,
-      displayOrder
+      displayOrder: parsedDisplayOrder
     });
   };
 

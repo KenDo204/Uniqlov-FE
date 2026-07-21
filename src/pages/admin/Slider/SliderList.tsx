@@ -102,7 +102,7 @@ const SliderList: React.FC = () => {
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto min-h-[400px]">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100">
                   <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider w-24 text-center">STT</th>

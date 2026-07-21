@@ -166,7 +166,7 @@ const UserList: React.FC = () => {
         {/* TABLE */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold">Tên người dùng</th>

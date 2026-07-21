@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { useOrder } from '@/hooks/useOrder';
 import { useCart } from '@/hooks/useCart';
 import { FiPackage as Package, FiMapPin as MapPin, FiCreditCard as CreditCard, FiShoppingCart as ShoppingCart } from 'react-icons/fi';
 import { formatVND } from '@/utils/formatters';
 import { CircularProgress } from '@mui/material';
 import ConfirmCancelOrderModal from '@/components/general/ConfirmCancelOrderModal';
+import ConfirmModal from '@/components/general/ConfirmModal';
+import { ReviewForm } from '@/components/review/ReviewForm';
 import { toast } from 'react-toastify';
 import type { OrderResponse } from '@/types/order/responses';
 
@@ -24,6 +28,23 @@ const getOrderStatusLabel = (status: string) => {
   return statusMap[status] || status;
 };
 
+const formatVariantAttributes = (attrStr: any) => {
+  try {
+    const parsed = typeof attrStr === 'string' ? JSON.parse(attrStr) : attrStr;
+    if (typeof parsed === 'object' && parsed !== null) {
+      const parts = [];
+      const size = parsed.size || parsed['Kích cỡ'];
+      const color = parsed.color || parsed.colorName || parsed['Màu sắc'];
+      if (size) parts.push(`Kích thước: ${size}`);
+      if (color) parts.push(`Màu sắc: ${color}`);
+      if (parts.length > 0) return parts.join(' | ');
+    }
+  } catch (e) {
+    // ignore parsing errors
+  }
+  return typeof attrStr === 'string' ? attrStr : JSON.stringify(attrStr);
+};
+
 export function Orders() {
   const {
     orders,
@@ -33,7 +54,12 @@ export function Orders() {
     cancelMyOrder
   } = useOrder();
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
+  
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [orderDetails, setOrderDetails] = useState<Record<number, OrderResponse>>({});
@@ -43,6 +69,9 @@ export function Orders() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+
+  // Review modal state
+  const [reviewItem, setReviewItem] = useState<{ productId: number; orderId: number } | null>(null);
 
   useEffect(() => {
     fetchMyOrders(0, 10).catch(err => {
@@ -116,6 +145,10 @@ export function Orders() {
 
   const handleRepurchase = async (item: any, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
     try {
       await addItem({
         id: String(item.variantId),
@@ -240,23 +273,35 @@ export function Orders() {
                                   </div>
                                   <div className="flex-1 text-[13px] flex flex-col justify-center">
                                     <h4 className="font-semibold text-gray-900 m-0 text-[14px] leading-snug">{item.productName}</h4>
-                                    <p className="text-gray-400 text-[11px] mt-1 mb-2">SKU: {item.skuCode}</p>
                                     <div className="text-gray-600 flex flex-wrap gap-x-4">
-                                      <span className="bg-gray-100 px-2 py-0.5 rounded-sm text-[11px] font-medium">Phân loại: {typeof item.variantAttributes === 'string' ? item.variantAttributes : JSON.stringify(item.variantAttributes)}</span>
+                                      <span className="bg-gray-100 px-2 py-0.5 rounded-sm text-[11px] font-medium">Phân loại: {formatVariantAttributes(item.variantAttributes)}</span>
                                       <span className="font-medium">SL: {item.quantity}</span>
                                     </div>
                                   </div>
                                 </div>
                                 <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-none border-gray-100">
-                                  <div className="text-[14px] font-bold text-gray-900">
-                                    {formatVND(item.price)}
+                                  <div className="flex flex-col sm:flex-row gap-2">
+                                    <div className="text-[14px] font-bold text-gray-900 self-end sm:self-center mb-1 sm:mb-0 mr-0 sm:mr-3">
+                                      {formatVND(item.price)}
+                                    </div>
+                                    <button
+                                      onClick={(e) => handleRepurchase(item, e)}
+                                      className="flex justify-center items-center gap-1.5 px-4 py-1.5 bg-[var(--color-theme-light)] hover:bg-[var(--color-theme)] text-[var(--color-theme)] hover:text-white rounded-[4px] text-[11px] font-bold uppercase transition-colors border-none cursor-pointer w-full sm:w-auto"
+                                    >
+                                      <ShoppingCart size={14} /> Mua lại
+                                    </button>
+                                    {ord.orderStatus === 'COMPLETED' && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setReviewItem({ productId: item.productId, orderId: ord.orderId });
+                                        }}
+                                        className="flex justify-center items-center px-4 py-1.5 border border-[var(--color-theme)] hover:bg-[var(--color-theme)] text-[var(--color-theme)] hover:text-white rounded-[4px] text-[11px] font-bold uppercase transition-colors bg-white cursor-pointer w-full sm:w-auto"
+                                      >
+                                        Đánh giá
+                                      </button>
+                                    )}
                                   </div>
-                                  <button
-                                    onClick={(e) => handleRepurchase(item, e)}
-                                    className="flex items-center gap-1.5 px-4 py-1.5 bg-[var(--color-theme-light)] hover:bg-[var(--color-theme)] text-[var(--color-theme)] hover:text-white rounded-[4px] text-[11px] font-bold uppercase transition-colors border-none cursor-pointer"
-                                  >
-                                    <ShoppingCart size={14} /> Mua lại
-                                  </button>
                                 </div>
                               </div>
                             ))}
@@ -274,9 +319,15 @@ export function Orders() {
                               <span>Phí vận chuyển:</span>
                               <span className="text-gray-800">{details.originalShippingFee === 0 ? 'Miễn phí' : formatVND(details.originalShippingFee)}</span>
                             </div>
+                            {(details.shopDiscountAmount > 0) && (
+                              <div className="flex justify-between gap-6 text-emerald-600">
+                                <span>Voucher từ Shop:</span>
+                                <span>-{formatVND(details.shopDiscountAmount)}</span>
+                              </div>
+                            )}
                             {(details.shippingDiscountAmount > 0 || details.paymentDiscountAmount > 0) && (
                               <div className="flex justify-between gap-6 text-emerald-600">
-                                <span>Giảm giá:</span>
+                                <span>Giảm giá khác:</span>
                                 <span>-{formatVND((details.shippingDiscountAmount || 0) + (details.paymentDiscountAmount || 0))}</span>
                               </div>
                             )}
@@ -308,6 +359,26 @@ export function Orders() {
         onConfirm={handleConfirmCancel}
         isSubmitting={isCancelling}
       />
+      <ConfirmModal
+        open={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onConfirm={() => {
+          setIsLoginModalOpen(false);
+          navigate('/login', { state: { from: location.pathname } });
+        }}
+        title="Yêu cầu đăng nhập"
+        content="Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng. Bạn có muốn chuyển đến trang đăng nhập không?"
+        confirmText="Đăng nhập ngay"
+        cancelText="Hủy"
+      />
+      {reviewItem && (
+        <ReviewForm
+          productId={reviewItem.productId}
+          orderId={reviewItem.orderId}
+          onSuccess={() => setReviewItem(null)}
+          onClose={() => setReviewItem(null)}
+        />
+      )}
     </div>
   );
 }

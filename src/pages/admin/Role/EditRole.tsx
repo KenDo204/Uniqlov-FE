@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   CircularProgress, Dialog, DialogTitle,
-  DialogContent, DialogActions, Button, TextField, FormControlLabel, Checkbox
+  DialogContent, DialogActions, Button, TextField, FormControlLabel, Checkbox, InputAdornment
 } from '@mui/material';
+import { Search } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useRole } from '@/hooks/useRole';
 import type { RoleResponse } from '@/types/role';
@@ -26,8 +27,21 @@ const EditRole: React.FC<EditRoleProps> = ({ open, onClose, onSuccess, role, per
     if (open && role) {
       setEditDescription(role.description || '');
       setEditSelectedPermissions(role.permissions?.map(p => p.permissionId) || []);
+      setSearchTerm('');
     }
   }, [open, role]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredPermissions = React.useMemo(() => {
+    if (!permissions) return [];
+    if (!searchTerm.trim()) return permissions;
+    const lower = searchTerm.toLowerCase();
+    return permissions.filter(p =>
+      p.permissionName.toLowerCase().includes(lower) ||
+      (p.description && p.description.toLowerCase().includes(lower))
+    );
+  }, [permissions, searchTerm]);
 
   const handleToggleEditPermission = (id: number) => {
     setEditSelectedPermissions(prev =>
@@ -78,11 +92,33 @@ const EditRole: React.FC<EditRoleProps> = ({ open, onClose, onSuccess, role, per
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
 
-            <div className="mt-2">
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Cập nhật quyền gán (Permissions)</label>
+            <div className="mt-2 flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider m-0">Cập nhật quyền gán (Permissions)</label>
+                <TextField
+                  variant="outlined"
+                  placeholder="Tìm kiếm quyền..."
+                  size="small"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search fontSize="small" />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                  sx={{
+                    minWidth: { sm: '220px' }, width: { xs: '100%', sm: 'auto' },
+                    '& .MuiOutlinedInput-root': { borderRadius: '8px', bgcolor: 'white', height: '36px', fontSize: '13px' }
+                  }}
+                />
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 border border-gray-200 p-4 rounded-xl max-h-60 overflow-y-auto bg-gray-50">
-                {permissions && permissions.length > 0 ? (
-                  permissions.map(p => (
+                {filteredPermissions.length > 0 ? (
+                  filteredPermissions.map(p => (
                     <FormControlLabel
                       key={p.permissionId}
                       control={

@@ -3,8 +3,9 @@ import {
   CircularProgress, Tooltip, Button, IconButton
 } from '@mui/material';
 import {
-  Edit, Delete, Add, Lock
+  Edit, Delete, Add, Lock, Search
 } from '@mui/icons-material';
+import { TextField, InputAdornment } from '@mui/material';
 import ConfirmModal from '@/components/general/ConfirmModal';
 import { usePermission } from '@/hooks/usePermission';
 import { toast } from 'react-toastify';
@@ -35,15 +36,34 @@ const PermissionList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const paginatedPermissions = useMemo(() => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  const filteredPermissions = useMemo(() => {
     if (!permissions) return [];
+    if (!debouncedSearchTerm.trim()) return permissions;
+    const lowerQuery = debouncedSearchTerm.toLowerCase();
+    return permissions.filter(
+      p => p.permissionName.toLowerCase().includes(lowerQuery) ||
+           (p.description && p.description.toLowerCase().includes(lowerQuery))
+    );
+  }, [permissions, debouncedSearchTerm]);
+
+  const paginatedPermissions = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return permissions.slice(start, start + itemsPerPage);
-  }, [permissions, currentPage]);
+    return filteredPermissions.slice(start, start + itemsPerPage);
+  }, [filteredPermissions, currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [permissions]);
+  }, [filteredPermissions]);
 
   useEffect(() => {
     fetchAllPermissions().catch(err => {
@@ -99,26 +119,49 @@ const PermissionList: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800 m-0">Quản lý quyền hạn</h1>
             <p className="text-sm text-gray-500 mt-1 m-0">Định nghĩa các quyền thao tác trong hệ thống bảo mật cấp cơ sở dữ liệu</p>
           </div>
-          <PermissionGuard permission="permission:create">
-            <Button
-              onClick={handleOpenAdd}
-              variant="contained"
-              sx={{
-                bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
-                fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
-                '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' }
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <TextField
+              variant="outlined"
+              placeholder="Tìm kiếm quyền..."
+              size="small"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search fontSize="small" />
+                    </InputAdornment>
+                  )
+                }
               }}
-            >
-              <Add fontSize="medium" />
-              Thêm mã quyền
-            </Button>
-          </PermissionGuard>
+              sx={{
+                minWidth: { sm: '260px' }, width: { xs: '100%', sm: 'auto' },
+                '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'white' }
+              }}
+            />
+            <PermissionGuard permission="permission:create">
+              <Button
+                onClick={handleOpenAdd}
+                variant="contained"
+                sx={{
+                  bgcolor: 'theme', textTransform: 'none', px: 3, py: 1.2,
+                  fontWeight: 'bold', fontSize: '14px', borderRadius: '12px', boxShadow: 'none',
+                  '&:hover': { bgcolor: 'theme-hover', boxShadow: 'none' },
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Add fontSize="medium" />
+                Thêm mã quyền
+              </Button>
+            </PermissionGuard>
+          </div>
         </div>
 
         {/* TABLE */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold w-24 text-center">ID</th>
@@ -197,8 +240,8 @@ const PermissionList: React.FC = () => {
           </div>
           <CustomPagination
             currentPage={currentPage}
-            totalPages={Math.ceil((permissions?.length || 0) / itemsPerPage)}
-            totalItems={permissions?.length || 0}
+            totalPages={Math.ceil((filteredPermissions?.length || 0) / itemsPerPage)}
+            totalItems={filteredPermissions?.length || 0}
             itemsPerPage={itemsPerPage}
             onPageChange={(page) => setCurrentPage(page)}
           />

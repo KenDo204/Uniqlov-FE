@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Close as X, Mic, MicOff } from "@mui/icons-material";
+import { Search, Close as X} from "@mui/icons-material";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { buildSearchUrl } from "@/utils/urlHelpers";
@@ -18,62 +18,13 @@ export function SearchBox({
   className,
 }: SearchBoxProps) {
   const [query, setQuery] = useState(initialValue);
-  const [isListening, setIsListening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
   const { trackSearch } = useTracking();
 
   useEffect(() => {
     setQuery(initialValue);
   }, [initialValue]);
-
-  // Initialize Web Speech API
-  useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = "vi-VN";
-
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        setIsListening(false);
-      };
-      
-      recognition.onresult = (event: any) => {
-        let currentTranscript = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          currentTranscript += event.results[i][0].transcript;
-        }
-        
-        if (currentTranscript) {
-          setQuery(currentTranscript);
-        }
-      };
-
-      recognitionRef.current = recognition;
-    }
-  }, []);
-
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-    } else {
-      try {
-        if (!recognitionRef.current) {
-          alert("Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói.");
-          return;
-        }
-        recognitionRef.current.start();
-      } catch (err) {
-        console.error("Speech recognition start error:", err);
-      }
-    }
-  };
 
   const handleClear = () => {
     setQuery("");
@@ -84,7 +35,6 @@ export function SearchBox({
     e.preventDefault();
     const trimmedQuery = query.trim();
     if (trimmedQuery) {
-      if (isListening) recognitionRef.current?.stop();
       trackSearch(trimmedQuery, 0, Source.HEADER_MEGA_MENU);
       navigate(buildSearchUrl(trimmedQuery));
     }
@@ -119,24 +69,6 @@ export function SearchBox({
       />
 
       <div className="flex items-center space-x-1 shrink-0">
-        <button
-          type="button"
-          onClick={toggleListening}
-          title={isListening ? "Đang nghe..." : "Tìm kiếm bằng giọng nói"}
-          className={cn(
-            "p-1.5 rounded-full transition-all duration-200 flex items-center justify-center",
-            isListening
-              ? "bg-red-50 text-red-500 animate-pulse shadow-inner"
-              : "hover:bg-gray-200 text-gray-400 hover:text-theme"
-          )}
-        >
-          {isListening ? (
-            <MicOff className="w-4 h-4" />
-          ) : (
-            <Mic className="w-4 h-4" />
-          )}
-        </button>
-
         {query && (
           <button
             type="button"

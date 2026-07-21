@@ -21,11 +21,11 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
   const [code, setCode] = useState('');
   const [description, setDescription] = useState('');
   const [discountType, setDiscountType] = useState<DiscountType>('PERCENTAGE');
-  const [discountValue, setDiscountValue] = useState<number>(0);
-  const [maxDiscountAmount, setMaxDiscountAmount] = useState<number>(0);
-  const [minOrderAmount, setMinOrderAmount] = useState<number>(0);
-  const [maxUsage, setMaxUsage] = useState<number>(100);
-  const [userUsageLimit, setUserUsageLimit] = useState<number>(1);
+  const [discountValue, setDiscountValue] = useState<string>('');
+  const [maxDiscountAmount, setMaxDiscountAmount] = useState<string>('');
+  const [minOrderAmount, setMinOrderAmount] = useState<string>('');
+  const [maxUsage, setMaxUsage] = useState<string>('100');
+  const [userUsageLimit, setUserUsageLimit] = useState<string>('1');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [couponType, setCouponType] = useState<CouponType>('SHOP_VOUCHER');
@@ -37,11 +37,11 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
       setCode('');
       setDescription('');
       setDiscountType('PERCENTAGE');
-      setDiscountValue(0);
-      setMaxDiscountAmount(0);
-      setMinOrderAmount(0);
-      setMaxUsage(100);
-      setUserUsageLimit(1);
+      setDiscountValue('');
+      setMaxDiscountAmount('');
+      setMinOrderAmount('');
+      setMaxUsage('100');
+      setUserUsageLimit('1');
 
       // Set default times (start: now, end: next week)
       const now = new Date();
@@ -68,12 +68,13 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
       return;
     }
 
-    if (discountValue <= 0) {
+    const parsedDiscountValue = Number(discountValue) || 0;
+    if (parsedDiscountValue <= 0) {
       toast.error('Giá trị giảm giá phải lớn hơn 0');
       return;
     }
 
-    if (discountType === 'PERCENTAGE' && discountValue > 100) {
+    if (discountType === 'PERCENTAGE' && parsedDiscountValue > 100) {
       toast.error('Phần trăm giảm giá tối đa là 100%');
       return;
     }
@@ -90,11 +91,11 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
         code: code.trim().toUpperCase(),
         description: description.trim() || undefined,
         discountType,
-        discountValue,
-        maxDiscountAmount: discountType === 'PERCENTAGE' ? maxDiscountAmount || undefined : undefined,
-        minOrderAmount: minOrderAmount || undefined,
-        maxUsage: maxUsage || undefined,
-        userUsageLimit: userUsageLimit || undefined,
+        discountValue: parsedDiscountValue,
+        maxDiscountAmount: discountType === 'PERCENTAGE' ? (Number(maxDiscountAmount) || undefined) : undefined,
+        minOrderAmount: Number(minOrderAmount) || undefined,
+        maxUsage: Number(maxUsage) || undefined,
+        userUsageLimit: Number(userUsageLimit) || undefined,
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         couponType,
@@ -171,7 +172,7 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                   const type = e.target.value as DiscountType;
                   setDiscountType(type);
                   if (type === 'FIXED_AMOUNT') {
-                    setMaxDiscountAmount(0); // Không cần giới hạn cho tiền mặt
+                    setMaxDiscountAmount('0'); // Không cần giới hạn cho tiền mặt
                   }
                 }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
@@ -185,8 +186,8 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 type="number"
                 fullWidth
                 required
-                value={discountValue || ''}
-                onChange={(e) => setDiscountValue(Math.max(0, Number(e.target.value)))}
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -205,8 +206,8 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 label="Giá trị đơn hàng tối thiểu"
                 type="number"
                 fullWidth
-                value={minOrderAmount || ''}
-                onChange={(e) => setMinOrderAmount(Math.max(0, Number(e.target.value)))}
+                value={minOrderAmount}
+                onChange={(e) => setMinOrderAmount(e.target.value)}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -220,8 +221,8 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 type="number"
                 fullWidth
                 disabled={discountType === 'FIXED_AMOUNT'}
-                value={discountType === 'FIXED_AMOUNT' ? '' : (maxDiscountAmount || '')}
-                onChange={(e) => setMaxDiscountAmount(Math.max(0, Number(e.target.value)))}
+                value={discountType === 'FIXED_AMOUNT' ? '' : maxDiscountAmount}
+                onChange={(e) => setMaxDiscountAmount(e.target.value)}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -236,8 +237,8 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 label="Tổng số lượt phát hành"
                 type="number"
                 fullWidth
-                value={maxUsage || ''}
-                onChange={(e) => setMaxUsage(Math.max(1, Number(e.target.value)))}
+                value={maxUsage}
+                onChange={(e) => setMaxUsage(e.target.value)}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
 
@@ -245,8 +246,8 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 label="Lượt dùng tối đa / 1 Khách hàng"
                 type="number"
                 fullWidth
-                value={userUsageLimit || ''}
-                onChange={(e) => setUserUsageLimit(Math.max(1, Number(e.target.value)))}
+                value={userUsageLimit}
+                onChange={(e) => setUserUsageLimit(e.target.value)}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
             </div>

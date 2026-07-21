@@ -8,6 +8,7 @@ import { Edit, WarningAmber, CheckCircle, Shield, Assessment, TaskAlt } from '@m
 import { toast } from 'react-toastify';
 import { useRisk } from '@/hooks/useRisk';
 import type { RiskRuleResponse, RiskAlertResponse } from '@/types/risk';
+import { RiskAlertStatus } from '@/types/risk';
 import { formatDate } from '@/utils/dateUtils';
 import CustomPagination from '@/components/general/Pagination';
 
@@ -88,8 +89,8 @@ const RiskManagement: React.FC = () => {
 const RuleConfigurationsTab: React.FC = () => {
   const { rules, isFetchingRules, fetchRules, updateRule, clearError, error } = useRisk();
   const [editRule, setEditRule] = useState<RiskRuleResponse | null>(null);
-  const [threshold, setThreshold] = useState<number>(0);
-  const [timeWindow, setTimeWindow] = useState<number>(0);
+  const [threshold, setThreshold] = useState<string>('');
+  const [timeWindow, setTimeWindow] = useState<string>('');
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -106,8 +107,8 @@ const RuleConfigurationsTab: React.FC = () => {
 
   const handleEditClick = (rule: RiskRuleResponse) => {
     setEditRule(rule);
-    setThreshold(rule.thresholdValue);
-    setTimeWindow(rule.timeWindowMinutes || 0);
+    setThreshold(String(rule.thresholdValue));
+    setTimeWindow(String(rule.timeWindowMinutes || 0));
     setIsActive(rule.isActive);
   };
 
@@ -122,8 +123,8 @@ const RuleConfigurationsTab: React.FC = () => {
       setIsUpdating(true);
       try {
         await updateRule(editRule.ruleCode, {
-          thresholdValue: threshold,
-          timeWindowMinutes: timeWindow,
+          thresholdValue: Number(threshold) || 0,
+          timeWindowMinutes: Number(timeWindow) || 0,
           isActive: isActive,
         });
         toast.success('Cập nhật Rule thành công');
@@ -155,7 +156,7 @@ const RuleConfigurationsTab: React.FC = () => {
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
                 <th className="px-6 py-4 font-semibold">Mã Rule</th>
@@ -247,7 +248,7 @@ const RuleConfigurationsTab: React.FC = () => {
               fullWidth
               variant="outlined"
               value={threshold}
-              onChange={(e) => setThreshold(Number(e.target.value))}
+              onChange={(e) => setThreshold(e.target.value)}
               disabled={isUpdating}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
@@ -257,7 +258,7 @@ const RuleConfigurationsTab: React.FC = () => {
               fullWidth
               variant="outlined"
               value={timeWindow}
-              onChange={(e) => setTimeWindow(Number(e.target.value))}
+              onChange={(e) => setTimeWindow(e.target.value)}
               disabled={isUpdating}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
@@ -317,7 +318,7 @@ const RiskAlertsTab: React.FC = () => {
   const [size] = useState(10);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [resolveAlertData, setResolveAlertData] = useState<RiskAlertResponse | null>(null);
-  const [resolveStatus, setResolveStatus] = useState<string>('RESOLVED');
+  const [resolveStatus, setResolveStatus] = useState<RiskAlertStatus>(RiskAlertStatus.RESOLVED);
   const [isResolving, setIsResolving] = useState(false);
 
   useEffect(() => {
@@ -337,7 +338,7 @@ const RiskAlertsTab: React.FC = () => {
 
   const handleResolveClick = (alert: RiskAlertResponse) => {
     setResolveAlertData(alert);
-    setResolveStatus('RESOLVED');
+    setResolveStatus(RiskAlertStatus.RESOLVED);
   };
 
   const handleCloseResolve = () => {
@@ -361,12 +362,11 @@ const RiskAlertsTab: React.FC = () => {
     }
   };
 
-  const getAlertStatusBadge = (status: string) => {
+  const getAlertStatusBadge = (status: RiskAlertStatus) => {
     switch (status) {
-      case 'PENDING': return 'bg-amber-50 text-amber-700 border-amber-100';
-      case 'REVIEWING': return 'bg-blue-50 text-blue-700 border-blue-100';
-      case 'RESOLVED': return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-      case 'FALSE_POSITIVE': return 'bg-gray-50 text-gray-500 border-gray-200';
+      case RiskAlertStatus.PENDING: return 'bg-amber-50 text-amber-700 border-amber-100';
+      case RiskAlertStatus.RESOLVED: return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case RiskAlertStatus.FALSE_POSITIVE: return 'bg-gray-50 text-gray-500 border-gray-200';
       default: return 'bg-gray-50 text-gray-700 border-gray-100';
     }
   };
@@ -386,10 +386,9 @@ const RiskAlertsTab: React.FC = () => {
               }}
             >
               <MenuItem value="">Tất cả trạng thái</MenuItem>
-              <MenuItem value="PENDING">Đang chờ (Pending)</MenuItem>
-              <MenuItem value="REVIEWING">Đang xem xét (Reviewing)</MenuItem>
-              <MenuItem value="RESOLVED">Đã xử lý (Resolved)</MenuItem>
-              <MenuItem value="FALSE_POSITIVE">Báo cáo sai (False Positive)</MenuItem>
+              <MenuItem value={RiskAlertStatus.PENDING}>Đang chờ (Pending)</MenuItem>
+              <MenuItem value={RiskAlertStatus.RESOLVED}>Đã xử lý (Resolved)</MenuItem>
+              <MenuItem value={RiskAlertStatus.FALSE_POSITIVE}>Báo cáo sai (False Positive)</MenuItem>
             </Select>
           </FormControl>
         </div>
@@ -397,7 +396,7 @@ const RiskAlertsTab: React.FC = () => {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
                 <th className="px-6 py-4 font-semibold w-20 text-center">ID</th>
@@ -433,7 +432,7 @@ const RiskAlertsTab: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-center text-gray-500">{formatDate(alert.createdAt)}</td>
                     <td className="px-6 py-4 text-center">
-                      {(alert.status === 'PENDING' || alert.status === 'REVIEWING') ? (
+                      {alert.status === RiskAlertStatus.PENDING ? (
                         <div className="flex items-center justify-center gap-1">
                           <Tooltip title="Xử lý cảnh báo" arrow>
                             <IconButton

@@ -88,7 +88,7 @@ export const SliderImageUploader: React.FC<SliderImageUploaderProps> = ({ isUplo
           <div className="flex items-center gap-3 text-[13px] text-gray-500 font-medium bg-white px-4 py-2.5 rounded-lg shadow-sm border border-gray-100">
             <span className="flex items-center gap-1.5"><ImageIcon fontSize="small" className="text-gray-400" /> JPG, PNG, WEBP</span>
             <span className="text-gray-300">•</span>
-            <span>Tối đa 2MB</span>
+            <span>Tối đa 1MB</span>
           </div>
         </div>
       )}

@@ -19,7 +19,7 @@ export const VariantDefaultInputs: React.FC<VariantDefaultInputsProps> = ({
       <Typography variant="subtitle2" className="font-bold text-gray-700">
         Giá trị mặc định cho biến thể mới
       </Typography>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
         <TextField
           label="Giá bán mặc định (VND)"
           type="number"

@@ -4,6 +4,8 @@ export interface RiskRuleUpdateRequest {
   isActive: boolean;
 }
 
+import { RiskAlertStatus } from './enums';
+
 export interface RiskAlertResolveRequest {
-  status: string; // 'RESOLVED' or 'FALSE_POSITIVE'
+  status: RiskAlertStatus; // 'RESOLVED' or 'FALSE_POSITIVE'
 }

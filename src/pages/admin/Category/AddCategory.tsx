@@ -22,7 +22,7 @@ const AddCategory: React.FC = () => {
   const [iconUrl, setIconUrl] = useState('');
   const { isUploading, uploadFile } = useUpload(uploadService.uploadCategoryIcon);
 
-  const [displayOrder] = useState<number>(0);
+  const [displayOrder] = useState<string>('');
 
   useEffect(() => {
     if (!categories || categories.length === 0) {
@@ -63,7 +63,7 @@ const AddCategory: React.FC = () => {
         categoryName: categoryName.trim(),
         parentId: parentId ?? undefined,
         iconUrl: iconUrl.trim() || undefined,
-        displayOrder: displayOrder || undefined,
+        displayOrder: Number(displayOrder) || undefined,
       });
 
       toast.success('Thêm danh mục mới thành công!');
@@ -138,8 +138,8 @@ const AddCategory: React.FC = () => {
                   label="Thứ tự hiển thị"
                   type="number"
                   variant="outlined"
-                  value={displayOrder || ''}
-                  onChange={(e) => setDisplayOrder(Number(e.target.value))}
+                  value={displayOrder}
+                  onChange={(e) => setDisplayOrder(e.target.value)}
                   placeholder="VD: 1, 2, 3..."
                   sx={{
                     backgroundColor: 'white',

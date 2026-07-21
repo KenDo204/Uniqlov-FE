@@ -8,6 +8,8 @@ export interface RiskRuleResponse {
   updatedAt: string;
 }
 
+import { RiskAlertStatus } from './enums';
+
 export interface RiskAlertResponse {
   alertId: number;
   userId?: number;
@@ -16,6 +18,6 @@ export interface RiskAlertResponse {
   orderCode?: string;
   ruleCode: string;
   description: string;
-  status: string; // 'PENDING', 'REVIEWING', 'RESOLVED', 'FALSE_POSITIVE'
+  status: RiskAlertStatus; // 'PENDING', 'RESOLVED', 'FALSE_POSITIVE'
   createdAt: string;
 }

@@ -21,7 +21,7 @@ const EditCategory: React.FC = () => {
   const [iconUrl, setIconUrl] = useState('');
   const { isUploading, uploadFile } = useUpload(uploadService.uploadCategoryIcon);
 
-  const [displayOrder, setDisplayOrder] = useState<number>(0);
+  const [displayOrder, setDisplayOrder] = useState<string>('');
   const [categoryStatus, setCategoryStatus] = useState<number>(1);
 
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -64,7 +64,7 @@ const EditCategory: React.FC = () => {
             }
 
             setIconUrl(node.iconUrl || '');
-            setDisplayOrder(node.displayOrder || 0);
+            setDisplayOrder(String(node.displayOrder || 0));
             setCategoryStatus(node.categoryStatus);
             found = true;
             return;
@@ -112,7 +112,7 @@ const EditCategory: React.FC = () => {
         categoryName: categoryName.trim(),
         categoryStatus: categoryStatus,
         iconUrl: iconUrl.trim() || undefined,
-        displayOrder: displayOrder || undefined,
+        displayOrder: Number(displayOrder) || undefined,
       });
 
       toast.success('Cập nhật danh mục thành công!');
@@ -191,8 +191,8 @@ const EditCategory: React.FC = () => {
                   label="Thứ tự hiển thị"
                   type="number"
                   variant="outlined"
-                  value={displayOrder || ''}
-                  onChange={(e) => setDisplayOrder(Number(e.target.value))}
+                  value={displayOrder}
+                  onChange={(e) => setDisplayOrder(e.target.value)}
                   placeholder="VD: 1, 2, 3..."
                   sx={{
                     backgroundColor: 'white',

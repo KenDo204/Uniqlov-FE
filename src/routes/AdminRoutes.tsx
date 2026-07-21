@@ -28,8 +28,13 @@ export const adminRoutes: RouteObject = {
     {
       element: <AdminLayout />,
       children: [
-        { path: '', element: <AdminDashboard /> },
-        { path: 'dashboard', element: <AdminDashboard /> },
+        {
+          element: <PermissionRouteGuard permission="dashboard:view" />,
+          children: [
+            { path: '', element: <AdminDashboard /> },
+            { path: 'dashboard', element: <AdminDashboard /> },
+          ]
+        },
         {
           path: 'sliders',
           element: <PermissionRouteGuard permission="slider:read" />,

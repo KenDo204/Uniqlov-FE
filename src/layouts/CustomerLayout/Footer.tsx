@@ -1,22 +1,29 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
-import {  Search, User, Heart, ShoppingCart  } from '@/components/ui/icons';
+import { Search, User, Heart, ShoppingCart } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 import { useCartStore } from '@/stores/useCartStore';
 import { BRAND } from '@/constants/brand';
 import { Container } from '@/components/shared/Container';
+import { useCategory } from '@/hooks/useCategory';
 
 export function Footer() {
-    const { items: cartItems} = useCartStore();
+  const { items: cartItems } = useCartStore();
+  const { categories, fetchPublicCategories } = useCategory();
 
-    const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  useEffect(() => {
+    if (!categories || categories.length === 0) {
+      fetchPublicCategories().catch(console.error);
+    }
+  }, [categories, fetchPublicCategories]);
 
+  const totalQuantity = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
     <>
       <footer className="w-full border-t border-unilo-border dark:border-gray-800 bg-muted dark:bg-gray-950 pt-16 pb-12 md:pb-16 mt-20">
         <Container className="space-y-16">
-
           <div className="grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-8 text-left">
             {/* Branding Column */}
             <div className="md:col-span-2 space-y-6">
@@ -34,34 +41,40 @@ export function Footer() {
               </div>
             </div>
 
-            {/* Collections */}
+            {/* Collections / Categories */}
             <div className="space-y-6">
-              <h5 className="text-sm font-bold uppercase text-primary dark:text-white tracking-widest mb-4">Collections</h5>
+              <h5 className="text-sm font-bold uppercase text-primary dark:text-white tracking-widest mb-4">Danh mục sản phẩm</h5>
               <div className="flex flex-col gap-4 text-base text-gray-500 dark:text-gray-400 font-medium">
-                <Link to={`${paths.customer.products}?targetGender=1`} className="hover:text-theme transition-colors decoration-none">Men Range</Link>
-                <Link to={`${paths.customer.products}?targetGender=0`} className="hover:text-theme transition-colors decoration-none">Women Range</Link>
-                <Link to={`${paths.customer.products}?collection=NEW_ARRIVALS`} className="hover:text-theme transition-colors decoration-none">New Arrivals</Link>
-                <Link to={`${paths.customer.products}?collection=BEST_SELLERS`} className="hover:text-theme transition-colors decoration-none">Bestsellers</Link>
+                {categories && categories.slice(0, 5).map((category) => (
+                  <Link 
+                    key={category.categoryId} 
+                    to={`${paths.customer.products}?category=${category.categoryCode || category.categoryId}`} 
+                    className="hover:text-theme transition-colors decoration-none"
+                  >
+                    {category.categoryName}
+                  </Link>
+                ))}
+                <Link to={paths.customer.products} className="hover:text-theme transition-colors decoration-none">Tất cả sản phẩm</Link>
               </div>
             </div>
 
-            {/* Company details */}
+            {/* Policies */}
             <div className="space-y-6">
-              <h5 className="text-sm font-bold uppercase text-primary dark:text-white tracking-widest mb-4">Company</h5>
+              <h5 className="text-sm font-bold uppercase text-primary dark:text-white tracking-widest mb-4">Chính sách</h5>
               <div className="flex flex-col gap-4 text-base text-gray-500 dark:text-gray-400 font-medium">
-                <Link to={paths.customer.about} className="hover:text-theme transition-colors decoration-none">Our Story</Link>
-                <Link to={paths.customer.sustainability} className="hover:text-theme transition-colors decoration-none">Ecology Commit</Link>
-                <Link to={paths.customer.blog} className="hover:text-theme transition-colors decoration-none">{BRAND.NAME} Journal</Link>
+                <Link to="#" className="hover:text-theme transition-colors decoration-none">Chính sách mua hàng</Link>
+                <Link to="#" className="hover:text-theme transition-colors decoration-none">Chính sách đổi trả</Link>
+                <Link to="#" className="hover:text-theme transition-colors decoration-none">Chính sách bảo mật</Link>
+                <Link to="#" className="hover:text-theme transition-colors decoration-none">Điều khoản sử dụng</Link>
               </div>
             </div>
 
             {/* Help / Services */}
             <div className="space-y-6">
-              <h5 className="text-sm font-bold uppercase text-primary dark:text-white tracking-widest mb-4">Support</h5>
+              <h5 className="text-sm font-bold uppercase text-primary dark:text-white tracking-widest mb-4">Hỗ trợ</h5>
               <div className="flex flex-col gap-4 text-base text-gray-500 dark:text-gray-400 font-medium">
-                <Link to={paths.customer.help} className="hover:text-theme transition-colors decoration-none">Help FAQs</Link>
-                <Link to={paths.customer.contact} className="hover:text-theme transition-colors decoration-none">Contact Support</Link>
-                <Link to={paths.customer.help} className="hover:text-theme transition-colors decoration-none">Returns Policy</Link>
+                <Link to={paths.customer.help} className="hover:text-theme transition-colors decoration-none">Trợ giúp & FAQs</Link>
+                <Link to={paths.customer.contact} className="hover:text-theme transition-colors decoration-none">Liên hệ hỗ trợ</Link>
               </div>
             </div>
           </div>
@@ -77,18 +90,18 @@ export function Footer() {
       <nav className="fixed bottom-0 inset-x-0 bg-white/95 dark:bg-gray-950/95 backdrop-blur-md border-t border-unilo-border dark:border-gray-800 py-3 px-4 flex justify-around items-center z-40 md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe">
         <Link to="/" className="flex flex-col items-center gap-1.5 text-[10px] uppercase font-bold text-gray-500 hover:text-theme transition-colors decoration-none">
           <span className="w-6 h-6 flex items-center justify-center font-heading font-black text-lg">U</span>
-          <span>Home</span>
+          <span>Trang chủ</span>
         </Link>
         <Link to={paths.customer.products} className="flex flex-col items-center gap-1.5 text-[10px] uppercase font-bold text-gray-500 hover:text-theme transition-colors decoration-none">
           <Search className="w-5 h-5" />
-          <span>Search</span>
+          <span>Tìm kiếm</span>
         </Link>
         <Link
           to={paths.customer.cart}
           className="flex flex-col items-center gap-1.5 text-[10px] uppercase font-bold text-gray-500 hover:text-theme transition-colors decoration-none relative"
         >
           <ShoppingCart className="w-5 h-5" />
-          <span>Cart</span>
+          <span>Giỏ hàng</span>
           {totalQuantity > 0 && (
             <span className="absolute -top-1 -right-2 bg-theme text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
               {totalQuantity}
@@ -97,11 +110,11 @@ export function Footer() {
         </Link>
         <Link to={paths.customer.wishlist} className="flex flex-col items-center gap-1.5 text-[10px] uppercase font-bold text-gray-500 hover:text-theme transition-colors decoration-none">
           <Heart className="w-5 h-5" />
-          <span>Wishlist</span>
+          <span>Yêu thích</span>
         </Link>
         <Link to={paths.customer.account} className="flex flex-col items-center gap-1.5 text-[10px] uppercase font-bold text-gray-500 hover:text-theme transition-colors decoration-none">
           <User className="w-5 h-5" />
-          <span>Account</span>
+          <span>Tài khoản</span>
         </Link>
       </nav>
     </>

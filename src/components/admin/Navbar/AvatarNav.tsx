@@ -8,6 +8,7 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { toast } from 'react-toastify';
+import ConfirmModal from '@/components/general/ConfirmModal';
 
 interface AuthUser {
   userId?: number;
@@ -34,10 +35,15 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
 
   const [placement, setPlacement] = React.useState<PopperPlacementType>();
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setOpen(false);
-    
+    setIsLogoutModalOpen(true);
+  };
+
+  const performLogout = async () => {
+    setIsLogoutModalOpen(false);
     try {
       await backendLogout();
       toast.success("Đăng xuất thành công");
@@ -64,6 +70,7 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
   };
 
   return (
+    <>
     <Box sx={{ position: 'relative' }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -166,6 +173,16 @@ const AvatarNav = ({ admin }: { admin: AuthUser }) => {
         )}
       </Popper>
     </Box>
+    <ConfirmModal
+      open={isLogoutModalOpen}
+      onClose={() => setIsLogoutModalOpen(false)}
+      onConfirm={performLogout}
+      title="Xác nhận đăng xuất"
+      content="Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+      confirmText="Đăng xuất"
+      cancelText="Hủy"
+    />
+    </>
   )
 }
 

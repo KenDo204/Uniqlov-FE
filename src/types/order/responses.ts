@@ -12,6 +12,7 @@ export interface CheckoutResponse {
 
 export interface OrderDetailResponse {
   orderDetailId: number;
+  productId: number;
   variantId: number;
   skuCode: string;
   productName: string;
@@ -36,6 +37,7 @@ export interface OrderResponse {
   originalShippingFee: number;
   shippingDiscountAmount: number;
   paymentDiscountAmount: number;
+  shopDiscountAmount: number;
   finalPaymentMoney: number;
 
   address: AddressResponse;

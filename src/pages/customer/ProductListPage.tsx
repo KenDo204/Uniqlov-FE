@@ -152,7 +152,7 @@ export function ProductListPage() {
                 />
                 <h2 className="font-bold text-2xl text-gray-800 dark:text-white m-0">Không tìm thấy sản phẩm</h2>
                 <p className="text-gray-500 mt-2 font-medium">Vui lòng thử lại với danh mục khác hoặc xóa bộ lọc hiện tại.</p>
-                <button onClick={clearAllFilters} className="mt-6 px-8 py-3 bg-primary hover:bg-black text-white text-sm font-bold uppercase tracking-wider rounded-full cursor-pointer border-none shadow-md transition-colors">
+                <button onClick={clearAllFilters} className="mt-6 px-8 py-3 bg-theme hover:bg-theme-hover text-white text-sm font-bold uppercase tracking-wider rounded-full cursor-pointer border-none shadow-md transition-colors">
                   Xóa tất cả bộ lọc
                 </button>
               </div>

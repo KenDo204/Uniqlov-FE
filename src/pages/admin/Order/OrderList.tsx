@@ -196,7 +196,7 @@ const OrderList: React.FC = () => {
         {/* TABLE */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold text-center w-16">STT</th>
@@ -368,7 +368,7 @@ const OrderList: React.FC = () => {
                   Danh sách sản phẩm ({currentOrderDetail.items.length})
                 </Typography>
                 <div className="border border-gray-100 rounded-xl overflow-hidden">
-                  <table className="w-full text-left border-collapse text-xs">
+                  <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-semibold uppercase">
                         <th className="px-4 py-3">Sản phẩm</th>
@@ -436,6 +436,12 @@ const OrderList: React.FC = () => {
                     <div className="flex justify-between text-red-500">
                       <span>Giảm phí vận chuyển:</span>
                       <span>-{formatCurrency(currentOrderDetail.shippingDiscountAmount)}</span>
+                    </div>
+                  )}
+                  {currentOrderDetail.shopDiscountAmount > 0 && (
+                    <div className="flex justify-between text-red-500">
+                      <span>Voucher từ Shop:</span>
+                      <span>-{formatCurrency(currentOrderDetail.shopDiscountAmount)}</span>
                     </div>
                   )}
                   <div className="border-t border-gray-200 my-1"></div>

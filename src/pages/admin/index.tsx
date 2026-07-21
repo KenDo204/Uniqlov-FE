@@ -1,27 +1,4 @@
-export function AdminDashboard() {
-  return (
-    <div className="space-y-6 w-full text-left">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <h4 className="text-sm text-gray-500 font-medium m-0">Thành viên</h4>
-          <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-gray-50 m-0">1,245</p>
-        </div>
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <h4 className="text-sm text-gray-500 font-medium m-0">Cửa hàng (Owner)</h4>
-          <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-gray-50 m-0">84</p>
-        </div>
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <h4 className="text-sm text-gray-500 font-medium m-0">Danh mục</h4>
-          <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-gray-50 m-0">16</p>
-        </div>
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
-          <h4 className="text-sm text-gray-500 font-medium m-0">Banners hoạt động</h4>
-          <p className="text-3xl font-bold mt-2 text-gray-900 dark:text-gray-50 m-0">5</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+export { default as AdminDashboard } from './Dashboard/Dashboard';
 
 export function AdminBanners() {
   return (
