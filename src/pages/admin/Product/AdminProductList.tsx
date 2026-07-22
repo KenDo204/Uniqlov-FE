@@ -20,6 +20,7 @@ const AdminProductList: React.FC = () => {
   const navigate = useNavigate();
   const {
     adminProducts: products,
+    adminProductsData,
     isFetching: loading,
     fetchAdminProducts,
     deleteProduct
@@ -42,21 +43,33 @@ const AdminProductList: React.FC = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, categoryFilter, genderFilter]);
+  }, [searchTerm, categoryFilter, genderFilter, itemsPerPage]);
 
   useEffect(() => {
-    fetchAdminProducts().catch(err => {
-      console.error('Error fetching admin products:', err);
-      toast.error('Lỗi tải danh sách sản phẩm');
-    });
     fetchAdminCategories().catch(err => {
       console.error('Error fetching categories:', err);
     });
-  }, [fetchAdminProducts, fetchAdminCategories]);
+  }, [fetchAdminCategories]);
+
+  // Fetch admin products from Backend with pagination & filters
+  useEffect(() => {
+    const filterParams: any = {
+      page: currentPage - 1,
+      size: itemsPerPage
+    };
+    if (searchTerm.trim()) filterParams.search = searchTerm.trim();
+    if (categoryFilter) filterParams.categoryId = Number(categoryFilter);
+    if (genderFilter) filterParams.targetGender = Number(genderFilter);
+
+    fetchAdminProducts(filterParams).catch(err => {
+      console.error('Error fetching admin products:', err);
+      toast.error('Lỗi tải danh sách sản phẩm');
+    });
+  }, [fetchAdminProducts, currentPage, itemsPerPage, searchTerm, categoryFilter, genderFilter]);
 
   // Format currency helper
   const formatCurrency = (amount: number) => {
@@ -123,22 +136,29 @@ const AdminProductList: React.FC = () => {
     }
   };
 
-  const filteredProducts = useMemo(() => {
-    const productArray: ProductResponse[] = Array.isArray(products) ? products : (products as any)?.content || [];
-    return productArray.filter((p: ProductResponse) => {
-      const matchesSearch = p.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.productSlug.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter === '' || p.categoryId === Number(categoryFilter);
-      const matchesGender = genderFilter === '' || p.targetGender === Number(genderFilter);
+  // Extract products array for current page from PageResponse
+  const displayedProducts: ProductResponse[] = useMemo(() => {
+    if (adminProductsData && adminProductsData.content) {
+      return adminProductsData.content;
+    }
+    if (Array.isArray(products)) return products;
+    return [];
+  }, [adminProductsData, products]);
 
-      return matchesSearch && matchesCategory && matchesGender;
-    });
-  }, [products, searchTerm, categoryFilter, genderFilter]);
+  // Extract pagination info from PageResponse
+  const totalItems = useMemo(() => {
+    if (adminProductsData && typeof adminProductsData.totalElements === 'number') {
+      return adminProductsData.totalElements;
+    }
+    return displayedProducts.length;
+  }, [adminProductsData, displayedProducts.length]);
 
-  const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredProducts.slice(start, start + itemsPerPage);
-  }, [filteredProducts, currentPage]);
+  const totalPages = useMemo(() => {
+    if (adminProductsData && typeof adminProductsData.totalPages === 'number') {
+      return adminProductsData.totalPages;
+    }
+    return Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  }, [adminProductsData, totalItems, itemsPerPage]);
 
   // Flattened category tree for dropdown selection
   const flatCategoriesList = useMemo(() => {
@@ -249,8 +269,8 @@ const AdminProductList: React.FC = () => {
                       <p className="mt-2 text-gray-500 m-0">Đang tải danh sách sản phẩm...</p>
                     </td>
                   </tr>
-                ) : paginatedProducts.length > 0 ? (
-                  paginatedProducts.map((prod: ProductResponse) => {
+                ) : displayedProducts.length > 0 ? (
+                  displayedProducts.map((prod: ProductResponse) => {
                     const thumbImg = prod.images?.find((img: any) => img.isThumbnail) || prod.images?.[0];
                     const totalStock = getTotalStock(prod);
                     return (
@@ -360,10 +380,15 @@ const AdminProductList: React.FC = () => {
           </div>
           <CustomPagination
             currentPage={currentPage}
-            totalPages={Math.ceil(filteredProducts.length / itemsPerPage)}
-            totalItems={filteredProducts.length}
+            totalPages={totalPages}
+            totalItems={totalItems}
             itemsPerPage={itemsPerPage}
             onPageChange={(page) => setCurrentPage(page)}
+            onItemsPerPageChange={(size) => {
+              setItemsPerPage(size);
+              setCurrentPage(1);
+            }}
+            pageSizeOptions={[10, 20, 50, 100]}
           />
         </div>
       </div>

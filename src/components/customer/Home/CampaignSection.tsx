@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ProductSwiper } from '@/components/shared/ProductSwiper';
 import { buildCategoryUrl } from '@/utils/urlHelpers';
 import { Source } from '@/types/tracking/requests';
 import { useSlider } from '@/hooks/useSlider';
-import { useCategory } from '@/hooks/useCategory';
 import { useFetchProducts } from '@/hooks/useFetchProducts';
-import type { CategoryResponse } from '@/types/category/responses';
 import type { SliderResponse } from '@/types/slider/responses';
 import { Container } from '@/components/shared/Container';
 
@@ -14,30 +12,12 @@ import { Container } from '@/components/shared/Container';
 const extractCategoryCode = (url: string | null): string | null => {
   if (!url) return null;
   const match = url.match(/categoryCode=([^&]+)/);
-  return match ? match[1] : null;
-};
-
-const findCategoryByCode = (categories: CategoryResponse[], code: string): CategoryResponse | null => {
-  for (const cat of categories) {
-    if (cat.categoryCode === code) return cat;
-    if (cat.children && cat.children.length > 0) {
-      const found = findCategoryByCode(cat.children, code);
-      if (found) return found;
-    }
+  if (match) return match[1];
+  const cleanUrl = url.trim();
+  if (cleanUrl && !cleanUrl.includes('/') && !cleanUrl.includes('?')) {
+    return cleanUrl;
   }
   return null;
-};
-
-const getLevel3Children = (category: CategoryResponse): CategoryResponse[] => {
-  let results: CategoryResponse[] = [];
-  if (category.level === 3) {
-    results.push(category);
-  } else if (category.children && category.children.length > 0) {
-    category.children.forEach(child => {
-      results = results.concat(getLevel3Children(child));
-    });
-  }
-  return results;
 };
 
 const resolveImageUrl = (url: string) => {
@@ -50,53 +30,36 @@ const resolveImageUrl = (url: string) => {
 // --- Sub-component: CampaignBlock ---
 interface CampaignBlockProps {
   slider: SliderResponse;
-  categories: CategoryResponse[];
 }
 
-const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: CampaignBlockProps) {
+const CampaignBlock = React.memo(function CampaignBlock({ slider }: CampaignBlockProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<CategoryResponse | null>(null);
 
-  // Compute tabs only for this slider's targetUrl
-  const campaignTabs = useMemo(() => {
-    if (!categories || categories.length === 0 || !slider.targetUrl) return [];
-    
-    let allLevel3Tabs: CategoryResponse[] = [];
-    const code = extractCategoryCode(slider.targetUrl);
-    
-    if (code) {
-      const rootCategory = findCategoryByCode(categories, code);
-      if (rootCategory) {
-        allLevel3Tabs = getLevel3Children(rootCategory);
-      }
-    }
-    
-    // Remove duplicates by categoryId
-    return Array.from(new Map(allLevel3Tabs.map(item => [item.categoryId, item])).values());
-  }, [categories, slider.targetUrl]);
+  const categoryCode = useMemo(() => {
+    return extractCategoryCode(slider.targetUrl);
+  }, [slider.targetUrl]);
 
-  // Set default active tab
-  useEffect(() => {
-    if (campaignTabs.length > 0 && !activeTab) {
-      setActiveTab(campaignTabs[0]);
-    }
-  }, [campaignTabs, activeTab]);
-
-  // Fetch products specific to this block's activeTab
-  const activeTabFilter = useMemo(() => {
+  // Fetch products directly according to categoryCode
+  const productFilter = useMemo(() => {
     return { 
-      categoryCode: activeTab?.categoryCode || '', 
+      categoryCode: categoryCode || '', 
       size: 10 
     };
-  }, [activeTab]);
+  }, [categoryCode]);
 
   const { products: campaignProducts, isLoading: isProductsLoading } = useFetchProducts(
-    activeTabFilter,
-    { skip: !activeTab }
+    productFilter,
+    { skip: !categoryCode }
   );
 
+  const targetCategoryUrl = useMemo(() => {
+    if (slider.targetUrl) return slider.targetUrl;
+    if (categoryCode) return buildCategoryUrl(categoryCode);
+    return '/products';
+  }, [slider.targetUrl, categoryCode]);
+
   return (
-    <section className="w-full mt-2 bg-[rgba(215, 222, 241, 1)] py-4 md:py-8 mb-8">
+    <section className="w-full bg-white py-4 md:py-8">
       {/* Banner */}
       <div className="relative w-full h-[40vh] md:h-[65vh] overflow-hidden">
         {slider.targetUrl ? (
@@ -108,54 +71,31 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
         )}
       </div>
 
-      {/* Tabs */}
-      {campaignTabs.length > 0 && (
-        <Container className="py-8 md:py-12">
-          <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-10 md:mb-14">
-            {campaignTabs.map((tab) => (
-              <button
-                key={tab.categoryId}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 md:px-6 py-2 md:py-2.5 text-[11px] md:text-[13px] rounded-full border transition-all cursor-pointer ${
-                  activeTab?.categoryId === tab.categoryId
-                    ? 'bg-theme text-white border-theme font-semibold shadow-md'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-theme hover:text-theme'
-                }`}
-              >
-                {tab.categoryName}
-              </button>
-            ))}
-          </div>
-
-          {/* Product Grid */}
-          <div className="min-h-[300px]">
-            {isProductsLoading ? (
-              <div className="flex justify-center items-center h-[300px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-              </div>
-            ) : campaignProducts.length > 0 ? (
-              <ProductSwiper 
-                products={campaignProducts} 
-                skeletonCount={5}
-                source={Source.HOME_CATEGORY_LIST}
-              />
-            ) : (
+      {/* Product List Section */}
+      <Container className="py-8 md:py-12">
+        <div className="min-h-[300px]">
+          <ProductSwiper 
+            products={campaignProducts} 
+            isLoading={isProductsLoading}
+            skeletonCount={5}
+            source={Source.HOME_CATEGORY_LIST}
+            emptyContent={
               <div className="text-center text-gray-500 py-10">Không có sản phẩm nào cho danh mục này.</div>
-            )}
-          </div>
+            }
+          />
+        </div>
 
-          {activeTab && (
-            <div className="text-center mt-12">
-              <button 
-                onClick={() => navigate(buildCategoryUrl(activeTab.categoryCode))}
-                className="px-10 py-3 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest hover:border-theme hover:bg-theme hover:text-white transition-all cursor-pointer"
-              >
-                XEM TẤT CẢ
-              </button>
-            </div>
-          )}
-        </Container>
-      )}
+        {(!isProductsLoading && campaignProducts.length > 0) && (
+          <div className="text-center mt-8 md:mt-12">
+            <button 
+              onClick={() => navigate(targetCategoryUrl)}
+              className="px-10 py-3 border border-gray-300 bg-transparent text-[13px] font-bold uppercase tracking-widest text-gray-900 hover:border-theme hover:bg-theme hover:text-white transition-all duration-300 cursor-pointer rounded-[2px]"
+            >
+              XEM TẤT CẢ
+            </button>
+          </div>
+        )}
+      </Container>
     </section>
   );
 });
@@ -163,17 +103,13 @@ const CampaignBlock = React.memo(function CampaignBlock({ slider, categories }: 
 // --- Main Component: CampaignSection ---
 export function CampaignSection() {
   const { publicSliders, loadPublicSliders } = useSlider();
-  const { categories, fetchPublicCategories } = useCategory();
 
   // Fetch data on mount if empty
   useEffect(() => {
     if (!publicSliders || publicSliders.length === 0) {
       loadPublicSliders().catch(console.error);
     }
-    if (!categories || categories.length === 0) {
-      fetchPublicCategories().catch(console.error);
-    }
-  }, [publicSliders, categories, loadPublicSliders, fetchPublicCategories]);
+  }, [publicSliders, loadPublicSliders]);
 
   // Extract displayOrder === 2 sliders
   const campaignSliders = useMemo(() => {
@@ -190,7 +126,6 @@ export function CampaignSection() {
         <CampaignBlock 
           key={slider.sliderId} 
           slider={slider} 
-          categories={categories} 
         />
       ))}
     </>

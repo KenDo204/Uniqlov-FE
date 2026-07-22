@@ -12,6 +12,7 @@ import type {
 // --- ĐỊNH NGHĨA STATE ---
 interface ProductState {
   productsList: ProductResponse[]; // Dành cho Admin
+  adminProductsData: PageResponse<ProductResponse> | null; // Dành cho Admin Pagination
   publicProductsData: PageResponse<ProductResponse> | null; // Dành cho Storefront
   productVariantsList: ProductVariantResponse[];
   currentProductDetail: ProductResponse | null;
@@ -22,6 +23,7 @@ interface ProductState {
 
 const initialState: ProductState = {
   productsList: [],
+  adminProductsData: null,
   publicProductsData: null,
   productVariantsList: [],
   currentProductDetail: null,
@@ -84,9 +86,9 @@ export const fetchPublicProductVariantsThunk = createAsyncThunk(
 
 export const fetchAdminProductsThunk = createAsyncThunk(
   'product/fetchAdminProducts',
-  async (_, { rejectWithValue }) => {
+  async (filter: ProductFilterRequest & { page?: number; size?: number; sort?: string; search?: string } | undefined, { rejectWithValue }) => {
     try {
-      const response = await productService.getAdminProducts();
+      const response = await productService.getAdminProducts(filter);
       return response.result;
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Lỗi tải danh sách sản phẩm admin');
@@ -161,10 +163,6 @@ const productSlice = createSlice({
       state.isFetching = true;
       state.error = null;
     };
-    const handleFetchListFulfilled = (state: ProductState, action: PayloadAction<ProductResponse[] | undefined>) => {
-      state.isFetching = false;
-      if (action.payload) state.productsList = action.payload;
-    };
     const handleFetchListRejected = (state: ProductState, action: any) => {
       state.isFetching = false;
       state.error = action.payload as string;
@@ -175,13 +173,21 @@ const productSlice = createSlice({
       if (action.payload) state.publicProductsData = action.payload;
     };
 
+    const handleFetchAdminListFulfilled = (state: ProductState, action: PayloadAction<PageResponse<ProductResponse> | undefined>) => {
+      state.isFetching = false;
+      if (action.payload) {
+        state.adminProductsData = action.payload;
+        state.productsList = action.payload.content || [];
+      }
+    };
+
     // Handle Public & Admin List
     builder
       .addCase(fetchPublicProductsThunk.pending, handleFetchListPending)
       .addCase(fetchPublicProductsThunk.fulfilled, handleFetchPublicListFulfilled)
       .addCase(fetchPublicProductsThunk.rejected, handleFetchListRejected)
       .addCase(fetchAdminProductsThunk.pending, handleFetchListPending)
-      .addCase(fetchAdminProductsThunk.fulfilled, handleFetchListFulfilled)
+      .addCase(fetchAdminProductsThunk.fulfilled, handleFetchAdminListFulfilled)
       .addCase(fetchAdminProductsThunk.rejected, handleFetchListRejected);
 
     // Helper function gộp logic fetching detail

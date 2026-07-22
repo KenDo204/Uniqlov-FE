@@ -8,6 +8,8 @@ interface CustomPaginationProps {
   totalItems: number;
   itemsPerPage?: number;
   onPageChange: (page: number) => void;
+  onItemsPerPageChange?: (size: number) => void;
+  pageSizeOptions?: number[];
 }
 
 export default function CustomPagination({
@@ -15,14 +17,16 @@ export default function CustomPagination({
   totalPages,
   totalItems,
   itemsPerPage = 10,
-  onPageChange
+  onPageChange,
+  onItemsPerPageChange,
+  pageSizeOptions = [10, 20, 50, 100]
 }: CustomPaginationProps) {
-  // Hide pagination if there is <= 1 page or total items is <= itemsPerPage
-  if (totalPages <= 1 || totalItems <= itemsPerPage) {
+  // Hide pagination if totalItems is 0
+  if (totalItems === 0) {
     return null;
   }
 
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   const handleChange = (_event: React.ChangeEvent<unknown>, value: number) => {
@@ -46,9 +50,30 @@ export default function CustomPagination({
         boxSizing: 'border-box'
       }}
     >
-      <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontFamily: 'var(--font-sans)' }}>
-        Hiển thị <strong>{startItem}</strong> - <strong>{endItem}</strong> trong <strong>{totalItems}</strong> bản ghi
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontFamily: 'var(--font-sans)' }}>
+          Hiển thị <strong>{startItem}</strong> - <strong>{endItem}</strong> trong <strong>{totalItems}</strong> bản ghi
+        </Typography>
+
+        {onItemsPerPageChange && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+              Cỡ trang:
+            </Typography>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+              className="px-2 py-1 border border-gray-200 rounded text-xs bg-white text-gray-700 font-medium outline-none cursor-pointer focus:border-theme"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>
+                  {size} / trang
+                </option>
+              ))}
+            </select>
+          </Box>
+        )}
+      </Box>
 
       <MuiPagination
         count={totalPages}

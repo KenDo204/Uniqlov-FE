@@ -42,8 +42,14 @@ export const productService = {
 
   // --- ADMIN ENDPOINTS (CMS) ---
 
-  getAdminProducts: async (): Promise<ApiResponse<ProductResponse[]>> => {
-    const response = await axiosClient.get<ApiResponse<ProductResponse[]>>(API_URL);
+  getAdminProducts: async (filter?: ProductFilterRequest & { page?: number; size?: number; sort?: string; search?: string }): Promise<ApiResponse<PageResponse<ProductResponse>>> => {
+    const cleanFilter = filter ? Object.fromEntries(
+      Object.entries(filter).filter(([_, v]) => v !== undefined && v !== null && v !== '')
+    ) : {};
+
+    const response = await axiosClient.get<ApiResponse<PageResponse<ProductResponse>>>(API_URL, {
+      params: cleanFilter,
+    });
     return response.data;
   },
 

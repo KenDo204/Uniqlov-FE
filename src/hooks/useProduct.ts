@@ -16,7 +16,7 @@ import type { ProductCreateRequest, ProductUpdateRequest, ProductFilterRequest }
 
 export const useProduct = () => {
   const dispatch = useAppDispatch();
-  const { productsList, publicProductsData, currentProductDetail, isFetching, isSubmitting, error } = useAppSelector((state) => state.product);
+  const { productsList, adminProductsData, publicProductsData, currentProductDetail, isFetching, isSubmitting, error } = useAppSelector((state) => state.product);
 
   // --- Public APIs ---
   const fetchPublicProducts = useCallback(
@@ -39,9 +39,12 @@ export const useProduct = () => {
   }, [dispatch]);
 
   // --- Admin APIs ---
-  const fetchAdminProducts = useCallback(async () => {
-    return await dispatch(fetchAdminProductsThunk()).unwrap();
-  }, [dispatch]);
+  const fetchAdminProducts = useCallback(
+    async (filter?: ProductFilterRequest & { page?: number; size?: number; sort?: string; search?: string }) => {
+      return await dispatch(fetchAdminProductsThunk(filter)).unwrap();
+    },
+    [dispatch]
+  );
 
   const createProduct = useCallback(async (payload: ProductCreateRequest) => {
     return await dispatch(createProductThunk(payload)).unwrap();
@@ -66,6 +69,7 @@ export const useProduct = () => {
   return useMemo(() => ({
     products: publicProductsData ? publicProductsData.content : productsList, // fallback logic
     adminProducts: productsList,
+    adminProductsData,
     publicProductsData,
     productDetail: currentProductDetail,
     isFetching,
@@ -81,5 +85,5 @@ export const useProduct = () => {
     deleteProduct,
     fetchAdminProductById,
     clearDetail
-  }), [productsList, publicProductsData, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchPublicProductById, fetchProductVariants, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
+  }), [productsList, adminProductsData, publicProductsData, currentProductDetail, isFetching, isSubmitting, error, fetchPublicProducts, fetchProductBySlug, fetchPublicProductById, fetchProductVariants, fetchAdminProducts, createProduct, updateProduct, deleteProduct, fetchAdminProductById, clearDetail]);
 };

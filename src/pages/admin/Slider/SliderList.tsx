@@ -141,11 +141,11 @@ const SliderList: React.FC = () => {
                       </td>
 
                       <td className="px-6 py-4">
-                        <div className="w-40 h-16 rounded overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center p-1 relative group">
+                        <div className="w-44 h-16 rounded-lg overflow-hidden shrink-0 shadow-xs">
                           <img 
                             src={slider.imageUrl} 
                             alt="Slider" 
-                            className="max-w-full max-h-full object-contain"
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = 'https://placehold.co/400x150?text=No+Image';
                             }}

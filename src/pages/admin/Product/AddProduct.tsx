@@ -4,7 +4,7 @@ import {
   Button, TextField, Select, MenuItem, FormControl,
   InputLabel, Switch, FormControlLabel, Card,
   Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Radio, IconButton, CircularProgress
+  TableHead, TableRow, Paper, Radio, IconButton
 } from '@mui/material';
 import { Delete, ArrowBack, AddCircle, Refresh } from '@mui/icons-material';
 import { toast } from 'react-toastify';
@@ -15,8 +15,9 @@ import Level3CategoryPicker from '@/components/admin/Category/Level3CategoryPick
 import { Gender } from '@/types/enums/genderType';
 import { uploadService } from '@/services/uploadService';
 import { useUpload } from '@/hooks/useUpload';
-import { CloudUpload } from '@mui/icons-material';
 import { VariantDefaultInputs } from '@/components/admin/Product/VariantDefaultInputs';
+import VariantColorImageCard from '@/components/admin/Product/VariantColorImageCard';
+import { generateVariantCombinations, checkCartesianMatch } from '@/utils/variantHelpers';
 
 interface TempOption {
   name: string; // e.g. "colorName" or "size"
@@ -128,62 +129,7 @@ export default function AddProduct() {
     setProductSlug(generatedSlug.slice(0, 100));
   };
 
-  const VariantImageCell = ({ imageUrl, onUpdate }: { imageUrl: string; onUpdate: (url: string) => void }) => {
-    const { isUploading, uploadFile } = useUpload(uploadService.uploadProductImage);
-    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const url = await uploadFile(file);
-      if (url) {
-        onUpdate(url);
-      }
-      e.target.value = '';
-    };
 
-    const handleDelete = () => {
-      // NOTE: If a Backend API for deleting uploaded files is available,
-      // it should be called here. Currently, we only remove it from the Frontend state.
-      onUpdate('');
-    };
-
-    return (
-      <div className="flex items-center gap-1.5">
-        {imageUrl ? (
-          <div className="relative w-10 h-10 border border-gray-200 rounded overflow-hidden shadow-sm shrink-0">
-            <img src={imageUrl} alt="variant" className="w-full h-full object-cover" />
-            {isUploading && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <CircularProgress size={16} sx={{ color: 'white' }} />
-              </div>
-            )}
-          </div>
-        ) : null}
-        <Button
-          component="label"
-          variant="outlined"
-          size="small"
-          disabled={isUploading}
-          sx={{ minWidth: 0, p: '6px', borderColor: '#e5e7eb', color: '#6b7280', '&:hover': { borderColor: 'var(--color-theme)', color: 'var(--color-theme)', bgcolor: '#f0fdfa' } }}
-          title={imageUrl ? 'Thay đổi ảnh' : 'Tải ảnh lên'}
-        >
-          {isUploading && !imageUrl ? <CircularProgress size={18} sx={{ color: 'inherit' }} /> : <CloudUpload fontSize="small" />}
-          <input type="file" hidden accept="image/*" onChange={handleUpload} />
-        </Button>
-        {imageUrl && (
-          <IconButton
-            size="small"
-            color="error"
-            onClick={handleDelete}
-            disabled={isUploading}
-            sx={{ p: '5px', border: '1px solid #fee2e2', borderRadius: '4px', '&:hover': { bgcolor: '#fef2f2' } }}
-            title="Xóa ảnh"
-          >
-            <Delete fontSize="small" />
-          </IconButton>
-        )}
-      </div>
-    );
-  };
 
   // Add Image URL helper
   const { isUploading: isUploadingImage, uploadFile } = useUpload(uploadService.uploadProductImage);
@@ -230,73 +176,30 @@ export default function AddProduct() {
 
   // Generate Cartesian Product of variants
   const handleGenerateVariants = () => {
-    // Process input raw values into arrays
-    const processedOptions = options.map(opt => {
-      const vals = opt.rawInput
-        .split(',')
-        .map(v => v.trim())
-        .filter(v => v.length > 0);
-      return {
-        ...opt,
-        values: vals
-      };
+    const result = generateVariantCombinations({
+      options,
+      existingVariants: variants,
+      defaultPrice: defaultVariantPrice,
+      defaultCostPrice: defaultVariantCostPrice,
+      defaultStock: defaultVariantStock,
+      colorImages,
+      fallbackImageUrl: images[0]?.url || ''
     });
 
-    // Check if at least one option name and value is defined
-    const activeOptions = processedOptions.filter(o => o.name && o.values.length > 0);
-    if (activeOptions.length === 0) {
-      toast.warning('Vui lòng nhập thuộc tính và giá trị biến thể trước khi sinh!');
+    if (result.warning) {
+      toast.warning(result.warning);
       return;
     }
 
-    // Generate combinations
-    let combos: Record<string, string>[] = [{}];
-    for (const opt of activeOptions) {
-      const nextCombos: Record<string, string>[] = [];
-      for (const current of combos) {
-        for (const val of opt.values) {
-          nextCombos.push({
-            ...current,
-            [opt.name]: val
-          });
-        }
-      }
-      combos = nextCombos;
-    }
-
-    if (combos.length > 50) {
-      toast.error(`Tổng số biến thể hiện tại là ${combos.length}. Nghiệp vụ quy định không vượt quá 50 biến thể.`);
+    if (result.error) {
+      toast.error(result.error);
       return;
     }
 
-    // Keep values of existing matching variants if possible
-    const newVariants = combos.map(combo => {
-      const existing = variants.find(v =>
-        Object.entries(combo).every(([k, val]) => v.attributes[k] === val)
-      );
-
-      if (existing) {
-        return {
-          ...existing,
-          attributes: combo
-        };
-      }
-
-      const vColor = combo['color'] || combo['colorName'];
-      return {
-        attributes: combo,
-        price: defaultVariantPrice,
-        costPrice: defaultVariantCostPrice,
-        stockQuantity: defaultVariantStock || '10',
-        skuCode: '',
-        variantImage: (vColor && colorImages[vColor]) || (images[0]?.url || '')
-      };
-    });
-
-    setVariants(newVariants);
-    setOptions(processedOptions);
+    setVariants(result.newVariants);
+    setOptions(result.processedOptions);
     setIsDirty(true);
-    toast.success(`Sinh tự động thành công ${newVariants.length} biến thể.`);
+    toast.success(`Sinh tự động thành công ${result.count} biến thể.`);
   };
 
   const handleUpdateVariant = (index: number, field: keyof VariantInput, value: any) => {
@@ -332,53 +235,7 @@ export default function AddProduct() {
     setIsDirty(true);
   };
 
-  // Check if current variants list matches Cartesian combos of the options
-  const checkCartesianMatch = (): boolean => {
-    if (productType === 'simple') return true;
 
-    // Process input options
-    const processedOptions = options.map(opt => {
-      const vals = opt.rawInput
-        .split(',')
-        .map(v => v.trim())
-        .filter(v => v.length > 0);
-      return {
-        name: opt.name.trim(),
-        values: vals
-      };
-    });
-
-    const activeOptions = processedOptions.filter(o => o.name && o.values.length > 0);
-    if (activeOptions.length === 0) return false;
-
-    // Generate Cartesian combinations
-    let combos: Record<string, string>[] = [{}];
-    for (const opt of activeOptions) {
-      const nextCombos: Record<string, string>[] = [];
-      for (const current of combos) {
-        for (const val of opt.values) {
-          nextCombos.push({
-            ...current,
-            [opt.name]: val
-          });
-        }
-      }
-      combos = nextCombos;
-    }
-
-    if (combos.length !== variants.length) return false;
-
-    // Match each combination with existing variants
-    return combos.every(combo => {
-      return variants.some(v => {
-        const variantAttr = v.attributes || {};
-        const comboEntries = Object.entries(combo);
-        const varEntries = Object.entries(variantAttr);
-        if (comboEntries.length !== varEntries.length) return false;
-        return comboEntries.every(([k, val]) => variantAttr[k] === val);
-      });
-    });
-  };
 
   // Validate form data
   const validateForm = (): boolean => {
@@ -425,7 +282,7 @@ export default function AddProduct() {
       if (isNaN(price) || price <= 0) newErrors.simplePrice = 'Giá bán phải lớn hơn 0';
       if (isNaN(cost) || cost <= 0) newErrors.simpleCostPrice = 'Giá vốn phải lớn hơn 0';
       if (price < cost) newErrors.simplePrice = 'Giá bán không được nhỏ hơn giá vốn';
-      if (isNaN(stock) || stock < -1) newErrors.simpleStock = 'Số lượng tồn kho phải >= -1';
+      if (isNaN(stock) || stock < 0) newErrors.simpleStock = 'Số lượng tồn kho phải >= 0';
     } else {
       // Variable product
       if (variants.length === 0) {
@@ -443,7 +300,7 @@ export default function AddProduct() {
         }
 
         // Validate that variants list matches Cartesian combinations of the options
-        if (!checkCartesianMatch()) {
+        if (!checkCartesianMatch(productType, options, variants)) {
           newErrors.variants = 'Danh sách biến thể không khớp với cấu hình thuộc tính đã chỉnh sửa. Vui lòng nhấn "Sinh lại tổ hợp biến thể" để đồng bộ.';
         }
 
@@ -462,8 +319,8 @@ export default function AddProduct() {
           if (vPrice < vCost) {
             newErrors[`variant_price_${idx}`] = 'Giá bán phải >= Giá vốn';
           }
-          if (vStock < -1) {
-            newErrors[`variant_stock_${idx}`] = 'Tồn kho phải >= -1';
+          if (vStock < 0) {
+            newErrors[`variant_stock_${idx}`] = 'Tồn kho phải >= 0';
           }
         });
       }
@@ -957,17 +814,18 @@ export default function AddProduct() {
                         </Typography>
 
                         <TextField
-                          label="Tên thuộc tính (e.g. colorName, size)"
+                          label="Tên thuộc tính (e.g. color, size)"
                           variant="outlined"
                           fullWidth
                           value={opt.name}
+                          disabled
                           onChange={(e) => {
                             const updated = [...options];
                             updated[idx].name = e.target.value;
                             setOptions(updated);
                             setIsDirty(true);
                           }}
-                          placeholder={idx === 0 ? 'colorName' : 'size'}
+                          placeholder={idx === 0 ? 'color' : 'size'}
                           size="small"
                           helperText="Khuyên dùng 'color' cho màu sắc và 'size' cho kích thước"
                           sx={{ mb: 1.5 }}
@@ -1037,29 +895,13 @@ export default function AddProduct() {
                           .map(v => v.attributes['size']);
                         
                         return (
-                          <div key={color} className="p-3 bg-white border border-gray-200 rounded-xl space-y-3 flex flex-col items-center text-center">
-                            <Typography variant="subtitle2" className="font-bold text-gray-800">
-                              Màu {color}
-                            </Typography>
-                            
-                            <VariantImageCell 
-                              imageUrl={colorImages[color] || ''} 
-                              onUpdate={(url) => handleColorImageUpdate(color, url)} 
-                            />
-
-                            {sizes.length > 0 && (
-                              <div className="text-[11px] text-gray-500 bg-gray-50 px-2 py-1.5 rounded w-full">
-                                <span className="block font-semibold mb-1">Áp dụng cho:</span>
-                                <div className="flex flex-wrap gap-1 justify-center">
-                                  {sizes.map(s => (
-                                    <span key={s} className="bg-white border border-gray-200 px-1 rounded text-[10px]">
-                                      ✓ {s}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          <VariantColorImageCard
+                            key={color}
+                            color={color}
+                            imageUrl={colorImages[color] || ''}
+                            sizes={sizes}
+                            onUpdate={(url) => handleColorImageUpdate(color, url)}
+                          />
                         );
                       })}
                     </div>
@@ -1123,9 +965,9 @@ export default function AddProduct() {
                                   value={v.stockQuantity}
                                   onChange={(e) => handleUpdateVariant(idx, 'stockQuantity', e.target.value)}
                                   error={!!errors[`variant_stock_${idx}`]}
-                                  helperText={errors[`variant_stock_${idx}`] || '>= -1'}
+                                  helperText={errors[`variant_stock_${idx}`] || '>= 0'}
                                   size="small"
-                                  slotProps={{ htmlInput: { min: -1 } }}
+                                  slotProps={{ htmlInput: { min: 0 } }}
                                 />
                               </TableCell>
                             </TableRow>

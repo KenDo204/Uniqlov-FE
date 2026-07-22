@@ -71,7 +71,13 @@ export function HeaderMegaMenu() {
             onMouseEnter={() => setActiveCategory(activeCategory)}
           >
             <div className="mb-6 pb-2 border-b-2 border-gray-100">
-              <h3 className="text-[18px] font-black text-theme uppercase m-0">{activeCategory.categoryName}</h3>
+              <Link
+                to={buildMegaMenuUrl(activeCategory, activeCategory)}
+                onClick={closeMenu}
+                className="text-[18px] font-black text-theme hover:text-theme-hover uppercase no-underline transition-colors inline-block"
+              >
+                {activeCategory.categoryName}
+              </Link>
             </div>
 
             <div className="space-y-8">
