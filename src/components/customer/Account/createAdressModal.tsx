@@ -4,6 +4,7 @@ import { useGhn } from '@/hooks/useGhn';
 import { addressSchema } from '@/schemas/addressSchema';
 import { toast } from 'react-toastify';
 import { hasBadWords } from '@/utils/profanity';
+import type { AddressResponse } from '@/types/address';
 import {
   Dialog,
   DialogTitle,
@@ -21,9 +22,10 @@ import {
 interface CreateAddressModalProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  onCreated?: (newAddress: AddressResponse) => void;
 }
 
-const CreateAddressModal = ({ open, setOpen }: CreateAddressModalProps) => {
+const CreateAddressModal = ({ open, setOpen, onCreated }: CreateAddressModalProps) => {
   const { createAddress, fetchAddresses } = useAddress();
   const { 
     provinces, 
@@ -119,7 +121,7 @@ const CreateAddressModal = ({ open, setOpen }: CreateAddressModalProps) => {
     }
 
     try {
-      await createAddress({
+      const createdAddr = await createAddress({
         recipientName,
         phone,
         provinceId: Number(selectedProvince),
@@ -130,7 +132,16 @@ const CreateAddressModal = ({ open, setOpen }: CreateAddressModalProps) => {
       });
       toast.success("Thêm địa chỉ mới thành công!");
       setOpen(false);
-      fetchAddresses();
+      const updatedAddrs = await fetchAddresses();
+
+      if (onCreated) {
+        const target = (createdAddr && createdAddr.addressId)
+          ? createdAddr
+          : (updatedAddrs && updatedAddrs.length > 0 ? updatedAddrs[updatedAddrs.length - 1] : null);
+        if (target) {
+          onCreated(target);
+        }
+      }
     } catch (err: any) {
       toast.error(err || "Lỗi khi tạo địa chỉ");
     }

@@ -7,6 +7,7 @@ import { ProductFilterBar } from '@/components/customer/Product/ProductFilterBar
 import { ProductListHeader } from '@/components/customer/Product/ProductListHeader';
 import { Container } from '@/components/shared/Container';
 import { Source } from '@/types/tracking/requests';
+import CustomPagination from '@/components/general/Pagination';
 
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,6 +99,24 @@ export function ProductListPage() {
     setSearchParams(newParams);
   };
 
+  const handlePageChange = (page: number) => {
+    const newParams = new URLSearchParams(searchParams);
+    const page0Indexed = page - 1;
+    if (page0Indexed <= 0) {
+      newParams.delete('page');
+    } else {
+      newParams.set('page', String(page0Indexed));
+    }
+    setSearchParams(newParams);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('size', String(size));
+    newParams.delete('page');
+    setSearchParams(newParams);
+  };
+
   const clearAllFilters = () => {
     setSearchParams(new URLSearchParams());
   };
@@ -144,7 +163,7 @@ export function ProductListPage() {
             gridClassName="grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             source={filterRequest.keyword ? Source.SEARCH_RESULT : Source.CATEGORY_GRID}
             emptyContent={
-              <div className="flex flex-col items-center justify-center py-20 bg-white border border-unilo-border dark:bg-gray-900 dark:border-gray-800 rounded-xl text-center shadow-sm">
+              <div className="flex flex-col items-center justify-center py-20 bg-[#ffffff] border border-unilo-border dark:bg-gray-900 dark:border-gray-800 rounded-xl text-center shadow-sm">
                 <img
                   className="w-48 opacity-80 mb-6"
                   src="https://cdn.pixabay.com/photo/2022/05/28/10/45/oops-7227010_960_720.png"
@@ -160,35 +179,17 @@ export function ProductListPage() {
           />
           
           {/* Phân trang (Pagination) */}
-          {publicProductsData && publicProductsData.totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 pt-8">
-              <button 
-                disabled={publicProductsData.number === 0}
-                onClick={() => updateQueryString('page', String(publicProductsData.number - 1))}
-                className="px-3 py-1.5 border border-unilo-border rounded bg-white text-xs disabled:opacity-50 cursor-pointer"
-              >
-                Trang trước
-              </button>
-              
-              <div className="flex items-center gap-1">
-                {Array.from({ length: publicProductsData.totalPages }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => updateQueryString('page', String(i))}
-                    className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold cursor-pointer border ${publicProductsData.number === i ? 'bg-primary text-white border-primary' : 'bg-transparent text-gray-600 border-transparent hover:bg-gray-100'}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button 
-                disabled={publicProductsData.number === publicProductsData.totalPages - 1}
-                onClick={() => updateQueryString('page', String(publicProductsData.number + 1))}
-                className="px-3 py-1.5 border border-unilo-border rounded bg-white text-xs disabled:opacity-50 cursor-pointer"
-              >
-                Trang sau
-              </button>
+          {publicProductsData && publicProductsData.totalPages > 0 && (
+            <div className="pt-6">
+              <CustomPagination
+                currentPage={publicProductsData.number + 1}
+                totalPages={publicProductsData.totalPages}
+                totalItems={publicProductsData.totalElements}
+                itemsPerPage={publicProductsData.size}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handlePageSizeChange}
+                hideIfSinglePage={true}
+              />
             </div>
           )}
         </div>

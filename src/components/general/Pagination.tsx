@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Pagination as MuiPagination, PaginationItem } from '@mui/material';
+import { Box, Typography, Pagination as MuiPagination, PaginationItem, type SxProps, type Theme } from '@mui/material';
 import { ArrowBack, ArrowForward } from '@mui/icons-material';
 
 interface CustomPaginationProps {
@@ -10,6 +10,9 @@ interface CustomPaginationProps {
   onPageChange: (page: number) => void;
   onItemsPerPageChange?: (size: number) => void;
   pageSizeOptions?: number[];
+  className?: string;
+  sx?: SxProps<Theme>;
+  hideIfSinglePage?: boolean;
 }
 
 export default function CustomPagination({
@@ -19,10 +22,13 @@ export default function CustomPagination({
   itemsPerPage = 10,
   onPageChange,
   onItemsPerPageChange,
-  pageSizeOptions = [10, 20, 50, 100]
+  pageSizeOptions = [10, 20, 50, 100],
+  className,
+  sx,
+  hideIfSinglePage = false
 }: CustomPaginationProps) {
-  // Hide pagination if totalItems is 0
-  if (totalItems === 0) {
+  // Hide pagination if totalItems is 0 or if single page and hideIfSinglePage is true
+  if (totalItems === 0 || (hideIfSinglePage && totalPages <= 1)) {
     return null;
   }
 
@@ -35,6 +41,7 @@ export default function CustomPagination({
 
   return (
     <Box
+      className={className}
       sx={{
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
@@ -47,7 +54,9 @@ export default function CustomPagination({
         borderTop: '1px solid',
         borderColor: 'grey.100',
         width: '100%',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        borderRadius: '12px',
+        ...sx
       }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>

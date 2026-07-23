@@ -182,7 +182,15 @@ export function ProductDetail() {
           'Kích cỡ': selectedSize
         }
       }, parseInt(quantityInput) || 1);
-      trackAddToCart(activeVariant.variant_id, parseInt(quantityInput) || 1, selectedColor, selectedSize, Source.PRODUCT_MAIN_INFO);
+      trackAddToCart({
+        productId: product.product_id,
+        categoryId: Number(product.category_id),
+        variantId: activeVariant.variant_id,
+        quantity: parseInt(quantityInput) || 1,
+        color: selectedColor,
+        size: selectedSize,
+        source: Source.PRODUCT_MAIN_INFO
+      });
       toast.success('Đã thêm sản phẩm vào giỏ hàng');
     } catch (err: any) {
       toast.error(err || 'Không thể thêm sản phẩm vào giỏ hàng.');
@@ -224,7 +232,7 @@ export function ProductDetail() {
     try {
       await toggleWishlist(product.product_id);
       if (!isInWishlist) {
-        trackWishlist(product.product_id, selectedColor, selectedSize, 'product_page', Source.PRODUCT_MAIN_INFO);
+        trackWishlist(product.product_id, Number(product.category_id), selectedColor, selectedSize, 'product_page', Source.PRODUCT_MAIN_INFO);
       }
       toast.success(isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
     } catch (err: any) {

@@ -111,7 +111,15 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
                 </button>
             </div>
             
-            <CreateAddressModal open={createOpen} setOpen={setCreateOpen} />
+            <CreateAddressModal 
+                open={createOpen} 
+                setOpen={setCreateOpen} 
+                onCreated={(newAddr) => {
+                    setTempSelected(newAddr);
+                    onSelect(newAddr);
+                    onClose();
+                }}
+            />
             <UpdateAddressModal open={updateOpen} setOpen={setUpdateOpen} address={addressToEdit} />
         </Box>
     );
@@ -134,4 +142,3 @@ const AddressSelectionModal: React.FC<AddressSelectionModalProps> = ({
 };
 
 export default AddressSelectionModal;
-

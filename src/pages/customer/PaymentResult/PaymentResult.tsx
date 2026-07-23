@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Button, Typography, Paper, Box } from '@mui/material';
 import { CheckCircle, Cancel, ContentCopy, Info } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { paths } from '@/config/paths';
 import { BRAND } from '@/constants/brand';
+import { useTracking } from '@/hooks/useTracking';
+import { Source } from '@/types/tracking/requests';
 
 const PaymentResult: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const { trackPurchase } = useTracking();
 
   // Đọc linh hoạt các tham số trả về từ Backend / VNPay
   const successParam = searchParams.get('success');
@@ -37,6 +40,16 @@ const PaymentResult: React.FC = () => {
     statusParam?.toUpperCase() === 'PAID' ||
     vnpResponseCode === '00' ||
     vnpTransactionStatus === '00';
+
+  // Tracking PURCHASE khi thanh toán trực tuyến thành công (Đã có Deduplication phòng chống trùng lặp)
+  useEffect(() => {
+    if (isSuccess && trackingNumber) {
+      const orderIdNum = Number(trackingNumber);
+      if (!isNaN(orderIdNum) && orderIdNum > 0) {
+        trackPurchase({ orderId: orderIdNum, source: Source.CHECKOUT_PAGE });
+      }
+    }
+  }, [isSuccess, trackingNumber, trackPurchase]);
 
   const handleCopyTracking = () => {
     if (trackingNumber) {

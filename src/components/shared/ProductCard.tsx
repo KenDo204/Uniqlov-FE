@@ -60,7 +60,7 @@ export function ProductCard({
     try {
       await toggleWishlist(product.productId);
       if (!isInWishlist) {
-        trackWishlist(product.productId, selectedColor, '', 'product_card', source);
+        trackWishlist(product.productId, product.categoryId, selectedColor, '', 'product_card', source);
       }
       toast.success(isInWishlist ? 'Đã xóa khỏi danh sách yêu thích' : 'Đã thêm vào danh sách yêu thích');
     } catch (err: any) {
@@ -204,7 +204,7 @@ export function ProductCard({
       return;
     }
     if (isRecommendation && aiModel && rankPosition) {
-      trackClickRecommendation(product.productId, aiModel, 'similar_or_bought_together', rankPosition, source);
+      trackClickRecommendation(product.productId, product.categoryId, aiModel, 'similar_or_bought_together', rankPosition, source);
     }
     navigate(productUrl, { state: { from: location.pathname } });
   };

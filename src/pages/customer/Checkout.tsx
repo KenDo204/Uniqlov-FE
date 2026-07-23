@@ -34,7 +34,7 @@ export function Checkout() {
   const { availableCoupons, fetchAvailableCoupons, isFetching, previewApplyCoupon } = useCoupon();
   const { user, isAuthenticated } = useAuth();
   const { addresses, fetchAddresses } = useAddress();
-  const { shippingFee, calculateShippingFee } = useGhn();
+  const { shippingFee, calculateShippingFee, clearFee } = useGhn();
   const { products, fetchPublicProducts } = useProduct();
   const { trackPurchase } = useTracking();
 
@@ -52,12 +52,12 @@ export function Checkout() {
     }
   }, [user]);
 
+  // Initial address loading
   React.useEffect(() => {
     if (isAuthenticated) {
       fetchAddresses().then((addrs) => {
         if (addrs && addrs.length > 0) {
-          const def = addrs.find(a => a.isDefault) || addrs[0];
-          setSelectedAddress(def);
+          setSelectedAddress(prev => prev || addrs.find(a => a.isDefault) || addrs[0]);
         } else {
           setSelectedAddress(null);
         }
@@ -66,6 +66,14 @@ export function Checkout() {
       });
     }
   }, [isAuthenticated, fetchAddresses]);
+
+  // Auto-select address when addresses state updates and selectedAddress is null
+  React.useEffect(() => {
+    if (addresses && addresses.length > 0 && !selectedAddress) {
+      const def = addresses.find(a => a.isDefault) || addresses[0];
+      setSelectedAddress(def);
+    }
+  }, [addresses, selectedAddress]);
 
   React.useEffect(() => {
     if (products.length === 0) {
@@ -78,7 +86,6 @@ export function Checkout() {
     if (selectedAddress) {
       setPhone(selectedAddress.phone);
     } else {
-      // Clear if no address
       if (!user) {
         setPhone('');
       }
@@ -96,7 +103,7 @@ export function Checkout() {
     return Math.max(100, Math.round(totalWeightKg * 1000));
   }, [items, products]);
 
-  // Recalculate shipping fee when selected address or total weight change
+  // Recalculate shipping fee strictly when valid selected address and weight exist
   React.useEffect(() => {
     if (selectedAddress?.districtId && selectedAddress?.wardCode && totalWeightGram > 0) {
       calculateShippingFee({
@@ -106,8 +113,10 @@ export function Checkout() {
       }).catch(err => {
         console.error("Failed to calculate shipping fee:", err);
       });
+    } else {
+      clearFee();
     }
-  }, [selectedAddress?.districtId, selectedAddress?.wardCode, totalWeightGram, calculateShippingFee]);
+  }, [selectedAddress?.districtId, selectedAddress?.wardCode, totalWeightGram, calculateShippingFee, clearFee]);
   
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'vnpay' | 'momo'>('cod');
   const [appliedCoupons, setAppliedCoupons] = useState<CouponResponse[]>([]);
@@ -152,21 +161,23 @@ export function Checkout() {
   const rawSubtotal = useMemo(() => items.reduce((sum, item) => sum + (typeof item.totalMoney === 'number' ? item.totalMoney : item.price * item.quantity), 0), [items]);
 
   const rawShippingCost = useMemo(() => {
+    if (!selectedAddress || !selectedAddress.districtId || !selectedAddress.wardCode) {
+      return 0;
+    }
     if (rawSubtotal >= 1500000 || rawSubtotal === 0) return 0;
-    return shippingFee?.total || 35000;
-  }, [rawSubtotal, shippingFee]);
+    return shippingFee?.total ?? 0;
+  }, [selectedAddress, rawSubtotal, shippingFee]);
 
   const financials = useMemo(() => {
     return calculateOrderFinancials(items, rawShippingCost, appliedCoupons, paymentMethod);
   }, [items, rawShippingCost, appliedCoupons, paymentMethod]);
 
-  // Handle errors from financial calculations (e.g., payment method changed)
+  // Handle errors from financial calculations
   React.useEffect(() => {
     if (financials.errors.length > 0) {
       if (hasUserInteractedWithCoupon) {
         financials.errors.forEach(err => toast.error(err));
       }
-      // Remove invalid coupons
       setAppliedCoupons(financials.validCoupons);
     }
   }, [financials.errors, financials.validCoupons, hasUserInteractedWithCoupon]);
@@ -223,32 +234,24 @@ export function Checkout() {
   }, [availableCoupons, rawSubtotal, rawShippingCost, hasUserInteractedWithCoupon, previewApplyCoupon]);
 
   const handleSelectCoupon = (coupon: CouponResponse) => {
-    // Determine what the applied coupons would look like
     let candidateCoupons: CouponResponse[] = [];
     if (coupon.couponType === 'FREE_SHIPPING') {
       const others = appliedCoupons.filter(c => c.couponType !== 'FREE_SHIPPING');
       candidateCoupons = [...others, coupon];
     } else {
-      // SHOP_VOUCHER or PAYMENT_VOUCHER
       const others = appliedCoupons.filter(c => c.couponType === 'FREE_SHIPPING');
       candidateCoupons = [...others, coupon];
     }
 
-    // Validate using existing financial calculations
     const candidateFinancials = calculateOrderFinancials(items, rawShippingCost, candidateCoupons, paymentMethod);
-    
-    // Check if the newly added coupon caused an error
-    // (If the coupon was dropped from candidateFinancials.validCoupons, it means it was invalid)
     const isCouponValid = candidateFinancials.validCoupons.some(c => c.couponId === coupon.couponId);
     
     if (!isCouponValid) {
-      // Find the specific error related to this coupon type or just show the first error
       const errorMsg = candidateFinancials.errors[0] || 'Mã giảm giá không hợp lệ với phương thức thanh toán hiện tại.';
       toast.error(errorMsg);
       return;
     }
 
-    // If valid, apply it
     setAppliedCoupons(candidateCoupons);
     setHasUserInteractedWithCoupon(true);
     setIsAutoApplied(false);
@@ -260,7 +263,6 @@ export function Checkout() {
     setHasUserInteractedWithCoupon(true);
     setIsAutoApplied(false);
   };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,7 +288,7 @@ export function Checkout() {
         cartItemIds,
         addressId: selectedAddress.addressId,
         couponCodes: appliedCoupons.map(c => c.code),
-        paymentMethod: paymentMethod.toUpperCase() as any, // 'COD' | 'VNPAY' | 'MOMO'
+        paymentMethod: paymentMethod.toUpperCase() as any,
         shippingMethod: 'STANDARD' as const,
         note: orderNote.trim()
       };
@@ -295,7 +297,19 @@ export function Checkout() {
       if (res) {
         toast.success('Đặt đơn hàng thành công!');
         fetchCart();
-        trackPurchase(res.orderId, paymentMethod, financials.grandTotal, payload.couponCodes?.join(',') || '', Source.CHECKOUT_PAGE);
+        trackPurchase({
+          orderId: res.orderId,
+          items: items.map(item => ({
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          paymentMethod,
+          totalAmount: financials.grandTotal,
+          couponCode: payload.couponCodes?.join(',') || '',
+          source: Source.CHECKOUT_PAGE
+        });
         
         if (res.paymentUrl) {
           setIsRedirecting(true);
@@ -364,7 +378,6 @@ export function Checkout() {
     );
   };
 
-  // Empty state if cart is empty and order is not successful
   if (items.length === 0 && !orderSuccess) {
     return (
       <div className="bg-[#f8f8f8] min-h-screen flex flex-col items-center justify-center text-center px-4 font-sans">
@@ -384,7 +397,7 @@ export function Checkout() {
     <div className="bg-[#f8f8f8] min-h-screen pb-20 pt-8 font-sans text-gray-900">
       <Container className="text-left">
         
-        {/* Title & Secure Connection */}
+        {/* Title & Navigation */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-8 gap-4">
           <div className="flex items-center gap-4">
             <button
@@ -404,7 +417,7 @@ export function Checkout() {
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-10 lg:gap-12 items-start">
             
-            {/* Left column: Contact, Delivery details, and Payment choices */}
+            {/* Left column */}
             <div className="flex-1 w-full space-y-8">
               
               {/* Step 1: Customer Contact Info */}
@@ -477,8 +490,8 @@ export function Checkout() {
                     />
                   </div>
                 ) : (
-                  <div className="p-5 border border-red-200 bg-red-50 text-red-700 text-sm rounded-[4px] flex flex-col items-center gap-3">
-                    <span className="font-medium">Bạn chưa có địa chỉ nhận hàng nào được lưu.</span>
+                  <div className="p-5 border border-amber-200 bg-amber-50 text-amber-800 text-sm rounded-[4px] flex flex-col items-center gap-3">
+                    <span className="font-medium text-center">Vui lòng chọn hoặc thêm địa chỉ giao hàng để tính phí vận chuyển.</span>
                     <button
                       type="button"
                       onClick={() => setIsCreateAddressOpen(true)}
@@ -501,10 +514,13 @@ export function Checkout() {
                   </div>
                 )}
                 
-                {/* For handling "Thêm địa chỉ mới" directly from the empty state */}
+                {/* Create Address Modal */}
                 <CreateAddressModal 
                   open={isCreateAddressOpen} 
                   setOpen={setIsCreateAddressOpen} 
+                  onCreated={(newAddr) => {
+                    setSelectedAddress(newAddr);
+                  }}
                 />
               </div>
 
@@ -541,7 +557,6 @@ export function Checkout() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('cod')}
-                    // Added 'group' here
                     className={`group py-4 px-2 rounded-[4px] text-[13px] font-bold border cursor-pointer transition-all flex flex-col items-center gap-2 bg-white ${
                       paymentMethod === 'cod'
                         ? 'border-theme border-[2px] text-theme font-extrabold shadow-sm'
@@ -552,11 +567,9 @@ export function Checkout() {
                       className={`w-5 h-5 transition-colors ${
                         paymentMethod === 'cod'
                           ? 'text-black'
-                          // Added group-hover to target the icon
                           : 'text-gray-700 group-hover:text-theme'
                       }`}
                     />
-                    {/* Added transition and group-hover to target the text */}
                     <span className={`transition-colors ${paymentMethod !== 'cod' ? 'group-hover:text-theme' : ''}`}>
                       COD (Tiền mặt)
                     </span>
@@ -566,15 +579,13 @@ export function Checkout() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('vnpay')}
-                    // Added 'group' here
                     className={`group py-4 px-2 rounded-[4px] text-[13px] font-bold border cursor-pointer transition-all flex flex-col items-center gap-2 bg-white ${
                       paymentMethod === 'vnpay'
                         ? 'border-theme border-[2px] text-theme font-extrabold shadow-sm'
-                        : 'border-gray-300 text-gray-500 hover:border-theme' // Changed hover to border-theme for consistency
+                        : 'border-gray-300 text-gray-500 hover:border-theme'
                     }`}
                   >
                     <span className="font-heading font-black text-sm text-blue-600">VNPay</span>
-                    {/* Added transition and group-hover to target the text */}
                     <span className={`transition-colors ${paymentMethod !== 'vnpay' ? 'group-hover:text-theme' : ''}`}>
                       VNPay
                     </span>
@@ -650,7 +661,6 @@ export function Checkout() {
                   </div>
                 ) : availableCoupons.length > 0 ? (
                   <div className="mt-4 space-y-6">
-                    {/* Nhóm 1: Mã giảm giá đơn hàng */}
                     <div>
                       <h4 className="text-sm font-bold text-gray-800 mb-3">Mã giảm giá đơn hàng (Tối đa 1 mã)</h4>
                       <div className="max-h-60 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
@@ -665,7 +675,6 @@ export function Checkout() {
                       </div>
                     </div>
 
-                    {/* Nhóm 2: Mã miễn phí vận chuyển */}
                     <div>
                       <h4 className="text-sm font-bold text-gray-800 mb-3">Mã miễn phí vận chuyển (Tối đa 1 mã)</h4>
                       <div className="max-h-60 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
@@ -732,7 +741,9 @@ export function Checkout() {
                   
                   <div className="flex justify-between items-center text-gray-750">
                     <span>Phí giao hàng</span>
-                    {financials.shippingFee === 0 ? (
+                    {!selectedAddress ? (
+                      <span className="text-gray-500 italic text-[12px]">Chưa chọn địa chỉ giao hàng</span>
+                    ) : rawSubtotal >= 1500000 || financials.shippingFee === 0 ? (
                       <span className="text-green-600 font-bold uppercase tracking-wider text-[10px]">Miễn phí</span>
                     ) : (
                       <span>{formatVND(financials.shippingFee)}</span>
@@ -784,12 +795,6 @@ export function Checkout() {
                     </>
                   )}
                 </button>
-
-                <div className="text-[10px] text-gray-500 font-medium text-center space-y-1">
-                  <p className="m-0 flex items-center justify-center gap-1.5">
-                    {/* <ShieldCheck className="w-4 h-4 text-green-600" /> Hệ thống bảo mật thông tin an toàn */}
-                  </p>
-                </div>
               </div>
             </div>
 
@@ -799,3 +804,5 @@ export function Checkout() {
     </div>
   );
 }
+
+export default Checkout;
