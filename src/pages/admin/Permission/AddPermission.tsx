@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { usePermission } from '@/hooks/usePermission';
+import { createPermissionSchema } from '@/schemas';
 
 interface AddPermissionProps {
   open: boolean;
@@ -28,16 +29,20 @@ const AddPermission: React.FC<AddPermissionProps> = ({ open, onClose, onSuccess 
 
   const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addPermissionName.trim()) {
-      toast.error('Vui lòng nhập tên định danh quyền');
+
+    const payload = {
+      permissionName: addPermissionName.trim().toUpperCase(),
+      description: addDescription.trim() || undefined,
+    };
+
+    const validationResult = createPermissionSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
 
     try {
-      await createPermission({
-        permissionName: addPermissionName.trim().toUpperCase(),
-        description: addDescription.trim() || undefined
-      });
+      await createPermission(payload);
       toast.success('Thêm mới quyền hạn thành công!');
       onSuccess();
       onClose();
@@ -45,6 +50,7 @@ const AddPermission: React.FC<AddPermissionProps> = ({ open, onClose, onSuccess 
       toast.error(error || 'Thêm quyền hạn thất bại');
     }
   };
+
 
   return (
     <Dialog

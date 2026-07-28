@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useUser } from '@/hooks/useUser';
+import { createUserSchema } from '@/schemas';
 import type { RoleResponse } from '@/types/role';
 
 interface AddUserProps {
@@ -38,13 +39,18 @@ const AddUser: React.FC<AddUserProps> = ({ open, onClose, onSuccess, roles }) =>
 
   const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addFullName.trim() || !addEmail.trim() || !addPassword.trim()) {
-      toast.error('Vui lòng điền đầy đủ các thông tin bắt buộc');
-      return;
-    }
 
-    if (addPassword.length < 8) {
-      toast.error('Mật khẩu tối thiểu phải 8 ký tự');
+    const payload = {
+      fullName: addFullName,
+      email: addEmail,
+      password: addPassword,
+      phone: addPhone ? addPhone : '',
+      roleId: addRoleId,
+    };
+
+    const validationResult = createUserSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
 
@@ -59,8 +65,8 @@ const AddUser: React.FC<AddUserProps> = ({ open, onClose, onSuccess, roles }) =>
       toast.success('Thêm mới thành viên thành công!');
       onSuccess();
       onClose();
-    } catch (error: any) {
-      toast.error(error || 'Thêm thành viên thất bại');
+    } catch (err: any) {
+      toast.error(err || 'Thêm mới thất bại!');
     }
   };
 

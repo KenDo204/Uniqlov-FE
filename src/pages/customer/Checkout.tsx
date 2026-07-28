@@ -4,7 +4,9 @@ import { CreditCard, ArrowRight, ChevronLeft, Ticket, CheckCircle2 } from '@/com
 import { toast } from 'react-toastify';
 import BackHome from '@/components/general/BackHomeButton';
 import { formatVND, translateAttribute } from '@/utils/formatters';
+import { checkoutSchema } from '@/schemas';
 import { useOrder } from '@/hooks/useOrder';
+
 import { useCoupon } from '@/hooks/useCoupon';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
@@ -293,7 +295,15 @@ export function Checkout() {
         note: orderNote.trim()
       };
 
+      const validationResult = checkoutSchema.safeParse(payload);
+      if (!validationResult.success) {
+        toast.error(validationResult.error.issues[0].message);
+        setIsSubmitting(false);
+        return;
+      }
+
       const res = await checkout(payload);
+
       if (res) {
         toast.success('Đặt đơn hàng thành công!');
         fetchCart();

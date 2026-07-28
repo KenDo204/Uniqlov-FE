@@ -3,24 +3,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/hooks/useUser';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'react-toastify';
+
 import { Gender } from '@/types/enums/genderType';
 import { uploadService } from '@/services/uploadService';
 import { useUpload } from '@/hooks/useUpload';
 import { CameraAlt } from '@mui/icons-material';
 
-const profileSchema = z.object({
-  fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
-  phone: z.union([
-    z.string().regex(/^(0[3|5|7|8|9])+([0-9]{8})$/, 'Số điện thoại không hợp lệ'),
-    z.literal('')
-  ]).optional(),
-  dob: z.string().optional(),
-  gender: z.nativeEnum(Gender).optional(),
-});
+import { updateUserSchema as profileSchema, type UpdateUserFormValues as ProfileFormValues } from '@/schemas';
 
-type ProfileFormValues = z.infer<typeof profileSchema>;
+
 
 const getGenderLabel = (gender?: Gender) => {
   if (gender === Gender.FEMALE) return 'Nữ';

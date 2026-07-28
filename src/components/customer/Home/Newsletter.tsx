@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import { z } from 'zod';
+
+const newsletterEmailSchema = z.string().trim().email('Vui lòng nhập địa chỉ email hợp lệ');
 
 export function Newsletter() {
   const [email, setEmail] = useState('');
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
-    toast.success('Thank you for joining! Your 10% coupon code UNILO10 has been sent to your email.');
+    const result = newsletterEmailSchema.safeParse(email);
+    if (!result.success) {
+      toast.error(result.error.issues[0].message);
+      return;
+    }
+    toast.success('Cảm ơn bạn đã đăng ký! Mã giảm giá UNILO10 đã được gửi đến email của bạn.');
     setEmail('');
   };
+
 
   return (
     <section className="bg-primary text-white p-8 md:p-16 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-8 w-full shadow-lg text-left">

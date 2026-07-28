@@ -5,7 +5,9 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowBack, KeyboardArrowRight, Save } from '@mui/icons-material';
 import { useCategory } from '@/hooks/useCategory';
+import { categoryUpdateSchema } from '@/schemas';
 import { toast } from 'react-toastify';
+
 import type { CategoryResponse } from '@/types/category';
 import { useUpload } from '@/hooks/useUpload';
 import { uploadService } from '@/services/uploadService';
@@ -102,8 +104,16 @@ const EditCategory: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!categoryName.trim()) {
-      toast.error('Vui lòng nhập tên danh mục');
+    const payload = {
+      categoryName: categoryName.trim(),
+      categoryStatus,
+      iconUrl: iconUrl ? iconUrl.trim() : undefined,
+      displayOrder: displayOrder ? Number(displayOrder) : undefined,
+    };
+
+    const validationResult = categoryUpdateSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
 
@@ -122,6 +132,7 @@ const EditCategory: React.FC = () => {
       toast.error(error || 'Cập nhật danh mục thất bại');
     }
   };
+
 
   if (isPageLoading || isFetching) {
     return (

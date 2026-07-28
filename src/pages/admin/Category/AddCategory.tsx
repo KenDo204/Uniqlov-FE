@@ -5,10 +5,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { ArrowBack, KeyboardArrowRight, Save } from '@mui/icons-material';
 import { useCategory } from '@/hooks/useCategory';
+import { categoryCreateSchema } from '@/schemas';
 import { toast } from 'react-toastify';
 import ParentCategoryPicker from '@/components/admin/Category/ParentCategoryPicker';
 import { useUpload } from '@/hooks/useUpload';
 import { uploadService } from '@/services/uploadService';
+
 
 const AddCategory: React.FC = () => {
   const navigate = useNavigate();
@@ -51,10 +53,19 @@ const AddCategory: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault();
 
-    if (!categoryName.trim()) {
-      toast.error('Vui lòng nhập tên danh mục');
+    const payload = {
+      categoryName,
+      parentId: parentId ?? undefined,
+      iconUrl: iconUrl ? iconUrl.trim() : undefined,
+      displayOrder: displayOrder ? Number(displayOrder) : undefined,
+    };
+
+    const validationResult = categoryCreateSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
 
@@ -73,6 +84,7 @@ const AddCategory: React.FC = () => {
       toast.error(error || 'Thêm danh mục thất bại');
     }
   };
+
 
   return (
     <div className="w-full text-left flex flex-col gap-6">

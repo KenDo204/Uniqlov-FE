@@ -2,21 +2,14 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'react-toastify';
+
 import { EyeOff, Eye } from '@/components/ui/icons';
 import { useOtpTimer } from '@/hooks/useOtpTimer';
 
-const resetSchema = z.object({
-  otp: z.string().min(6, 'Mã OTP phải đủ 6 ký tự').max(6, 'Mã OTP không quá 6 ký tự'),
-  newPassword: z.string().min(8, 'Mật khẩu phải từ 8 ký tự trở lên'),
-  confirmPassword: z.string().min(8, 'Vui lòng xác nhận mật khẩu mới'),
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Mật khẩu xác nhận không khớp",
-  path: ["confirmPassword"],
-});
+import { changePasswordSchema as resetSchema, type ChangePasswordFormValues as ResetFormValues } from '@/schemas';
 
-type ResetFormValues = z.infer<typeof resetSchema>;
+
 
 export function ChangePassword() {
   const { user, forgotPassword, resetPassword } = useAuth();

@@ -2,26 +2,18 @@ import { useState } from 'react';
 import { Eye, EyeOff } from '@/components/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useForm, Controller } from 'react-hook-form'; // Đã thêm Controller
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'react-toastify';
+
 
 // Import OTPField (Đảm bảo đường dẫn này khớp với cấu trúc thư mục của bạn)
 import OTPField from '@/components/customer/OtpField/OTPField';
 import { Container } from '@/components/shared/Container';
 
-const resetSchema = z.object({
-  email: z.string().min(1, 'Vui lòng nhập email').email('Định dạng email không hợp lệ'),
-  otp: z.string().length(6, 'Mã OTP phải bao gồm 6 ký tự'),
-  password: z.string().min(8, 'Mật khẩu phải từ 8 - 20 kí tự').max(20, 'Mật khẩu tối đa 20 kí tự'),
-  confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Mật khẩu xác nhận không trùng khớp",
-  path: ["confirmPassword"], 
-});
+import { resetPasswordSchema, type ResetPasswordFormValues as ResetFormValues } from '@/schemas';
 
-type ResetFormValues = z.infer<typeof resetSchema>;
+
 
 export function ResetPassword() {
   const navigate = useNavigate();
@@ -32,10 +24,11 @@ export function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Lấy control và getValues từ useForm để bọc OTPField
-  const { register, handleSubmit, control, getValues, formState: { errors } } = useForm<ResetFormValues>({
-    resolver: zodResolver(resetSchema),
+  const { register, handleSubmit, formState: { errors }, control, getValues } = useForm<ResetFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: { email: '', otp: '', password: '', confirmPassword: '' }
   });
+
 
   const onSubmit = async (data: ResetFormValues) => {
     resetAuth(); 

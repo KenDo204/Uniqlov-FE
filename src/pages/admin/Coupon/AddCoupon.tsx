@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useCoupon } from '@/hooks/useCoupon';
+import { couponCreateSchema } from '@/schemas';
 import type { DiscountType } from '@/types/enums/discountType';
 import type { CouponType } from '@/types/enums/couponType';
 
@@ -63,19 +64,26 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
   const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!code.trim()) {
-      toast.error('Vui lòng nhập mã giảm giá');
-      return;
-    }
-
     const parsedDiscountValue = Number(discountValue) || 0;
-    if (parsedDiscountValue <= 0) {
-      toast.error('Giá trị giảm giá phải lớn hơn 0');
-      return;
-    }
 
-    if (discountType === 'PERCENTAGE' && parsedDiscountValue > 100) {
-      toast.error('Phần trăm giảm giá tối đa là 100%');
+    const payload = {
+      code: code.trim().toUpperCase(),
+      description: description.trim() || undefined,
+      discountType,
+      discountValue: parsedDiscountValue,
+      maxDiscountAmount: discountType === 'PERCENTAGE' ? (Number(maxDiscountAmount) || undefined) : undefined,
+      minOrderAmount: Number(minOrderAmount) || undefined,
+      maxUsage: Number(maxUsage) || undefined,
+      userUsageLimit: Number(userUsageLimit) || undefined,
+      startDate,
+      endDate,
+      couponType,
+      applicableConditions: applicableConditions.trim() || undefined,
+    };
+
+    const validationResult = couponCreateSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
 
@@ -88,18 +96,9 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
 
     try {
       await createCoupon({
-        code: code.trim().toUpperCase(),
-        description: description.trim() || undefined,
-        discountType,
-        discountValue: parsedDiscountValue,
-        maxDiscountAmount: discountType === 'PERCENTAGE' ? (Number(maxDiscountAmount) || undefined) : undefined,
-        minOrderAmount: Number(minOrderAmount) || undefined,
-        maxUsage: Number(maxUsage) || undefined,
-        userUsageLimit: Number(userUsageLimit) || undefined,
+        ...payload,
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
-        couponType,
-        applicableConditions: applicableConditions.trim() || undefined
       });
       toast.success('Tạo mã giảm giá thành công!');
       onSuccess();
@@ -108,6 +107,7 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
       toast.error(error || 'Tạo mã giảm giá thất bại');
     }
   };
+
 
   return (
     <Dialog

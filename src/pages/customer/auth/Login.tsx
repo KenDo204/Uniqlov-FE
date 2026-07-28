@@ -1,28 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Eye, EyeOff, Info } from '@/components/ui/icons';
-import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'react-toastify';
+
 import { Container } from '@/components/shared/Container';
-import { useGoogleLogin } from '@react-oauth/google';
 import { FcGoogle } from 'react-icons/fc';
 
-// Định nghĩa Schema Validation với Zod
-const loginSchema = z.object({
-  email: z.string().min(1, 'Vui lòng nhập email').email('Định dạng email không hợp lệ'),
-  password: z.string().min(1, 'Vui lòng nhập mật khẩu'),
-});
+import { loginSchema, type LoginFormValues } from '@/schemas';
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+
+
 
 export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const { login, exchangeOAuth2Code, loading, resetAuth, fetchProfile } = useAuth();
+  const { login, loading, resetAuth, fetchProfile } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const from = (location.state as any)?.from?.pathname || '/';
@@ -33,38 +28,10 @@ export function Login() {
     defaultValues: { email: '', password: '' }
   });
 
-  const handleGoogleOAuthCode = async (code: string) => {
-    resetAuth();
-    try {
-      await exchangeOAuth2Code({ code });
-      toast.success('Đăng nhập bằng Google thành công!');
-      await fetchProfile();
-      navigate(from, { replace: true });
-    } catch (err: any) {
-      toast.error(err || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại!');
-    }
+  const handleGoogleLogin = () => {
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8080/easymall';
+    window.location.href = `${apiBase}/oauth2/authorization/google`;
   };
-
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (codeResponse) => {
-      if (codeResponse.code) {
-        await handleGoogleOAuthCode(codeResponse.code);
-      }
-    },
-    onError: (error) => {
-      console.error('Google OAuth Login error:', error);
-      toast.error('Đăng nhập bằng Google thất bại. Vui lòng thử lại!');
-    },
-    flow: 'auth-code',
-  });
-
-  // Tự động xử lý nếu Google OAuth2 redirect về URL có chứa mã code
-  useEffect(() => {
-    const code = searchParams.get('code');
-    if (code) {
-      handleGoogleOAuthCode(code);
-    }
-  }, [searchParams]);
 
   const onSubmit = async (data: LoginFormValues) => {
     resetAuth();
@@ -77,6 +44,7 @@ export function Login() {
       toast.error(err || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!');
     }
   };
+
 
   return (
     <div className="w-full bg-white min-h-screen text-gray-900 font-sans pb-24">

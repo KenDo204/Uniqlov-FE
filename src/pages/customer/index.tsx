@@ -8,6 +8,8 @@ export { Login } from './auth/Login';
 export { Register } from './auth/Register';
 export { ForgotPassword } from './auth/ForgotPassword';
 export { ResetPassword } from './auth/ResetPassword';
+export { OAuth2Redirect } from './auth/OAuth2Redirect';
+
 export { Account } from './Account';
 export { About } from './About';
 export { Sustainability } from './Sustainability';

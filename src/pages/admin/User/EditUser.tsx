@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useUser } from '@/hooks/useUser';
+import { updateUserSchema } from '@/schemas';
 import type { UserDetailResponse } from '@/types/user';
 import type { RoleResponse } from '@/types/role';
 
@@ -37,8 +38,16 @@ const EditUser: React.FC<EditUserProps> = ({ open, onClose, onSuccess, user, rol
     e.preventDefault();
     if (!user) return;
 
-    if (!editFullName.trim()) {
-      toast.error('Vui lòng nhập tên người dùng');
+    const payload = {
+      fullName: editFullName,
+      phone: editPhone ? editPhone : '',
+      roleId: editRoleId,
+      isActive: editIsActive,
+    };
+
+    const validationResult = updateUserSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
 
@@ -56,6 +65,7 @@ const EditUser: React.FC<EditUserProps> = ({ open, onClose, onSuccess, user, rol
       toast.error(error || 'Cập nhật thất bại');
     }
   };
+
 
   return (
     <Dialog

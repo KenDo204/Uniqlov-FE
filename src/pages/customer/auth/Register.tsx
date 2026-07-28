@@ -2,32 +2,18 @@ import { useState } from 'react';
 import { Eye, EyeOff } from '@/components/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useForm, Controller } from 'react-hook-form'; // Bổ sung Controller
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'react-toastify';
+
 
 // Import component OTPField của bạn
 import OTPField from '@/components/customer/OtpField/OTPField'; 
 import { Container } from '@/components/shared/Container';
 
-// Schema Bước 1: Đăng ký
-const registerSchema = z.object({
-  fullName: z.string().min(1, 'Vui lòng nhập họ và tên'),
-  email: z.string().min(1, 'Vui lòng nhập email').email('Định dạng email không hợp lệ'),
-  password: z.string().min(8, 'Mật khẩu phải từ 8 - 20 kí tự').max(20, 'Mật khẩu tối đa 20 kí tự'),
-  phone: z.union([
-    z.string().regex(/^(0[3|5|7|8|9])+([0-9]{8})$/, 'Số điện thoại không hợp lệ (VD: 0912345678)'),
-    z.literal('')
-  ]).optional(),
-});
-type RegisterFormValues = z.infer<typeof registerSchema>;
+import { registerSchema, otpSchema, type RegisterFormValues, type OtpFormValues } from '@/schemas';
 
-// Schema Bước 2: Kích hoạt OTP
-const otpSchema = z.object({
-  otp: z.string().length(6, 'Mã OTP phải bao gồm 6 chữ số'),
-});
-type OtpFormValues = z.infer<typeof otpSchema>;
+
 
 export function Register() {
   const navigate = useNavigate();

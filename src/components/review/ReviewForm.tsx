@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { reviewService } from '@/services/reviewService';
 import { uploadService } from '@/services/uploadService';
 import { useUpload } from '@/hooks/useUpload';
+import { createReviewSchema } from '@/schemas';
 
 interface ReviewFormProps {
   productId: number;
@@ -38,11 +39,21 @@ export function ReviewForm({ productId, orderId, onSuccess, onClose }: ReviewFor
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim()) {
-      toast.warn('Vui lòng viết nhận xét.');
+    
+    const payload = {
+      productId,
+      orderId: orderId || null,
+      rating: newRating,
+      comment: newComment,
+      imageUrls: [],
+    };
+
+    const validationResult = createReviewSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
-    
+
     setIsSubmittingReview(true);
     try {
       const uploadedUrls: string[] = [];
@@ -54,9 +65,7 @@ export function ReviewForm({ productId, orderId, onSuccess, onClose }: ReviewFor
       }
 
       await reviewService.createReview({
-        productId,
-        orderId: orderId || null,
-        rating: newRating,
+        ...payload,
         comment: newComment.trim(),
         imageUrls: uploadedUrls,
       });
@@ -69,6 +78,7 @@ export function ReviewForm({ productId, orderId, onSuccess, onClose }: ReviewFor
       setIsSubmittingReview(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

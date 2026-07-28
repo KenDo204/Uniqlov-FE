@@ -6,6 +6,7 @@ import {
 import { Search } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useRole } from '@/hooks/useRole';
+import { createRoleSchema } from '@/schemas';
 import type { PermissionResponse } from '@/types/permission';
 
 interface AddRoleProps {
@@ -51,22 +52,29 @@ const AddRole: React.FC<AddRoleProps> = ({ open, onClose, onSuccess, permissions
 
   const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addRoleName.trim()) {
-      toast.error('Vui lòng nhập tên vai trò');
+
+    const payload = {
+      roleName: addRoleName.trim(),
+      description: addDescription.trim() || undefined,
+      permissionIds: addSelectedPermissions,
+    };
+
+    const validationResult = createRoleSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
       return;
     }
 
     try {
       await createRole({
-        roleName: addRoleName.trim().toUpperCase(),
-        description: addDescription.trim() || undefined,
-        permissionIds: addSelectedPermissions
+        ...payload,
+        roleName: payload.roleName.toUpperCase()
       });
       toast.success('Thêm mới vai trò thành công!');
       onSuccess();
       onClose();
     } catch (error: any) {
-      toast.error(error || 'Thêm vai trò thất bại');
+      toast.error(error || 'Thêm mới thất bại');
     }
   };
 

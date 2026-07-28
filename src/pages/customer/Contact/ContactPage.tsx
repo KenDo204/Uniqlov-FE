@@ -3,6 +3,7 @@ import { TextField, Button, CircularProgress } from '@mui/material';
 import { Send } from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
 import { useContact } from '@/hooks/useContact';
+import { contactMessageSchema } from '@/schemas';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { Container } from '@/components/shared/Container';
@@ -20,23 +21,17 @@ const ContactPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isAuthenticated && (!guestName.trim() || !guestEmail.trim())) {
-      toast.error('Vui lòng nhập tên và email của bạn');
-      return;
-    }
+    const payload = {
+      guestName: !isAuthenticated ? guestName : undefined,
+      guestEmail: !isAuthenticated ? guestEmail : undefined,
+      subject,
+      content,
+    };
 
-    if (!subject.trim()) {
-      toast.error('Vui lòng nhập tiêu đề');
-      return;
-    }
-
-    if (subject.length > 200) {
-      toast.error('Tiêu đề không được vượt quá 200 ký tự');
-      return;
-    }
-
-    if (!content.trim() || content.trim().length < 10) {
-      toast.error('Nội dung phải có ít nhất 10 ký tự');
+    const validationResult = contactMessageSchema.safeParse(payload);
+    if (!validationResult.success) {
+      const firstIssue = validationResult.error.issues[0];
+      toast.error(firstIssue.message);
       return;
     }
 
@@ -61,7 +56,7 @@ const ContactPage: React.FC = () => {
       }
 
     } catch (error: any) {
-      toast.error(error || 'Lỗi khi gửi liên hệ');
+      toast.error(error || 'Không thể gửi phản hồi. Vui lòng thử lại sau.');
     }
   };
 

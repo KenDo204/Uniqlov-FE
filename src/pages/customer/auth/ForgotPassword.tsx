@@ -2,25 +2,24 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { toast } from 'react-toastify';
+
 import BackHome from '@/components/general/BackHomeButton';
 import { Container } from '@/components/shared/Container';
 
-const forgotSchema = z.object({
-  email: z.string().min(1, 'Vui lòng nhập email').email('Định dạng email không hợp lệ'),
-});
+import { forgotPasswordSchema, type ForgotPasswordFormValues as ForgotFormValues } from '@/schemas';
 
-type ForgotFormValues = z.infer<typeof forgotSchema>;
+
 
 export function ForgotPassword() {
   const navigate = useNavigate();
   const { forgotPassword, loading, resetAuth } = useAuth();
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<ForgotFormValues>({
-    resolver: zodResolver(forgotSchema),
+    resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: '' }
   });
+
 
   const onSubmit = async (data: ForgotFormValues) => {
     resetAuth();

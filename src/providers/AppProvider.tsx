@@ -2,7 +2,6 @@ import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from 'react-toastify';
 import { Provider } from 'react-redux';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -13,38 +12,34 @@ import { queryClient } from '../lib/queryClient';
 import { TrackingProvider } from '@/components/customer/TrackingProvider';
 import 'react-toastify/dist/ReactToastify.css';
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={muiTheme}>
-            <CssBaseline />
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={muiTheme}>
+          <CssBaseline />
 
-            {/* SỬA: Đã bỏ thẻ <BrowserRouter> bọc ngoài children */}
-            <TrackingProvider>
-              {children}
-            </TrackingProvider>
+          <TrackingProvider>
+            {children}
+          </TrackingProvider>
 
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-            />
-          </ThemeProvider>
-        </QueryClientProvider>
-      </GoogleOAuthProvider>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+        </ThemeProvider>
+      </QueryClientProvider>
     </Provider>
   );
 }
+
 
 

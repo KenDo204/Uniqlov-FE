@@ -28,6 +28,7 @@ import {
 
 import ContactPage from '../pages/customer/Contact/ContactPage';
 import MyContactHistory from '../pages/customer/Contact/MyContactHistory';
+import OAuth2Redirect from '../pages/customer/auth/OAuth2Redirect';
 import { GuestGuard } from './GuestGuard';
 
 export const customerRoutes: RouteObject = {
@@ -39,6 +40,7 @@ export const customerRoutes: RouteObject = {
     { path: 'products/:id', element: <CustomerProductDetail /> },
     { path: 'cart', element: <CustomerCart /> },
     { path: 'checkout', element: <CustomerCheckout /> },
+    { path: 'oauth2/redirect', element: <OAuth2Redirect /> },
     {
       element: <GuestGuard />,
       children: [
@@ -48,6 +50,7 @@ export const customerRoutes: RouteObject = {
         { path: 'reset-password', element: <ResetPassword /> },
       ],
     },
+
 
     // UNILO routes
     { path: 'products', element: <ProductListPage /> },

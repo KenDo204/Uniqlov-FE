@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { contactMessageSchema, type ContactMessageFormValues as ContactFormData } from '@/schemas';
 import { X, MessageSquare, Send } from '@/components/ui/icons';
 import { useContact } from '@/hooks/useContact';
 import { useAppSelector } from '@/stores/hooks';
@@ -7,13 +9,6 @@ import { toast } from 'react-toastify';
 import type { ContactMessageRequest } from '@/types/contact';
 import { cn } from '@/lib/utils';
 import { CONTACT_SUBJECTS } from '@/constants/contact-subjects';
-
-interface ContactFormData {
-  guestName?: string;
-  guestEmail?: string;
-  subject: string;
-  content: string;
-}
 
 export function FloatingContactWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +21,7 @@ export function FloatingContactWidget() {
     reset,
     formState: { errors },
   } = useForm<ContactFormData>({
+    resolver: zodResolver(contactMessageSchema),
     defaultValues: {
       guestName: '',
       guestEmail: '',
@@ -90,9 +86,7 @@ export function FloatingContactWidget() {
                       Họ tên <span className="text-red-500">*</span>
                     </label>
                     <input
-                      {...register('guestName', {
-                        required: 'Vui lòng nhập họ tên',
-                      })}
+                      {...register('guestName')}
                       type="text"
                       placeholder="Nguyễn Văn A"
                       className={cn(
@@ -110,13 +104,7 @@ export function FloatingContactWidget() {
                       Email <span className="text-red-500">*</span>
                     </label>
                     <input
-                      {...register('guestEmail', {
-                        required: 'Vui lòng nhập email',
-                        pattern: {
-                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                          message: 'Email không hợp lệ',
-                        },
-                      })}
+                      {...register('guestEmail')}
                       type="email"
                       placeholder="email@example.com"
                       className={cn(
@@ -137,9 +125,7 @@ export function FloatingContactWidget() {
                 </label>
                 <div className="relative">
                   <select
-                    {...register('subject', {
-                      required: 'Vui lòng chọn chủ đề',
-                    })}
+                    {...register('subject')}
                     className={cn(
                       "w-full px-3 py-2.5 bg-white border rounded-[4px] text-[13px] outline-none transition-all appearance-none cursor-pointer",
                       errors.subject ? "border-red-500 focus:ring-1 focus:ring-red-500" : "border-gray-300 focus:border-[var(--color-theme,#1a1a1a)] focus:ring-1 focus:ring-[var(--color-theme,#1a1a1a)]"
@@ -167,13 +153,7 @@ export function FloatingContactWidget() {
                   Nội dung <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  {...register('content', {
-                    required: 'Vui lòng nhập nội dung',
-                    minLength: {
-                      value: 10,
-                      message: 'Nội dung tối thiểu 10 ký tự',
-                    },
-                  })}
+                  {...register('content')}
                   rows={4}
                   placeholder="Chi tiết tin nhắn..."
                   className={cn(
@@ -185,6 +165,7 @@ export function FloatingContactWidget() {
                   <p className="text-red-500 text-[11px] mt-1 m-0">{errors.content.message}</p>
                 )}
               </div>
+
 
               <button
                 type="submit"

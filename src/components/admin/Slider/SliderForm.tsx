@@ -11,6 +11,7 @@ import { Save, Language } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useUpload } from '@/hooks/useUpload';
 import { uploadService } from '@/services/uploadService';
+import { sliderCreateSchema } from '@/schemas';
 import type { SliderCreateRequest } from '@/types/slider';
 
 import { SliderFormCard } from './components/SliderFormCard';
@@ -66,29 +67,24 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!imageUrl.trim()) {
-      toast.error('Vui lòng tải lên ảnh cho Slider');
-      return;
-    }
+    const parsedDisplayOrder = Number(displayOrder) || 0;
 
-    const parsedDisplayOrder = Number(displayOrder);
-    if (isNaN(parsedDisplayOrder) || parsedDisplayOrder < 0) {
-      toast.error('Thứ tự hiển thị phải lớn hơn hoặc bằng 0');
-      return;
-    }
-
-    // if (targetUrl.trim() && !/^https?:\/\/.+/.test(targetUrl.trim())) {
-    //   toast.error('URL đích không hợp lệ (phải bắt đầu bằng http:// hoặc https://)');
-    //   return;
-    // }
-
-    await onSubmit({
+    const payload = {
       imageUrl: imageUrl.trim(),
       targetUrl: targetUrl.trim() || undefined,
       isActive,
-      displayOrder: parsedDisplayOrder
-    });
+      displayOrder: parsedDisplayOrder,
+    };
+
+    const validationResult = sliderCreateSchema.safeParse(payload);
+    if (!validationResult.success) {
+      toast.error(validationResult.error.issues[0].message);
+      return;
+    }
+
+    await onSubmit(payload);
   };
+
 
   const isFormDisabled = isSubmitting || isUploading;
 
