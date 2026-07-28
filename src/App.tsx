@@ -8,7 +8,7 @@ import { useAuth } from './hooks/useAuth';
 import { useWishlist } from './hooks/useWishlist';
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
-  const { fetchProfile } = useAuth();
+  const { fetchProfile, resetAuth } = useAuth();
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
@@ -27,13 +27,15 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
         await fetchProfile();
       } catch (error) {
         console.error("Lỗi khi nạp thông tin phiên đăng nhập:", error);
+        resetAuth();
       } finally {
         setIsInitializing(false);
       }
     };
 
     verifySession();
-  }, [fetchProfile]);
+  }, [fetchProfile, resetAuth]);
+
 
   if (isInitializing) {
     return (

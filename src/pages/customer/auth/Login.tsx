@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Info } from '@/components/ui/icons';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
 import { Container } from '@/components/shared/Container';
+import { useGoogleLogin } from '@react-oauth/google';
+import { FcGoogle } from 'react-icons/fc';
 
 // Định nghĩa Schema Validation với Zod
 const loginSchema = z.object({
@@ -18,8 +20,12 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function Login() {
   const navigate = useNavigate();
-  const { login, loading, resetAuth, fetchProfile } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const { login, exchangeOAuth2Code, loading, resetAuth, fetchProfile } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+
+  const from = (location.state as any)?.from?.pathname || '/';
 
   // Khởi tạo React Hook Form
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
@@ -27,13 +33,46 @@ export function Login() {
     defaultValues: { email: '', password: '' }
   });
 
+  const handleGoogleOAuthCode = async (code: string) => {
+    resetAuth();
+    try {
+      await exchangeOAuth2Code({ code });
+      toast.success('Đăng nhập bằng Google thành công!');
+      await fetchProfile();
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      toast.error(err || 'Đăng nhập bằng Google thất bại. Vui lòng thử lại!');
+    }
+  };
+
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (codeResponse) => {
+      if (codeResponse.code) {
+        await handleGoogleOAuthCode(codeResponse.code);
+      }
+    },
+    onError: (error) => {
+      console.error('Google OAuth Login error:', error);
+      toast.error('Đăng nhập bằng Google thất bại. Vui lòng thử lại!');
+    },
+    flow: 'auth-code',
+  });
+
+  // Tự động xử lý nếu Google OAuth2 redirect về URL có chứa mã code
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      handleGoogleOAuthCode(code);
+    }
+  }, [searchParams]);
+
   const onSubmit = async (data: LoginFormValues) => {
-    resetAuth(); 
+    resetAuth();
     try {
       await login(data);
       toast.success('Đăng nhập thành công!');
-      navigate('/');
       await fetchProfile();
+      navigate(from, { replace: true });
     } catch (err: any) {
       toast.error(err || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!');
     }
@@ -42,7 +81,7 @@ export function Login() {
   return (
     <div className="w-full bg-white min-h-screen text-gray-900 font-sans pb-24">
       <Container className="py-10 md:py-16">
-        
+
         <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-10">
           <h1 className="text-[28px] md:text-[32px] font-medium m-0">Đăng nhập</h1>
           <Info className="w-5 h-5 text-gray-500 cursor-pointer" />
@@ -65,8 +104,8 @@ export function Login() {
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <div>
                 <label className="block text-[13px] font-medium text-gray-800 mb-2">Địa chỉ email</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   {...register('email')}
                   placeholder="example@email.com"
                   className={`w-full border rounded-none px-4 py-3 outline-none text-[14px] transition-colors ${errors.email ? 'border-red-500 focus:border-red-500' : 'border-gray-400 focus:border-black'}`}
@@ -77,13 +116,13 @@ export function Login() {
               <div>
                 <label className="block text-[13px] font-medium text-gray-800 mb-2">Mật khẩu</label>
                 <div className="relative">
-                  <input 
-                    type={showPassword ? "text" : "password"} 
+                  <input
+                    type={showPassword ? "text" : "password"}
                     {...register('password')}
                     placeholder="Vui lòng nhập mật khẩu."
                     className={`w-full border rounded-none px-4 py-3 outline-none text-[14px] transition-colors pr-12 ${errors.password ? 'border-red-500 focus:border-red-500' : 'border-gray-400 focus:border-black'}`}
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black bg-transparent border-none cursor-pointer p-0"
@@ -100,7 +139,7 @@ export function Login() {
                 </Link>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={loading}
                 className="w-[200px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
@@ -108,10 +147,24 @@ export function Login() {
                 {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
               </button>
             </form>
+
+            {/* Nút Đăng nhập với Google */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <p className="text-[13px] text-gray-600 mb-4">Hoặc đăng nhập bằng tài khoản mạng xã hội:</p>
+              <button
+                type="button"
+                onClick={() => handleGoogleLogin()}
+                disabled={loading}
+                className="w-full max-w-[320px] h-12 bg-white hover:bg-gray-50 text-gray-800 font-semibold text-[14px] rounded-full border border-gray-300 transition-all cursor-pointer flex items-center justify-center gap-3 shadow-sm hover:shadow disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <FcGoogle className="w-5 h-5 shrink-0" />
+                <span>Đăng nhập với Google</span>
+              </button>
+            </div>
           </div>
 
           <div className="w-full max-w-[500px]">
-            <button 
+            <button
               onClick={() => navigate('/register')}
               className="w-[240px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer mb-6"
             >

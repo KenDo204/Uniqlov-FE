@@ -119,23 +119,17 @@ export function HeroBanner() {
             )}
           </div>
           {/* LỚP 2: LỚP PHỦ MỜ (OVERLAY) */}
-          <div className="absolute inset-0 bg-black/20 z-[5] pointer-events-none"></div>
+          {/* <div className="absolute inset-0 bg-black/20 z-[5] pointer-events-none"></div> */}
           
           {/* LỚP 3: NỘI DUNG CHỮ & NÚT (TEXT OVERLAY) */}
-          <div className="absolute inset-0 z-10 flex flex-col justify-center items-start px-8 md:px-16 pointer-events-none">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white uppercase tracking-tight mb-2 md:mb-4 drop-shadow-lg leading-tight font-primary">
-              Easy Shopping <br /> Easy Life
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg text-white/95 mb-6 md:mb-8 font-medium drop-shadow-md max-w-sm md:max-w-md leading-relaxed font-secondary">
-              Mua sắm thông minh, trải nghiệm tuyệt vời
-            </p>
+          {/* <div className="absolute inset-0 z-10 flex flex-col justify-end items-start px-6 pb-8 md:px-16 md:pb-12 pointer-events-none">
             <Link 
               to="/products" 
-              className="pointer-events-auto inline-flex items-center justify-center bg-white text-theme hover:bg-theme hover:text-white px-8 py-3 md:px-10 md:py-3.5 rounded-full font-bold text-sm md:text-base transition-all duration-300 shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-1 decoration-none"
+              className="pointer-events-auto inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-bold text-theme shadow-md transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-theme hover:text-white hover:shadow-xl active:translate-y-0 md:px-10 md:py-3.5 md:text-base"
             >
               Mua Ngay
             </Link>
-          </div>
+          </div> */}
         </div>
       </Container>
     </section>

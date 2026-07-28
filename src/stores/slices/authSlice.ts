@@ -9,7 +9,8 @@ import type {
   ResetPasswordRequest,
   LogoutRequest,
   UserResponse,
-  IntrospectRequest
+  IntrospectRequest,
+  OAuth2ExchangeRequest
 } from '@/types/auth';
 
 interface AuthState {
@@ -39,6 +40,18 @@ export const loginThunk = createAsyncThunk(
       return response.result; // Trả về AuthResponse
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Đăng nhập thất bại');
+    }
+  }
+);
+
+export const exchangeOAuth2CodeThunk = createAsyncThunk(
+  'auth/exchangeOAuth2Code',
+  async (payload: OAuth2ExchangeRequest, { rejectWithValue }) => {
+    try {
+      const response = await authService.exchangeOAuth2Code(payload);
+      return response.result; // Trả về AuthResponse
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Đăng nhập bằng Google thất bại');
     }
   }
 );
@@ -157,6 +170,29 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.error = action.payload as string;
       });
+
+    // Xử lý Google OAuth2 Code Exchange
+    builder
+      .addCase(exchangeOAuth2CodeThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(exchangeOAuth2CodeThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        if (action.payload) {
+          state.accessToken = action.payload.accessToken;
+          // Lưu vào LocalStorage
+          localStorage.setItem('accessToken', action.payload.accessToken);
+          localStorage.setItem('refreshToken', action.payload.refreshToken);
+        }
+      })
+      .addCase(exchangeOAuth2CodeThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = false;
+        state.error = action.payload as string;
+      });
+
 
     // Xử lý Get Current User
     builder

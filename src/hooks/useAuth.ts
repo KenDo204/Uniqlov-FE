@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/stores/hooks';
 import { 
   loginThunk, 
+  exchangeOAuth2CodeThunk,
   logoutThunk, 
   getCurrentUserThunk, 
   clearAuth,
@@ -12,7 +13,7 @@ import {
   activateAccountThunk,
   introspectThunk
 } from '@/stores/slices/authSlice';
-import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResendOtpRequest, ResetPasswordRequest } from '@/types/auth';
+import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResendOtpRequest, ResetPasswordRequest, OAuth2ExchangeRequest } from '@/types/auth';
 import { jwtDecode } from 'jwt-decode';
 
 interface CustomJwtPayload {
@@ -26,6 +27,10 @@ export const useAuth = () => {
 
   const login = useCallback(async (payload: LoginRequest) => {
     return await dispatch(loginThunk(payload)).unwrap();
+  }, [dispatch]);
+
+  const exchangeOAuth2Code = useCallback(async (payload: OAuth2ExchangeRequest) => {
+    return await dispatch(exchangeOAuth2CodeThunk(payload)).unwrap();
   }, [dispatch]);
 
   const logout = useCallback(async () => {
@@ -105,6 +110,7 @@ export const useAuth = () => {
     loading: isLoading,
     error,
     login,
+    exchangeOAuth2Code,
     logout,
     fetchProfile,
     resetAuth,
@@ -115,5 +121,6 @@ export const useAuth = () => {
     resetPassword,
     introspectToken,
     hasPermission
-  }), [user, isAuthenticated, isCustomer, accessToken, isLoading, error, login, logout, fetchProfile, resetAuth, register, forgotPassword, activateAccount, resendOtp, resetPassword, introspectToken, hasPermission]);
-};
+  }), [user, isAuthenticated, isCustomer, accessToken, isLoading, error, login, exchangeOAuth2Code, logout, fetchProfile, resetAuth, register, forgotPassword, activateAccount, resendOtp, resetPassword, introspectToken, hasPermission]);
+};
+

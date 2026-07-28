@@ -4,8 +4,6 @@ import { ToastContainer } from 'react-toastify';
 import { Provider } from 'react-redux';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// XÓA: Bỏ dòng import BrowserRouter ở đây
-
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { muiTheme } from '@/theme/muiTheme';
@@ -24,12 +22,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider theme={muiTheme}>
             <CssBaseline />
-            
+
             {/* SỬA: Đã bỏ thẻ <BrowserRouter> bọc ngoài children */}
             <TrackingProvider>
               {children}
             </TrackingProvider>
-            
+
             <ToastContainer
               position="top-right"
               autoClose={3000}
@@ -48,3 +46,5 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     </Provider>
   );
 }
+
+

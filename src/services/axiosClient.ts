@@ -2,6 +2,13 @@ import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { clearAuth, updateTokens } from '@/stores/slices/authSlice';
 import { toast } from 'react-toastify';
 
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    skipToast?: boolean;
+    _retry?: boolean;
+  }
+}
+
 const REFRESH_URL = '/auth/refresh';
 
 export const axiosClient = axios.create({
@@ -52,7 +59,7 @@ axiosClient.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = (error.config || {}) as InternalAxiosRequestConfig & { skipToast?: boolean; _retry?: boolean };
     const { store } = await import('@/stores/store');
 
     if (error.response) {
@@ -62,8 +69,10 @@ axiosClient.interceptors.response.use(
         case 401:
         case 403:
           // Tránh lặp vô hạn nếu API refresh cũng trả về 401 hoặc 403
-          if (originalRequest.url === REFRESH_URL) {
-            toast.info('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.');
+          if (originalRequest.url?.includes(REFRESH_URL)) {
+            if (!originalRequest.skipToast) {
+              toast.info('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.');
+            }
             store.dispatch(clearAuth());
             return Promise.reject(error);
           }
@@ -99,10 +108,12 @@ axiosClient.interceptors.response.use(
             }
 
             try {
-              // Gọi API cấp lại token
-              const rs = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${REFRESH_URL}`, {
-                token: refreshToken,
-              });
+              // Gọi API cấp lại token (kế thừa cờ skipToast từ request gốc)
+              const rs = await axios.post(
+                `${import.meta.env.VITE_API_BASE_URL}${REFRESH_URL}`, 
+                { token: refreshToken },
+                { skipToast: originalRequest.skipToast }
+              );
 
               const newAccessToken = rs.data.result.accessToken;
               const newRefreshToken = rs.data.result.refreshToken;
@@ -126,7 +137,8 @@ axiosClient.interceptors.response.use(
             }
           }
 
-          // Nếu đã retry rồi hoặc không có Authorization header (thực sự không có quyền)
+          // Nếu 401/403 cho request ngầm hoặc không thể retry: clear auth im lặng
+          store.dispatch(clearAuth());
           if (status === 403) {
             console.error('Forbidden: Access denied.');
           }
@@ -145,7 +157,9 @@ axiosClient.interceptors.response.use(
       }
     } else {
       console.error('Network Error or server is offline.');
-      toast.error('Lỗi kết nối mạng hoặc máy chủ không phản hồi.');
+      if (!originalRequest.skipToast) {
+        toast.error('Lỗi kết nối mạng hoặc máy chủ không phản hồi.');
+      }
     }
     return Promise.reject(error);
   }

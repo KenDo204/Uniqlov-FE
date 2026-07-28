@@ -92,3 +92,8 @@ export interface LogoutRequest {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface OAuth2ExchangeRequest {
+  code: string;
+}
+

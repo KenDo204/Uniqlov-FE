@@ -10,6 +10,7 @@ import type {
   IntrospectRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  OAuth2ExchangeRequest,
   AuthResponse,
   IntrospectResponse,
   UserResponse
@@ -38,6 +39,11 @@ export const authService = {
     return response.data;
   },
 
+  exchangeOAuth2Code: async (data: OAuth2ExchangeRequest): Promise<ApiResponse<AuthResponse>> => {
+    const response = await axiosClient.post<ApiResponse<AuthResponse>>(`${API_URL}/exchange-oauth2-code`, data);
+    return response.data;
+  },
+
   logout: async (data: LogoutRequest): Promise<ApiResponse<void>> => {
     const response = await axiosClient.post<ApiResponse<void>>(`${API_URL}/logout`, data);
     return response.data;
@@ -63,8 +69,11 @@ export const authService = {
     return response.data;
   },
 
-  getCurrentUser: async (): Promise<ApiResponse<UserResponse>> => {
-    const response = await axiosClient.get<ApiResponse<UserResponse>>(`${API_URL}/me`);
+  getCurrentUser: async (config?: import('axios').AxiosRequestConfig): Promise<ApiResponse<UserResponse>> => {
+    const response = await axiosClient.get<ApiResponse<UserResponse>>(`${API_URL}/me`, {
+      skipToast: true,
+      ...config,
+    });
     return response.data;
   },
 };
