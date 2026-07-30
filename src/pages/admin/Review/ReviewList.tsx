@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAllReviews, useUpdateReviewStatus } from '@/hooks/useReview';
 import { ReviewStatus } from '@/types/enums/reviewStatus';
-import type { ReviewResponse } from '@/types/review/responses';
+import type { ReviewResponse } from '@/features/review/types/response';
 import { Star, Search, CheckCircle2, X, ChevronLeft, ChevronRight, Eye } from '@/components/ui/icons';
 import { toast } from 'react-toastify';
 import { formatDate } from '@/utils/formatters';
@@ -38,8 +38,9 @@ export default function ReviewList() {
         data: { status: newStatus },
       });
       toast.success(`Cập nhật trạng thái đánh giá #${reviewId} thành công!`);
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái đánh giá.');
+    } catch (error: unknown) {
+      const errorObj = error as { response?: { data?: { message?: string } } };
+      toast.error(errorObj?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái đánh giá.');
     }
   };
 
@@ -101,19 +102,24 @@ export default function ReviewList() {
             <div className="block md:hidden space-y-4 p-4">
               {reviews.map((review, index) => {
                 const stt = page * size + index + 1;
+                const displayName = review.userFullName?.trim() ? review.userFullName : 'Anonymous User';
+                const attributeEntries = review.variantAttributes ? Object.entries(review.variantAttributes) : [];
+
                 return (
                   <div key={review.reviewId} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm space-y-3">
                     {/* Card Header: User & Status */}
                     <div className="flex items-start justify-between gap-2 border-b border-gray-100 pb-2.5">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-full bg-theme/10 text-theme font-bold text-xs flex items-center justify-center shrink-0">
-                          {(review.userFullName || 'U')[0].toUpperCase()}
+                          {displayName[0].toUpperCase()}
                         </div>
                         <div>
                           <div className="font-semibold text-xs text-gray-900 leading-tight">
-                            {review.userFullName || `User #${review.userId}`}
+                            {displayName}
                           </div>
-                          <div className="text-[11px] text-gray-400">STT: {stt} • User ID: {review.userId}</div>
+                          <div className="text-[11px] text-gray-400">
+                            STT: {stt} • User ID: #{review.userId} {review.orderId ? `• Order: #${review.orderId}` : ''}
+                          </div>
                         </div>
                       </div>
                       <div>
@@ -137,13 +143,29 @@ export default function ReviewList() {
                       </div>
                     </div>
 
-                    {/* Product Name & Rating */}
-                    <div>
-                      <div className="text-[11px] text-gray-400 font-medium mb-0.5">Sản phẩm:</div>
-                      <div className="text-xs font-bold text-gray-900 leading-snug line-clamp-1">{review.productName}</div>
-                      <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs mt-1">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span>{review.rating}/5</span>
+                    {/* Product Name, Variant & Rating */}
+                    <div className="flex gap-3 items-start">
+                      {review.variantImage && (
+                        <img
+                          src={review.variantImage}
+                          alt={review.productName || 'Variant'}
+                          className="w-12 h-14 object-cover rounded border border-gray-200 shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[11px] text-gray-400 font-medium mb-0.5">Sản phẩm:</div>
+                        <div className="text-xs font-bold text-gray-900 leading-snug line-clamp-1">
+                          {review.productName || 'N/A'}
+                        </div>
+                        {attributeEntries.length > 0 && (
+                          <div className="text-[11px] text-gray-500 mt-0.5">
+                            {attributeEntries.map(([k, v]) => `${k}: ${v}`).join(' • ')}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs mt-1">
+                          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                          <span>{review.rating}/5</span>
+                        </div>
                       </div>
                     </div>
 
@@ -167,18 +189,20 @@ export default function ReviewList() {
 
                     {/* Card Footer: Date & Action Buttons */}
                     <div className="flex items-center justify-between pt-1 border-t border-gray-100">
-                      <span className="text-[11px] text-gray-400">{formatDate(review.createdAt)}</span>
+                      <span className="text-[11px] text-gray-400">
+                        {review.createdAt ? formatDate(review.createdAt) : 'N/A'}
+                      </span>
 
                       <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => setSelectedDetailReview(review)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer border border-gray-200 active:scale-95"
-                        title="Xem chi tiết đánh giá"
-                      >
-                        <Eye className="w-3.5 h-3.5 text-gray-600" />
-                        Chi tiết
-                      </button>
-                      {review.reviewStatus !== ReviewStatus.APPROVED && (
+                        <button
+                          onClick={() => setSelectedDetailReview(review)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer border border-gray-200 active:scale-95"
+                          title="Xem chi tiết đánh giá"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-gray-600" />
+                          Chi tiết
+                        </button>
+                        {review.reviewStatus !== ReviewStatus.APPROVED && (
                           <button
                             onClick={() => handleUpdateStatus(review.reviewId, ReviewStatus.APPROVED)}
                             disabled={updateStatusMutation.isPending}
@@ -223,104 +247,127 @@ export default function ReviewList() {
                 <tbody className="divide-y divide-gray-200">
                   {reviews.map((review, index) => {
                     const stt = page * size + index + 1;
+                    const displayName = review.userFullName?.trim() ? review.userFullName : 'Anonymous User';
+                    const attributeEntries = review.variantAttributes ? Object.entries(review.variantAttributes) : [];
+
                     return (
                       <tr key={review.reviewId} className="hover:bg-gray-50/80 transition-colors">
                         <td className="py-3.5 px-4 font-mono text-xs font-semibold text-gray-900">
                           {stt}
                         </td>
 
-                      <td className="py-3.5 px-4 font-medium text-gray-900">
-                        <div>{review.userFullName || `User #${review.userId}`}</div>
-                        <div className="text-xs text-gray-400 font-normal">ID: {review.userId}</div>
-                      </td>
-
-                      <td className="py-3.5 px-4 font-medium text-gray-900 max-w-xs truncate" title={review.productName}>
-                        {review.productName}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs">
-                          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                          <span>{review.rating}/5</span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 max-w-md">
-                        <p className="text-xs text-gray-800 m-0 line-clamp-2">{review.comment || '(Không có nội dung)'}</p>
-                        {review.images && review.images.length > 0 && (
-                          <div className="flex gap-1.5 mt-2">
-                            {review.images.map((img) => (
-                              <img
-                                key={img.reviewImageId}
-                                src={img.imageUrl}
-                                alt="Review attachment"
-                                className="w-8 h-8 rounded object-cover cursor-pointer hover:opacity-80 border border-gray-200"
-                                onClick={() => setSelectedReviewImage(img.imageUrl)}
-                              />
-                            ))}
+                        <td className="py-3.5 px-4 font-medium text-gray-900">
+                          <div>{displayName}</div>
+                          <div className="text-xs text-gray-400 font-normal">
+                            User ID: #{review.userId} {review.orderId ? `• Order: #${review.orderId}` : ''}
                           </div>
-                        )}
-                      </td>
+                        </td>
 
-                      <td className="py-3.5 px-4">
-                        {review.reviewStatus === ReviewStatus.APPROVED && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Đã duyệt
-                          </span>
-                        )}
-                        {review.reviewStatus === ReviewStatus.PENDING && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                            Chờ duyệt
-                          </span>
-                        )}
-                        {review.reviewStatus === ReviewStatus.HIDDEN && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                            <X className="w-3.5 h-3.5" />
-                            Đã ẩn
-                          </span>
-                        )}
-                      </td>
+                        <td className="py-3.5 px-4 font-medium text-gray-900 max-w-xs">
+                          <div className="flex gap-2 items-center">
+                            {review.variantImage && (
+                              <img
+                                src={review.variantImage}
+                                alt={review.productName || 'Variant'}
+                                className="w-8 h-10 object-cover rounded border border-gray-200 shrink-0"
+                              />
+                            )}
+                            <div className="min-w-0">
+                              <div className="truncate text-xs font-bold text-gray-900" title={review.productName}>
+                                {review.productName || 'N/A'}
+                              </div>
+                              {attributeEntries.length > 0 && (
+                                <div className="text-[11px] text-gray-500 font-normal truncate">
+                                  {attributeEntries.map(([k, v]) => `${k}: ${v}`).join(', ')}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
 
-                      <td className="py-3.5 px-4 text-xs text-gray-500 whitespace-nowrap">
-                        {formatDate(review.createdAt)}
-                      </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1 text-amber-500 font-semibold text-xs">
+                            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                            <span>{review.rating}/5</span>
+                          </div>
+                        </td>
 
-                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => setSelectedDetailReview(review)}
-                            className="p-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer border border-blue-200"
-                            title="Xem chi tiết đánh giá"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          {review.reviewStatus !== ReviewStatus.APPROVED && (
-                            <button
-                              onClick={() => handleUpdateStatus(review.reviewId, ReviewStatus.APPROVED)}
-                              disabled={updateStatusMutation.isPending}
-                              className="p-1.5 text-xs text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer border border-green-200"
-                              title="Duyệt đánh giá"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                            </button>
+                        <td className="py-3.5 px-4 max-w-md">
+                          <p className="text-xs text-gray-800 m-0 line-clamp-2">{review.comment || '(Không có nội dung)'}</p>
+                          {review.images && review.images.length > 0 && (
+                            <div className="flex gap-1.5 mt-2">
+                              {review.images.map((img) => (
+                                <img
+                                  key={img.reviewImageId}
+                                  src={img.imageUrl}
+                                  alt="Review attachment"
+                                  className="w-8 h-8 rounded object-cover cursor-pointer hover:opacity-80 border border-gray-200"
+                                  onClick={() => setSelectedReviewImage(img.imageUrl)}
+                                />
+                              ))}
+                            </div>
                           )}
-                          {review.reviewStatus !== ReviewStatus.HIDDEN && (
-                            <button
-                              onClick={() => handleUpdateStatus(review.reviewId, ReviewStatus.HIDDEN)}
-                              disabled={updateStatusMutation.isPending}
-                              className="p-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-red-200"
-                              title="Ẩn đánh giá"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
+                        </td>
+
+                        <td className="py-3.5 px-4">
+                          {review.reviewStatus === ReviewStatus.APPROVED && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Đã duyệt
+                            </span>
                           )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
+                          {review.reviewStatus === ReviewStatus.PENDING && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                              Chờ duyệt
+                            </span>
+                          )}
+                          {review.reviewStatus === ReviewStatus.HIDDEN && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                              <X className="w-3.5 h-3.5" />
+                              Đã ẩn
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-xs text-gray-500 whitespace-nowrap">
+                          {review.createdAt ? formatDate(review.createdAt) : 'N/A'}
+                        </td>
+
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => setSelectedDetailReview(review)}
+                              className="p-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer border border-blue-200"
+                              title="Xem chi tiết đánh giá"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            {review.reviewStatus !== ReviewStatus.APPROVED && (
+                              <button
+                                onClick={() => handleUpdateStatus(review.reviewId, ReviewStatus.APPROVED)}
+                                disabled={updateStatusMutation.isPending}
+                                className="p-1.5 text-xs text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer border border-green-200"
+                                title="Duyệt đánh giá"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                              </button>
+                            )}
+                            {review.reviewStatus !== ReviewStatus.HIDDEN && (
+                              <button
+                                onClick={() => handleUpdateStatus(review.reviewId, ReviewStatus.HIDDEN)}
+                                disabled={updateStatusMutation.isPending}
+                                className="p-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer border border-red-200"
+                                title="Ẩn đánh giá"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
               </table>
             </div>
           </>

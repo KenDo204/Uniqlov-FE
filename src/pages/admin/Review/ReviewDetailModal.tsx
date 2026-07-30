@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ReviewResponse } from '@/types/review/responses';
+import type { ReviewResponse } from '@/features/review/types/response';
 import { ReviewStatus } from '@/types/enums/reviewStatus';
 import { Star, X, CheckCircle2, User, ShoppingBag, Checkroom, Clock } from '@/components/ui/icons';
 import { formatDate } from '@/utils/formatters';
@@ -19,10 +19,12 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
 }) => {
   if (!isOpen || !review) return null;
 
+  const displayName = review.userFullName?.trim() ? review.userFullName : 'Anonymous User';
+  const attributeEntries = review.variantAttributes ? Object.entries(review.variantAttributes) : [];
+
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs text-left">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
-        
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50/80">
           <div>
@@ -30,7 +32,7 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
               Chi tiết đánh giá #{review.reviewId}
             </h3>
             <p className="text-xs text-gray-500 m-0 mt-0.5">
-              Đăng ngày {formatDate(review.createdAt)}
+              Đăng ngày {review.createdAt ? formatDate(review.createdAt) : 'N/A'}
             </p>
           </div>
           <button
@@ -43,7 +45,6 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6 divide-y divide-gray-100">
-
           {/* Section 1: Người đánh giá & Đơn hàng */}
           <div className="space-y-3">
             <h4 className="text-xs uppercase tracking-wider font-bold text-gray-500 flex items-center gap-2 m-0">
@@ -53,36 +54,58 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
               <div>
                 <span className="text-xs text-gray-500 block">Họ và tên:</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  {review.userFullName || `Tài khoản #${review.userId}`}
+                  {displayName}
                 </span>
               </div>
               <div>
                 <span className="text-xs text-gray-500 block">Mã người dùng (User ID):</span>
                 <span className="text-sm font-mono font-medium text-gray-700">#{review.userId}</span>
               </div>
-              {review.orderId && (
-                <div>
-                  <span className="text-xs text-gray-500 block">Mã đơn hàng mua (Order ID):</span>
-                  <span className="text-sm font-mono font-medium text-theme">#{review.orderId}</span>
-                </div>
-              )}
+              <div>
+                <span className="text-xs text-gray-500 block">Mã đơn hàng mua (Order ID):</span>
+                <span className="text-sm font-mono font-medium text-theme">
+                  {review.orderId ? `#${review.orderId}` : 'N/A'}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Section 2: Sản phẩm được đánh giá */}
+          {/* Section 2: Sản phẩm & Biến thể */}
           <div className="pt-5 space-y-3">
             <h4 className="text-xs uppercase tracking-wider font-bold text-gray-500 flex items-center gap-2 m-0">
-              <Checkroom className="w-4 h-4 text-theme" /> Thông tin sản phẩm
+              <Checkroom className="w-4 h-4 text-theme" /> Thông tin sản phẩm & Biến thể
             </h4>
-            <div className="bg-gray-50/70 p-3.5 rounded-xl border border-gray-100 space-y-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs text-gray-500 block">Tên sản phẩm:</span>
-                  <span className="text-sm font-bold text-gray-900 leading-snug">{review.productName}</span>
+            <div className="bg-gray-50/70 p-3.5 rounded-xl border border-gray-100 flex gap-4 items-start">
+              {review.variantImage ? (
+                <img
+                  src={review.variantImage}
+                  alt={review.productName || 'Variant'}
+                  className="w-16 h-20 object-cover rounded-lg border border-gray-200 shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-20 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-400 shrink-0">
+                  N/A
                 </div>
-                <span className="text-xs font-mono bg-gray-200/60 px-2 py-0.5 rounded text-gray-700">
-                  Product ID: #{review.productId}
-                </span>
+              )}
+              <div className="flex-1 space-y-1">
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-bold text-gray-900 leading-snug">
+                    {review.productName || 'N/A'}
+                  </span>
+                  <span className="text-xs font-mono bg-gray-200/60 px-2 py-0.5 rounded text-gray-700">
+                    Product ID: #{review.productId}
+                  </span>
+                </div>
+
+                {attributeEntries.length > 0 && (
+                  <div className="text-xs text-gray-600 space-y-0.5 pt-1">
+                    {attributeEntries.map(([key, value]) => (
+                      <div key={key} className="capitalize">
+                        <span className="font-semibold text-gray-700">{key}:</span> {value || 'N/A'}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -168,7 +191,9 @@ export const ReviewDetailModal: React.FC<ReviewDetailModalProps> = ({
               </div>
               <div>
                 <span className="text-xs text-gray-500 block">Thời gian tạo:</span>
-                <span className="text-xs font-mono text-gray-700">{formatDate(review.createdAt)}</span>
+                <span className="text-xs font-mono text-gray-700">
+                  {review.createdAt ? formatDate(review.createdAt) : 'N/A'}
+                </span>
               </div>
             </div>
           </div>

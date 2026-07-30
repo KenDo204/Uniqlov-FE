@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Heart, Star } from '@/components/ui/icons';
+import { Heart } from '@/components/ui/icons';
+import Rating from '@mui/material/Rating';
 import { cn } from "@/lib/utils";
 import { formatVND } from '@/utils/formatters';
 import { paths } from '@/config/paths';
@@ -332,17 +333,45 @@ export function ProductCard({
           </div>
         </div>
 
-        {/* Footer / Actions */}
         {/* Rating & Reviews */}
-        {(product.ratingCount || 0) > 0 && (
-          <div className="flex items-center gap-1 md:gap-1.5 mt-1 px-1 pb-1">
-            <div className="flex items-center text-amber-400">
-              <Star className="w-2.5 h-2.5 md:w-3 md:h-3 fill-current" />
+        {(() => {
+          const ratingCount = product.ratingCount || 0;
+          const ratingAvg = product.ratingAvg;
+          const hasRating = ratingCount > 0 && ratingAvg != null && !isNaN(ratingAvg);
+          const ratingAvgVal = hasRating ? Number(ratingAvg) : 0;
+
+          return (
+            <div className="flex items-center gap-1 md:gap-1.5 mt-1.5 px-1 pb-1">
+              <Rating
+                value={ratingAvgVal}
+                precision={0.1}
+                readOnly
+                size="small"
+                sx={{
+                  fontSize: { xs: '0.75rem', md: '0.85rem' },
+                  color: '#f59e0b',
+                  '& .MuiRating-iconEmpty': {
+                    color: '#d1d5db',
+                  },
+                }}
+              />
+              {hasRating ? (
+                <>
+                  <span className="text-[11px] md:text-[12px] font-semibold text-gray-800 ml-0.5">
+                    {ratingAvgVal.toFixed(1)}
+                  </span>
+                  <span className="text-[11px] md:text-[12px] text-gray-400">
+                    ({ratingCount})
+                  </span>
+                </>
+              ) : (
+                <span className="text-[11px] md:text-[12px] text-gray-400 ml-0.5">
+                  Chưa có đánh giá
+                </span>
+              )}
             </div>
-            <span className="text-[11px] md:text-[12px] font-medium text-gray-700">{product.ratingAvg?.toFixed(1) || 0}</span>
-            <span className="text-[11px] md:text-[12px] text-gray-400">({product.ratingCount})</span>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

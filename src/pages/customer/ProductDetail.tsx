@@ -448,42 +448,66 @@ export function ProductDetail() {
                 {/* Danh sách các review */}
                 <div className="w-full space-y-12">
                   {productReviews && productReviews.content.length > 0 ? (
-                    productReviews.content.map((rev, index) => (
-                      <div key={rev.reviewId} className={`pb-12 ${index !== productReviews.content.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                    productReviews.content.map((rev, index) => {
+                      const attributeEntries = rev.variantAttributes ? Object.entries(rev.variantAttributes) : [];
 
-                        {/* Tiêu đề Review & Ngày tháng */}
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="text-[18px] font-normal m-0 text-gray-900 line-clamp-1">
-                            {rev.comment.length > 50 ? rev.comment.substring(0, 50) + "..." : rev.comment}
-                          </h4>
-                          <span className="text-[13px] text-gray-500">{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</span>
-                        </div>
+                      return (
+                        <div key={rev.reviewId} className={`pb-12 ${index !== productReviews.content.length - 1 ? 'border-b border-gray-200' : ''}`}>
 
-                        {/* Sao của Review */}
-                        <div className="flex text-black mb-5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 text-yellow ${i < rev.rating ? 'fill-current' : ''}`} />
-                          ))}
-                        </div>
+                          {/* Tiêu đề Review & Ngày tháng */}
+                          <div className="flex justify-between items-start mb-3">
+                            <h4 className="text-[18px] font-normal m-0 text-gray-900 line-clamp-1">
+                              {rev.comment ? (rev.comment.length > 50 ? rev.comment.substring(0, 50) + "..." : rev.comment) : '(Không có tiêu đề)'}
+                            </h4>
+                            <span className="text-[13px] text-gray-500">
+                              {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('vi-VN') : 'N/A'}
+                            </span>
+                          </div>
 
-                        {/* Nội dung Review */}
-                        <p className="text-[14px] leading-relaxed text-gray-950 mb-5">{rev.comment}</p>
-
-                        {/* Nếu có ảnh đánh giá */}
-                        {rev.images && rev.images.length > 0 && (
-                          <div className="flex gap-2 mb-5">
-                            {rev.images.map((img) => (
-                              <img key={img.reviewImageId} src={img.imageUrl} alt="review" className="w-16 h-20 object-cover bg-gray-100 border border-gray-100" />
+                          {/* Sao của Review */}
+                          <div className="flex text-black mb-3">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`w-4 h-4 text-yellow ${i < rev.rating ? 'fill-current' : ''}`} />
                             ))}
                           </div>
-                        )}
 
-                        {/* Thông tin nhân khẩu học của User */}
-                        <div className="text-[13px] text-gray-500 mb-2">
-                          {rev.userFullName || 'Khách hàng ẩn danh'}
+                          {/* Biến thể đã mua */}
+                          {(rev.variantImage || attributeEntries.length > 0) && (
+                            <div className="flex items-center gap-3 mb-4 bg-gray-50 p-2.5 rounded border border-gray-100 text-[13px] text-gray-600">
+                              {rev.variantImage && (
+                                <img src={rev.variantImage} alt="Variant" className="w-10 h-12 object-cover rounded border border-gray-200" />
+                              )}
+                              {attributeEntries.length > 0 && (
+                                <div className="space-y-0.5">
+                                  {attributeEntries.map(([k, v]) => (
+                                    <div key={k} className="capitalize">
+                                      <span className="font-medium text-gray-700">{k}:</span> {v || 'N/A'}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Nội dung Review */}
+                          <p className="text-[14px] leading-relaxed text-gray-950 mb-5">{rev.comment || '(Không có nội dung)'}</p>
+
+                          {/* Nếu có ảnh đánh giá */}
+                          {rev.images && rev.images.length > 0 && (
+                            <div className="flex gap-2 mb-5">
+                              {rev.images.map((img) => (
+                                <img key={img.reviewImageId} src={img.imageUrl} alt="review attachment" className="w-16 h-20 object-cover bg-gray-100 border border-gray-100 rounded" />
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Thông tin người dùng */}
+                          <div className="text-[13px] text-gray-500 mb-2">
+                            {rev.userFullName || 'Anonymous User'}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <p className="text-[14px] text-gray-500">Chưa có đánh giá nào.</p>
                   )}
