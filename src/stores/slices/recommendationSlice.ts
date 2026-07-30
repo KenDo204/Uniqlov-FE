@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { recommendationService } from '@/services/recommendationService';
 import type { ProductResponse } from '@/types/product';
 
-
 interface RecommendationState {
   recommendedForYou: ProductResponse[];
   similarProducts: ProductResponse[];
@@ -21,22 +20,23 @@ const initialState: RecommendationState = {
 
 export const fetchRecommendedForYouThunk = createAsyncThunk(
   'recommendation/forYou',
-  async (limit: number | undefined, { rejectWithValue }) => {
+  async (payload: { limit?: number } | number | void, { rejectWithValue }) => {
     try {
-      const response = await recommendationService.getRecommendedForYou(limit);
-      return response.result;
+      const limit = typeof payload === 'number' ? payload : (payload?.limit || 10);
+      const response = await recommendationService.getForYouRecommendations(limit);
+      return response.result || [];
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Lỗi tải gợi ý');
+      return rejectWithValue(error.response?.data?.message || 'Lỗi tải gợi ý cho bạn');
     }
   }
 );
 
 export const fetchSimilarProductsThunk = createAsyncThunk(
   'recommendation/similar',
-  async (productId: number, { rejectWithValue }) => {
+  async (payload: { productId: number | string; limit?: number }, { rejectWithValue }) => {
     try {
-      const response = await recommendationService.getSimilarProducts(productId);
-      return response.result;
+      const response = await recommendationService.getSimilarProducts(payload.productId, payload.limit);
+      return response.result || [];
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Lỗi tải sản phẩm tương tự');
     }
@@ -45,10 +45,10 @@ export const fetchSimilarProductsThunk = createAsyncThunk(
 
 export const fetchBoughtTogetherThunk = createAsyncThunk(
   'recommendation/boughtTogether',
-  async (productId: number, { rejectWithValue }) => {
+  async (payload: { productId: number | string; limit?: number }, { rejectWithValue }) => {
     try {
-      const response = await recommendationService.getBoughtTogether(productId);
-      return response.result;
+      const response = await recommendationService.getBoughtTogetherProducts(payload.productId, payload.limit);
+      return response.result || [];
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.message || 'Lỗi tải sản phẩm thường mua cùng');
     }
@@ -60,7 +60,6 @@ const recommendationSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Helper function
     const extractArray = (payload: any): ProductResponse[] => {
       if (Array.isArray(payload)) return payload;
       if (payload && Array.isArray(payload.content)) return payload.content;
@@ -70,6 +69,7 @@ const recommendationSlice = createSlice({
     builder
       .addCase(fetchRecommendedForYouThunk.pending, (state) => {
         state.isFetching = true;
+        state.error = null;
       })
       .addCase(fetchRecommendedForYouThunk.fulfilled, (state, action) => {
         state.isFetching = false;
@@ -83,6 +83,7 @@ const recommendationSlice = createSlice({
     builder
       .addCase(fetchSimilarProductsThunk.pending, (state) => {
         state.isFetching = true;
+        state.error = null;
       })
       .addCase(fetchSimilarProductsThunk.fulfilled, (state, action) => {
         state.isFetching = false;
@@ -96,6 +97,7 @@ const recommendationSlice = createSlice({
     builder
       .addCase(fetchBoughtTogetherThunk.pending, (state) => {
         state.isFetching = true;
+        state.error = null;
       })
       .addCase(fetchBoughtTogetherThunk.fulfilled, (state, action) => {
         state.isFetching = false;

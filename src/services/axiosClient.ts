@@ -15,6 +15,7 @@ export const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept-Language': 'vi',
   },
   // timeout: 10000,
 });
@@ -43,6 +44,7 @@ axiosClient.interceptors.request.use(
 
     // 2. Chữ ký bảo mật client
     config.headers['X-Client-Signature'] = 'easymall-sec-v1';
+    config.headers['Accept-Language'] = 'vi';
 
     return config;
   },

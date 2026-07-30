@@ -59,7 +59,7 @@ export const CartItemRow: React.FC<CartItemRowProps> = ({
 
   const handleProductClick = () => {
     const productUrl = paths.customer.productDetail.replace(
-      ':id',
+      ':slug',
       productSlug || String(item.productId)
     );
     navigate(productUrl, {

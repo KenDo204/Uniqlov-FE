@@ -1,5 +1,9 @@
 import { useCallback, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppDispatch, useAppSelector } from '@/stores/hooks';
+import { reviewService } from '@/services/reviewService';
+import type { ReviewResponse } from '@/types/review/responses';
+import type { PageResponse } from '@/types/common/apiResponse';
 import {
   createReviewThunk,
   fetchMyReviewsThunk,
@@ -108,3 +112,54 @@ export const useReview = () => {
     ]
   );
 };
+
+export interface UseAllReviewsParams {
+  page?: number;
+  size?: number;
+  sort?: string;
+  status?: string;
+  keyword?: string;
+}
+
+/**
+ * React Query Hook cho Admin Review Management (GET /api/v1/reviews/all)
+ */
+export const useAllReviews = (params: UseAllReviewsParams = {}) => {
+  const { page = 0, size = 10, sort = 'createdAt,desc', status, keyword } = params;
+  const normalizedStatus = status && status !== 'ALL' ? status : 'ALL';
+  const normalizedKeyword = keyword ? keyword.trim() : '';
+
+  return useQuery<PageResponse<ReviewResponse>>({
+    queryKey: ['reviews', 'all', page, size, sort, normalizedStatus, normalizedKeyword],
+    queryFn: async () => {
+      const response = await reviewService.getAllReviews(page, size, sort, status, keyword);
+      return response.result || {
+        content: [],
+        pageNumber: page,
+        pageSize: size,
+        totalElements: 0,
+        totalPages: 0,
+        last: true,
+      } as any;
+    },
+    staleTime: 0,
+  });
+};
+
+/**
+ * React Query Mutation Hook cập nhật trạng thái Review cho Admin
+ */
+export const useUpdateReviewStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: UpdateReviewStatusRequest }) => {
+      const response = await reviewService.updateReviewStatus(id, data);
+      return response.result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviews'] });
+    },
+  });
+};
+

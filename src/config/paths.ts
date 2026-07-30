@@ -12,6 +12,7 @@ export const paths = {
     orders: '/admin/orders',
     coupons: '/admin/coupons',
     contacts: '/admin/contacts',
+    reviews: '/admin/reviews',
     risk: '/admin/risk',
   },
   owner: {
@@ -26,8 +27,8 @@ export const paths = {
     forgotPassword: '/forgot-password',
     resetPassword: '/reset-password',
     products: '/products',
-    productDetail: '/products/:id',
-    productDetailOld: '/customer/products/:id',
+    productDetail: '/products/:slug',
+    productDetailOld: '/customer/products/:slug',
     cart: '/cart',
     cartOld: '/customer/cart',
     checkout: '/checkout',
@@ -41,6 +42,7 @@ export const paths = {
     blog: '/blog',
     blogArticle: '/blog/:id',
     paymentResult: '/payment-result',
+    paymentStatus: '/payment-status',
   },
 } as const;
 

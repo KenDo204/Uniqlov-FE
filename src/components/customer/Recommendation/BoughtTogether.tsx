@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
 import { ProductGrid } from '@/components/shared/ProductGrid';
-import { useRecommendation } from '@/hooks/useRecommendation';
+import { useBoughtTogetherProducts } from '@/hooks/useRecommendation';
 import { Source } from '@/types/tracking/requests';
 
 interface BoughtTogetherProps {
@@ -8,27 +7,21 @@ interface BoughtTogetherProps {
 }
 
 export function BoughtTogether({ productId }: BoughtTogetherProps) {
-  const { boughtTogether, isFetching, fetchBoughtTogether } = useRecommendation();
+  const { data: boughtTogether = [], isLoading, isError } = useBoughtTogetherProducts(productId);
 
-  useEffect(() => {
-    if (productId) {
-      fetchBoughtTogether(productId).catch(console.error);
-    }
-  }, [productId, fetchBoughtTogether]);
-
-  if (!isFetching && (!boughtTogether || boughtTogether.length === 0)) {
+  if (!isLoading && (isError || !boughtTogether || boughtTogether.length === 0)) {
     return null;
   }
 
   return (
     <div className="mt-16 w-full">
       <h3 className="text-xl md:text-2xl font-heading font-black text-center mb-8 uppercase tracking-tight text-gray-900">
-        Thường được mua cùng
+        Khách hàng thường mua cùng
       </h3>
 
       <ProductGrid
         products={boughtTogether}
-        isLoading={isFetching}
+        isLoading={isLoading}
         skeletonCount={4}
         gridClassName="grid-cols-2 lg:grid-cols-4"
         source={Source.PRODUCT_REC_BOUGHT_TOGETHER}
@@ -39,3 +32,4 @@ export function BoughtTogether({ productId }: BoughtTogetherProps) {
     </div>
   );
 }
+

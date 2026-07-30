@@ -39,4 +39,26 @@ export const reviewService = {
     const response = await axiosClient.patch<ApiResponse<ReviewResponse>>(`${API_URL}/${id}/status`, data);
     return response.data;
   },
+
+  getAllReviews: async (
+    page: number = 0,
+    size: number = 10,
+    sort: string = 'createdAt,desc',
+    status?: string,
+    keyword?: string
+  ): Promise<ApiResponse<PageResponse<ReviewResponse>>> => {
+    const params: Record<string, any> = { page, size, sort };
+    if (status && status !== 'ALL') {
+      params.status = status;
+      params.reviewStatus = status;
+    }
+    if (keyword && keyword.trim() !== '') {
+      params.keyword = keyword.trim();
+    }
+    const response = await axiosClient.get<ApiResponse<PageResponse<ReviewResponse>>>(`${API_URL}/all`, {
+      params,
+    });
+    return response.data;
+  },
 };
+

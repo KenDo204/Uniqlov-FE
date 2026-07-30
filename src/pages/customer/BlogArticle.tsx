@@ -145,7 +145,7 @@ export function BlogArticle() {
 
           <div className="flex gap-2 w-full sm:w-auto">
             <button
-              onClick={() => navigate(paths.customer.productDetail.replace(':id', matchingProduct.productSlug), { state: { from: location.pathname + location.search } })}
+              onClick={() => navigate(paths.customer.productDetail.replace(':slug', matchingProduct.productSlug || String(matchingProduct.productId)), { state: { from: location.pathname + location.search } })}
               className="flex-1 sm:flex-none py-2.5 px-4 bg-gray-100 dark:bg-gray-800 text-primary dark:text-gray-300 font-bold rounded-xl hover:bg-gray-200 transition-all cursor-pointer border-none"
             >
               Chi tiết

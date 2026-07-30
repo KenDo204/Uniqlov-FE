@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, LayoutDashboard, Users, FolderTree, LogOut, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket, MessageSquare, Image, GppMaybeOutlined } from '@/components/ui/icons';
+import { Menu, LayoutDashboard, Users, FolderTree, LogOut, Checkroom, ShieldCheck, Lock, ShoppingBag, Ticket, MessageSquare, Image, GppMaybeOutlined, Star } from '@/components/ui/icons';
 import { paths } from '@/config/paths';
 import { BRAND } from '@/constants/brand';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +24,7 @@ export default function AdminLayout() {
     { label: 'Quản lý Danh mục', path: paths.admin.categories, icon: FolderTree, permission: 'category:read' },
     { label: 'Quản lý Sản phẩm', path: paths.admin.products, icon: Checkroom, permission: 'product:read' },
     { label: 'Quản lý Đơn hàng', path: paths.admin.orders, icon: ShoppingBag, permission: 'order:read' },
+    { label: 'Quản lý Đánh giá', path: paths.admin.reviews, icon: Star, permission: 'review:moderate' },
     { label: 'Quản lý Liên hệ', path: paths.admin.contacts, icon: MessageSquare, permission: 'contact:read' },
     { label: 'Quản lý Mã giảm giá', path: paths.admin.coupons, icon: Ticket, permission: 'coupon:read' },
     { label: 'Quản lý Người dùng', path: paths.admin.users, icon: Users, permission: 'user:read' },

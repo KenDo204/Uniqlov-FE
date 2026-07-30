@@ -16,6 +16,7 @@ import EditSlider from '../pages/admin/Slider/EditSlider';
 import ContactManagement from '../pages/admin/Contact/ContactManagement';
 import CouponList from '../pages/admin/Coupon/CouponList';
 import OrderList from '../pages/admin/Order/OrderList';
+import ReviewList from '../pages/admin/Review/ReviewList';
 import RiskManagement from '../pages/admin/RiskManagement/RiskManagement';
 import { RoleGuard } from './RoleGuard';
 import { PermissionRouteGuard } from './PermissionRouteGuard';
@@ -96,6 +97,11 @@ export const adminRoutes: RouteObject = {
           path: 'coupons', 
           element: <PermissionRouteGuard permission="coupon:read" />,
           children: [{ path: '', element: <CouponList /> }]
+        },
+        { 
+          path: 'reviews', 
+          element: <PermissionRouteGuard permission="review:moderate" />,
+          children: [{ path: '', element: <ReviewList /> }]
         },
         { 
           path: 'risk', 

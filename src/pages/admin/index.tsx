@@ -1,4 +1,5 @@
 export { default as AdminDashboard } from './Dashboard/Dashboard';
+export { default as ReviewList } from './Review/ReviewList';
 
 export function AdminBanners() {
   return (

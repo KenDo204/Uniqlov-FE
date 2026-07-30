@@ -23,7 +23,8 @@ import {
   Addresses,
   ChangePassword,
   ResetPassword,
-  PaymentResult
+  PaymentResult,
+  PaymentStatusPage
 } from '../pages/customer';
 
 import ContactPage from '../pages/customer/Contact/ContactPage';
@@ -37,7 +38,7 @@ export const customerRoutes: RouteObject = {
   children: [
     { path: '', element: <CustomerHome /> },
     { path: 'home', element: <CustomerHome /> },
-    { path: 'products/:id', element: <CustomerProductDetail /> },
+    { path: 'products/:slug', element: <CustomerProductDetail /> },
     { path: 'cart', element: <CustomerCart /> },
     { path: 'checkout', element: <CustomerCheckout /> },
     { path: 'oauth2/redirect', element: <OAuth2Redirect /> },
@@ -54,7 +55,7 @@ export const customerRoutes: RouteObject = {
 
     // UNILO routes
     { path: 'products', element: <ProductListPage /> },
-    { path: 'products/:id', element: <CustomerProductDetail /> },
+    { path: 'products/:slug', element: <CustomerProductDetail /> },
     { path: 'cart', element: <CustomerCart /> },
     { path: 'checkout', element: <CustomerCheckout /> },
     {
@@ -77,6 +78,7 @@ export const customerRoutes: RouteObject = {
     { path: 'contact', element: <ContactPage /> },
     { path: 'blog', element: <Blog /> },
     { path: 'blog/:id', element: <BlogArticle /> },
+    { path: 'payment-status', element: <PaymentStatusPage /> },
     { path: 'payment-result', element: <PaymentResult /> },
     { path: '*', element: <NotFound /> }
   ],

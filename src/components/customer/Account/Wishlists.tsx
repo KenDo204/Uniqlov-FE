@@ -5,6 +5,7 @@ import { formatVND } from '@/utils/formatters';
 import { useWishlist } from '@/hooks/useWishlist';
 import { CircularProgress } from '@mui/material';
 import { toast } from 'react-toastify';
+import { paths } from '@/config/paths';
 
 export function Wishlists() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ export function Wishlists() {
 
               {/* Ảnh sản phẩm */}
               <div
-                onClick={() => navigate(`/products/${item.productSlug}`, { state: { from: location.pathname + location.search } })}
+                onClick={() => navigate(paths.customer.productDetail.replace(':slug', item.productSlug || String(item.productId)), { state: { from: location.pathname + location.search } })}
                 className="w-full aspect-[3/4] bg-gray-100 mb-4 overflow-hidden cursor-pointer"
               >
                 <img
@@ -71,7 +72,7 @@ export function Wishlists() {
               {/* Thông tin */}
               <div className="space-y-1 text-[14px]">
                 <h3
-                  onClick={() => navigate(`/products/${item.productSlug}`, { state: { from: location.pathname + location.search } })}
+                  onClick={() => navigate(paths.customer.productDetail.replace(':slug', item.productSlug || String(item.productId)), { state: { from: location.pathname + location.search } })}
                   className="font-medium text-black m-0 line-clamp-1 cursor-pointer hover:text-theme"
                 >
                   {item.productName}
@@ -82,7 +83,7 @@ export function Wishlists() {
 
               {/* Nút xem chi tiết */}
               <button
-                onClick={() => navigate(`/products/${item.productSlug}`, { state: { from: location.pathname + location.search } })}
+                onClick={() => navigate(paths.customer.productDetail.replace(':slug', item.productSlug || String(item.productId)), { state: { from: location.pathname + location.search } })}
                 className="w-full mt-4 py-2.5 border border-theme text-theme text-[12px] font-bold uppercase tracking-wide bg-white text-black hover:bg-theme hover:text-white transition-colors cursor-pointer"
               >
                 Xem chi tiết

@@ -305,26 +305,26 @@ export function Checkout() {
       const res = await checkout(payload);
 
       if (res) {
-        toast.success('Đặt đơn hàng thành công!');
-        fetchCart();
-        trackPurchase({
-          orderId: res.orderId,
-          items: items.map(item => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            quantity: item.quantity,
-            price: item.price
-          })),
-          paymentMethod,
-          totalAmount: financials.grandTotal,
-          couponCode: payload.couponCodes?.join(',') || '',
-          source: Source.CHECKOUT_PAGE
-        });
-        
         if (res.paymentUrl) {
+          toast.info('Đã tạo đơn hàng! Đang chuyển hướng sang cổng thanh toán VNPAY...');
           setIsRedirecting(true);
           window.location.href = res.paymentUrl;
         } else {
+          toast.success('Đặt đơn hàng thành công!');
+          fetchCart();
+          trackPurchase({
+            orderId: res.orderId,
+            items: items.map(item => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              quantity: item.quantity,
+              price: item.price
+            })),
+            paymentMethod,
+            totalAmount: financials.grandTotal,
+            couponCode: payload.couponCodes?.join(',') || '',
+            source: Source.CHECKOUT_PAGE
+          });
           setOrderSuccess(true);
         }
       }

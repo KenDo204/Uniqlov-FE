@@ -13,7 +13,9 @@ export interface CheckoutResponse {
 export interface OrderDetailResponse {
   orderDetailId: number;
   productId: number;
+  productSlug?: string;
   variantId: number;
+  categoryId?: number;
   skuCode: string;
   productName: string;
   variantAttributes: Record<string, any>; // Thay thế cho Object của Java

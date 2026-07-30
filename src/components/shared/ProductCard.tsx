@@ -192,7 +192,7 @@ export function ProductCard({
 
   const isBestSeller = product.inPopular;
 
-  const productUrl = paths.customer.productDetail.replace(':id', product.productSlug || String(product.productId));
+  const productUrl = paths.customer.productDetail.replace(':slug', product.productSlug || String(product.productId));
 
   const displayProductName =
     product.productName.length > 23

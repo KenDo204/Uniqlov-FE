@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { useAppSelector } from '@/stores/hooks';
 import { useCart } from '@/hooks/useCart';
 import { useProduct } from '@/hooks/useProduct';
+import { useBoughtTogetherProducts } from '@/hooks/useRecommendation';
 import { Source } from '@/types/tracking/requests';
 import BackHome from '@/components/general/BackHomeButton';
 import type { CartItem } from '@/stores/slices/cartSlice';
@@ -234,12 +235,36 @@ export function Cart() {
 
   const total = rawSubtotal;
 
+  // Lấy productId của sản phẩm đầu tiên trong giỏ hàng để gọi API Bought Together (Cross-Selling)
+  const targetProductId = useMemo(() => {
+    if (items.length === 0) return undefined;
+    const firstItem = items[0];
+    if (firstItem.productId) return firstItem.productId;
+    const parsed = parseInt(firstItem.id.split('-')[0], 10);
+    return isNaN(parsed) ? undefined : parsed;
+  }, [items]);
+
+  const { data: boughtTogetherData } = useBoughtTogetherProducts(targetProductId, 5);
+
   // Cross-sell recommendations
   const crossSellItems = useMemo(() => {
+    const cartProductIds = new Set(
+      items.map((i) => i.productId || parseInt(i.id.split('-')[0], 10)).filter(Boolean)
+    );
+
+    const apiRecommendations = (boughtTogetherData || []).filter(
+      (p) => !cartProductIds.has(p.productId)
+    );
+
+    if (apiRecommendations.length > 0) {
+      return apiRecommendations.slice(0, 5);
+    }
+
+    // Fallback sang danh sách sản phẩm public nếu API chưa trả về dữ liệu
     return products
-      .filter((p) => !items.some((i) => i.id.startsWith(p.productId.toString())))
-      .slice(0, 4); // Lấy 4 item cho đẹp
-  }, [items, products]);
+      .filter((p) => !cartProductIds.has(p.productId))
+      .slice(0, 4);
+  }, [items, boughtTogetherData, products]);
 
   const FreeShippingText = () => (
     <div className="text-[14px] mb-8 text-gray-800 leading-relaxed">

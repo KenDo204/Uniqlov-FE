@@ -70,6 +70,8 @@ export function ReviewForm({ productId, orderId, onSuccess, onClose }: ReviewFor
         imageUrls: uploadedUrls,
       });
 
+      console.log(payload, newComment, uploadedUrls);
+
       toast.success('Đã gửi đánh giá của bạn. Đang chờ duyệt!');
       onSuccess();
     } catch (err: any) {

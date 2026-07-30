@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
 import { ProductGrid } from '@/components/shared/ProductGrid';
-import { useRecommendation } from '@/hooks/useRecommendation';
+import { useSimilarProducts } from '@/hooks/useRecommendation';
 import { Source } from '@/types/tracking/requests';
 
 interface SimilarProductsProps {
@@ -8,15 +7,9 @@ interface SimilarProductsProps {
 }
 
 export function SimilarProducts({ productId }: SimilarProductsProps) {
-  const { similarProducts, isFetching, fetchSimilarProducts } = useRecommendation();
+  const { data: similarProducts = [], isLoading, isError } = useSimilarProducts(productId);
 
-  useEffect(() => {
-    if (productId) {
-      fetchSimilarProducts(productId).catch(console.error);
-    }
-  }, [productId, fetchSimilarProducts]);
-
-  if (!isFetching && (!similarProducts || similarProducts.length === 0)) {
+  if (!isLoading && (isError || !similarProducts || similarProducts.length === 0)) {
     return null;
   }
 
@@ -28,7 +21,7 @@ export function SimilarProducts({ productId }: SimilarProductsProps) {
 
       <ProductGrid
         products={similarProducts}
-        isLoading={isFetching}
+        isLoading={isLoading}
         skeletonCount={4}
         gridClassName="grid-cols-2 lg:grid-cols-4"
         source={Source.PRODUCT_REC_SIMILAR}
@@ -39,3 +32,4 @@ export function SimilarProducts({ productId }: SimilarProductsProps) {
     </div>
   );
 }
+

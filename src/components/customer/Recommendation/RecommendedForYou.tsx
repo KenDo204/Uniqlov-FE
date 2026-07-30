@@ -1,18 +1,13 @@
-import { useEffect } from 'react';
 import { ProductSwiper } from '@/components/shared/ProductSwiper';
-import { useRecommendation } from '@/hooks/useRecommendation';
+import { useForYouRecommendations } from '@/hooks/useRecommendation';
 import { Source } from '@/types/tracking/requests';
 import { Container } from '@/components/shared/Container';
 
 export function RecommendedForYou() {
-  const { recommendedForYou, isFetching, fetchRecommendedForYou } = useRecommendation();
+  const { data: recommendedForYou = [], isLoading, isError } = useForYouRecommendations(10);
 
-  useEffect(() => {
-    fetchRecommendedForYou(10).catch(console.error);
-  }, [fetchRecommendedForYou]);
-
-  if (!isFetching && (!recommendedForYou || recommendedForYou.length === 0)) {
-    return null; // Không hiển thị section nếu không có dữ liệu
+  if (!isLoading && (isError || !recommendedForYou || recommendedForYou.length === 0)) {
+    return null; // Không hiển thị section nếu không có dữ liệu hoặc gặp lỗi
   }
 
   return (
@@ -24,7 +19,7 @@ export function RecommendedForYou() {
 
         <ProductSwiper
           products={recommendedForYou}
-          isLoading={isFetching}
+          isLoading={isLoading}
           skeletonCount={5}
           // Truyền flag để ProductCard biết đây là item từ AI Recommendation (để gọi sự kiện CLICK_REC)
           source={Source.HOME_REC_FOR_YOU}
@@ -36,3 +31,4 @@ export function RecommendedForYou() {
     </section>
   );
 }
+

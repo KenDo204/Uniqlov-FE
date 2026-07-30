@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrder } from '@/hooks/useOrder';
 import { useCart } from '@/hooks/useCart';
+import { useReview } from '@/hooks/useReview';
+import { useTracking } from '@/hooks/useTracking';
+import { Source } from '@/types/tracking/requests';
 import { FiPackage as Package, FiMapPin as MapPin, FiCreditCard as CreditCard, FiShoppingCart as ShoppingCart } from 'react-icons/fi';
 import { formatVND } from '@/utils/formatters';
 import { CircularProgress } from '@mui/material';
 import ConfirmCancelOrderModal from '@/components/general/ConfirmCancelOrderModal';
 import ConfirmModal from '@/components/general/ConfirmModal';
 import { ReviewForm } from '@/components/review/ReviewForm';
+import { useProduct } from '@/hooks/useProduct';
+import { paths } from '@/config/paths';
 import { toast } from 'react-toastify';
-import type { OrderResponse } from '@/types/order/responses';
+import type { OrderResponse, OrderDetailResponse } from '@/types/order/responses';
 
 const getOrderStatusLabel = (status: string) => {
   const statusMap: Record<string, string> = {
@@ -54,6 +59,10 @@ export function Orders() {
     cancelMyOrder
   } = useOrder();
 
+  const { fetchPublicProductById } = useProduct();
+  const { myReviews, fetchMyReviews } = useReview();
+  const { trackEvent } = useTracking();
+
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAuth();
@@ -78,7 +87,26 @@ export function Orders() {
       console.error('Error fetching my orders:', err);
       toast.error('Không thể tải lịch sử mua hàng.');
     });
-  }, [fetchMyOrders]);
+    fetchMyReviews(0, 100).catch(err => {
+      console.error('Error fetching my reviews:', err);
+    });
+  }, [fetchMyOrders, fetchMyReviews]);
+
+  // Set chứa các khóa của sản phẩm đã được đánh giá (orderId_productId hoặc p_productId)
+  const reviewedSet = useMemo(() => {
+    const set = new Set<string>();
+    if (myReviews?.content) {
+      myReviews.content.forEach((r) => {
+        if (r.productId) {
+          if (r.orderId) {
+            set.add(`${r.orderId}_${r.productId}`);
+          }
+          set.add(`p_${r.productId}`);
+        }
+      });
+    }
+    return set;
+  }, [myReviews]);
 
   const handleToggleDetails = async (orderId: number) => {
     if (expandedOrderId === orderId) {
@@ -143,7 +171,41 @@ export function Orders() {
     }
   };
 
-  const handleRepurchase = async (item: any, e: React.MouseEvent) => {
+  const handleProductClick = async (item: OrderDetailResponse, orderId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!item.productId && !item.productSlug) return;
+
+    // 1. Thu thập User Behavior Tracking: VIEW_ITEM trước
+    trackEvent('VIEW_ITEM', {
+      productId: item.productId,
+      variantId: item.variantId,
+      categoryId: item.categoryId,
+      source: Source.ORDER_HISTORY,
+      contextData: JSON.stringify({
+        from: 'ORDER_HISTORY',
+        orderId
+      })
+    });
+
+    let slug = item.productSlug;
+    if (!slug && item.productId) {
+      try {
+        const prod = await fetchPublicProductById(item.productId);
+        if (prod?.productSlug) {
+          slug = prod.productSlug;
+        }
+      } catch (err) {
+        console.error('Không thể lấy productSlug:', err);
+      }
+    }
+
+    // 2. Điều hướng sang Product Detail theo productSlug
+    const targetSlug = slug || String(item.productId);
+    const productUrl = paths.customer.productDetail.replace(':slug', targetSlug);
+    navigate(productUrl, { state: { from: location.pathname } });
+  };
+
+  const handleRepurchase = async (item: OrderDetailResponse, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isAuthenticated) {
       setIsLoginModalOpen(true);
@@ -262,18 +324,22 @@ export function Orders() {
                           <h5 className="font-bold text-gray-900 m-0 text-[14px]">Sản phẩm đã mua</h5>
                           <div className="space-y-4">
                             {details.items.map((item) => (
-                              <div key={item.orderDetailId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-100 rounded-[4px] hover:border-gray-200 transition-colors">
+                              <div
+                                key={item.orderDetailId}
+                                onClick={(e) => handleProductClick(item, details.orderId, e)}
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-100 rounded-[4px] hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer group"
+                              >
                                 <div className="flex gap-4">
                                   <div className="w-[80px] h-[100px] bg-gray-50 shrink-0 rounded overflow-hidden border border-gray-100">
                                     <img
                                       src={item.variantImage || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&q=80'}
                                       alt={item.productName}
-                                      className="w-full h-full object-cover"
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
                                   </div>
                                   <div className="flex-1 text-[13px] flex flex-col justify-center">
-                                    <h4 className="font-semibold text-gray-900 m-0 text-[14px] leading-snug">{item.productName}</h4>
-                                    <div className="text-gray-600 flex flex-wrap gap-x-4">
+                                    <h4 className="font-semibold text-gray-900 m-0 text-[14px] leading-snug group-hover:text-[var(--color-theme)] transition-colors">{item.productName}</h4>
+                                    <div className="text-gray-600 flex flex-wrap gap-x-4 mt-1">
                                       <span className="bg-gray-100 px-2 py-0.5 rounded-sm text-[11px] font-medium">Phân loại: {formatVariantAttributes(item.variantAttributes)}</span>
                                       <span className="font-medium">SL: {item.quantity}</span>
                                     </div>
@@ -290,17 +356,28 @@ export function Orders() {
                                     >
                                       <ShoppingCart size={14} /> Mua lại
                                     </button>
-                                    {ord.orderStatus === 'COMPLETED' && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setReviewItem({ productId: item.productId, orderId: ord.orderId });
-                                        }}
-                                        className="flex justify-center items-center px-4 py-1.5 border border-[var(--color-theme)] hover:bg-[var(--color-theme)] text-[var(--color-theme)] hover:text-white rounded-[4px] text-[11px] font-bold uppercase transition-colors bg-white cursor-pointer w-full sm:w-auto"
-                                      >
-                                        Đánh giá
-                                      </button>
-                                    )}
+                                     {ord.orderStatus === 'COMPLETED' && (() => {
+                                       const isItemReviewed = reviewedSet.has(`${ord.orderId}_${item.productId}`);
+                                       return isItemReviewed ? (
+                                         <button
+                                           disabled
+                                           onClick={(e) => e.stopPropagation()}
+                                           className="flex justify-center items-center px-4 py-1.5 border border-gray-200 bg-gray-100 text-gray-400 rounded-[4px] text-[11px] font-bold uppercase cursor-not-allowed w-full sm:w-auto"
+                                         >
+                                           Đã đánh giá
+                                         </button>
+                                       ) : (
+                                         <button
+                                           onClick={(e) => {
+                                             e.stopPropagation();
+                                             setReviewItem({ productId: item.productId, orderId: ord.orderId });
+                                           }}
+                                           className="flex justify-center items-center px-4 py-1.5 border border-[var(--color-theme)] hover:bg-[var(--color-theme)] text-[var(--color-theme)] hover:text-white rounded-[4px] text-[11px] font-bold uppercase transition-colors bg-white cursor-pointer w-full sm:w-auto"
+                                         >
+                                           Đánh giá
+                                         </button>
+                                       );
+                                     })()}
                                   </div>
                                 </div>
                               </div>
@@ -375,7 +452,10 @@ export function Orders() {
         <ReviewForm
           productId={reviewItem.productId}
           orderId={reviewItem.orderId}
-          onSuccess={() => setReviewItem(null)}
+          onSuccess={() => {
+            fetchMyReviews(0, 100);
+            setReviewItem(null);
+          }}
           onClose={() => setReviewItem(null)}
         />
       )}

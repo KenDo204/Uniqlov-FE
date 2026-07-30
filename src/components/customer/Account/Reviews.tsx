@@ -82,7 +82,6 @@ export function Reviews() {
                 </div>
                 <div className="text-[13px] flex-1">
                   <p className="font-medium text-black m-0 mb-1 line-clamp-2">{review.productName}</p>
-                  {review.orderId && <p className="text-gray-400 text-[11px] m-0">Đơn hàng: #{review.orderId}</p>}
                   <div className="mt-2">{getStatusBadge(review.reviewStatus)}</div>
                 </div>
               </div>
@@ -95,7 +94,7 @@ export function Reviews() {
                       <Star
                         key={star}
                         size={16}
-                        className={star <= review.rating ? "fill-black text-black" : "text-gray-300"}
+                        className={star <= review.rating ? "fill-black text-yellow" : "text-gray-300"}
                       />
                     ))}
                   </div>

@@ -20,7 +20,7 @@ import type { CategoryResponse } from '@/types/category/responses';
 import { Container } from '@/components/shared/Container';
 
 export function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const originUrl = location.state?.from as string | undefined;
@@ -66,13 +66,13 @@ export function ProductDetail() {
 
   // Fetch product detail and public products (for bundle items)
   useEffect(() => {
-    if (id) {
-      const cleanId = id.replace(/^"|"$/g, '');
-      fetchProductBySlug(cleanId).catch((err) => {
+    if (slug) {
+      const cleanSlug = slug.replace(/^"|"$/g, '');
+      fetchProductBySlug(cleanSlug).catch((err) => {
         console.error('Error fetching product by slug:', err);
       });
     }
-  }, [id, fetchProductBySlug]);
+  }, [slug, fetchProductBySlug]);
 
   useEffect(() => {
     if (!rawProducts || rawProducts.length === 0) {
@@ -416,7 +416,7 @@ export function ProductDetail() {
                   <div className="flex items-center gap-2 mb-8">
                     <div className="flex text-black">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
+                        <Star key={i} className={`w-4 h-4 text-yellow ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
                       ))}
                     </div>
                     <span className="text-[16px] font-bold">{displayRating}</span>
@@ -434,7 +434,7 @@ export function ProductDetail() {
                       <div className="absolute right-0 w-1.5 h-1.5 bg-gray-300 rounded-full" />
 
                       {/* Chấm đen chỉ định (Đang đặt ở giữa) */}
-                      <div className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-black rounded-full z-10" />
+                      <div className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-theme rounded-full z-10" />
                     </div>
                     <div className="flex justify-between text-[13px] text-gray-800">
                       <span className="w-1/3 text-left">Chật</span>
@@ -462,7 +462,7 @@ export function ProductDetail() {
                         {/* Sao của Review */}
                         <div className="flex text-black mb-5">
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`w-4 h-4 ${i < rev.rating ? 'fill-current' : ''}`} />
+                            <Star key={i} className={`w-4 h-4 text-yellow ${i < rev.rating ? 'fill-current' : ''}`} />
                           ))}
                         </div>
 
@@ -533,7 +533,7 @@ export function ProductDetail() {
             {/* Kích cỡ */}
             <div className="mt-4">
               <div className="flex justify-between items-center mb-3">
-                <p className="text-[13px] text-gray-600 m-0">Kích cỡ: <span className="font-medium text-black">Nam {selectedSize}</span></p>
+                <p className="text-[13px] text-gray-600 m-0">Kích cỡ: <span className="font-medium text-black">{selectedSize}</span></p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {sizeOptions.map((s) => {
@@ -560,7 +560,7 @@ export function ProductDetail() {
 
             {/* Giá & Đánh giá (Nằm ngang nhau) */}
             <div className="flex justify-between items-end mt-6">
-              <div className="text-[26px] font-bold tracking-tight text-theme">
+              <div className="text-[26px] font-bold tracking-tight text-black">
                 {formatVND(activeVariant?.price || product.variants[0]?.price || 0)}
               </div>
               <div className="flex items-center gap-1 cursor-pointer" onClick={() => {
@@ -569,7 +569,7 @@ export function ProductDetail() {
               }}>
                 <div className="flex text-black">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
+                    <Star key={i} className={`w-3.5 h-3.5 text-yellow ${i < Math.floor(displayRating) ? 'fill-current' : ''}`} />
                   ))}
                 </div>
                 <span className="text-[13px] font-bold ml-1">{displayRating}</span>
