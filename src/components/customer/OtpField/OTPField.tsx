@@ -3,28 +3,54 @@ import OTPInput from './OTPInput';
 import { useOtpTimer } from '@/hooks/useOtpTimer';
 
 interface OTPFieldProps {
-  id: string; 
+  id: string;
   name: string;
   label: string;
   value: string;
-  onChange: (value: string) => void; // Đổi type để dễ dùng với React Hook Form
+  onChange: (value: string) => void;
   onResend?: () => Promise<void>;
   error?: boolean;
   helperText?: string;
   timer?: number;
   timerKey: string;
+  email?: string;
+  otpType?: string;
+  autoStartOnFirstMount?: boolean;
 }
 
-const OTPField: React.FC<OTPFieldProps> = ({ id, name: _name, label, value, onChange, onResend, error, helperText, timer = 60, timerKey }) => {
-  const { timeLeft, startTimer } = useOtpTimer(timerKey, timer);
+const OTPField: React.FC<OTPFieldProps> = ({
+  id,
+  name: _name,
+  label,
+  value,
+  onChange,
+  onResend,
+  error,
+  helperText,
+  timer = 60,
+  timerKey,
+  email,
+  otpType,
+  autoStartOnFirstMount = true,
+}) => {
+  const { timeLeft, startTimer, timerKey: effectiveKey } = useOtpTimer(
+    {
+      key: timerKey,
+      email,
+      type: otpType,
+      defaultDuration: timer,
+    },
+    timer
+  );
 
   useEffect(() => {
-    // Tự động start timer nếu là lần đầu tiên component mount
-    const stored = localStorage.getItem(timerKey);
+    if (!autoStartOnFirstMount) return;
+    // Tự động kích hoạt timer nếu là lần đầu tiên component mount và chưa có timer
+    const stored = localStorage.getItem(effectiveKey);
     if (!stored) {
       startTimer(timer);
     }
-  }, [timerKey, timer, startTimer]);
+  }, [effectiveKey, timer, startTimer, autoStartOnFirstMount]);
 
   const handleResend = async () => {
     if (!onResend || timeLeft > 0) return;
@@ -32,8 +58,8 @@ const OTPField: React.FC<OTPFieldProps> = ({ id, name: _name, label, value, onCh
       await onResend();
       startTimer(timer);
     } catch (err) {
-      console.error(err);
-      // Lỗi sẽ do component cha (onResend) catch và hiển thị toast
+      // Khi API báo lỗi (vd: rate limited), tự động kích hoạt cooldown 60s để khóa nút chống spam
+      startTimer(timer);
       throw err;
     }
   };
@@ -43,8 +69,8 @@ const OTPField: React.FC<OTPFieldProps> = ({ id, name: _name, label, value, onCh
       <label className="block text-[13px] font-medium text-gray-800 mb-4 text-center">
         {label}
       </label>
-      
-      <OTPInput 
+
+      <OTPInput
         id={id}
         length={6}
         otp={value}
@@ -56,8 +82,12 @@ const OTPField: React.FC<OTPFieldProps> = ({ id, name: _name, label, value, onCh
       />
 
       {helperText && (
-        <p className={`mt-2 text-center text-[12px] ${error ? 'text-red-500' : 'text-gray-500'}`}>
-            {helperText}
+        <p
+          className={`mt-2 text-center text-[12px] ${
+            error ? 'text-red-500' : 'text-gray-500'
+          }`}
+        >
+          {helperText}
         </p>
       )}
     </div>

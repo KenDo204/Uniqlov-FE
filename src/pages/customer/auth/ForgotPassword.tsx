@@ -6,10 +6,7 @@ import { toast } from 'react-toastify';
 
 import BackHome from '@/components/general/BackHomeButton';
 import { Container } from '@/components/shared/Container';
-
 import { forgotPasswordSchema, type ForgotPasswordFormValues as ForgotFormValues } from '@/schemas';
-
-
 
 export function ForgotPassword() {
   const navigate = useNavigate();
@@ -20,14 +17,18 @@ export function ForgotPassword() {
     defaultValues: { email: '' }
   });
 
-
   const onSubmit = async (data: ForgotFormValues) => {
     resetAuth();
     try {
       await forgotPassword({ email: data.email });
-      toast.success('Đường dẫn đặt lại mật khẩu đã được gửi đến email của bạn!');
-      reset(); // Xóa form sau khi gửi thành công
-      // Chuyển sang form nhập OTP luôn
+      const emailTrimmed = data.email.trim().toLowerCase();
+      
+      // Lưu thông tin email và tạo mốc timestamp 60s đếm ngược
+      sessionStorage.setItem('reset_flow_email', emailTrimmed);
+      localStorage.setItem(`otp_exp_FORGOT_PASSWORD_${emailTrimmed}`, (Date.now() + 60 * 1000).toString());
+
+      toast.success('Mã xác nhận OTP đã được gửi đến email của bạn!');
+      reset();
       navigate('/reset-password'); 
     } catch (err: any) {
       toast.error(err || 'Gửi yêu cầu thất bại.');
@@ -49,15 +50,6 @@ export function ForgotPassword() {
           <p className="text-[14px] text-gray-800 mb-4">
             Vui lòng nhập địa chỉ email đã đăng ký của bạn.
           </p>
-
-          {/* <div className="mb-10">
-            <span 
-              onClick={() => navigate('/settings')} 
-              className="text-[14px] text-theme cursor-pointer transition-colors"
-            >
-              Về cài đặt nhận thư
-            </span>
-          </div> */}
 
           <form className="space-y-8" onSubmit={handleSubmit(onSubmit)}>
             

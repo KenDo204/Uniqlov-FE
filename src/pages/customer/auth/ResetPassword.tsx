@@ -2,39 +2,43 @@ import { useState } from 'react';
 import { Eye, EyeOff } from '@/components/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 
-
-// Import OTPField (Đảm bảo đường dẫn này khớp với cấu trúc thư mục của bạn)
+// Import OTPField
 import OTPField from '@/components/customer/OtpField/OTPField';
 import { Container } from '@/components/shared/Container';
-
 import { resetPasswordSchema, type ResetPasswordFormValues as ResetFormValues } from '@/schemas';
-
-
 
 export function ResetPassword() {
   const navigate = useNavigate();
-  // Khai báo thêm resendOtp từ hook
   const { resetPassword, resendOtp, loading, resetAuth } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Lấy control và getValues từ useForm để bọc OTPField
+  // Khôi phục email từ sessionStorage nếu user vừa từ trang ForgotPassword chuyển sang
+  const savedEmail = sessionStorage.getItem('reset_flow_email') || '';
+
   const { register, handleSubmit, formState: { errors }, control, getValues } = useForm<ResetFormValues>({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { email: '', otp: '', password: '', confirmPassword: '' }
+    defaultValues: { email: savedEmail, otp: '', password: '', confirmPassword: '' }
   });
 
+  const currentEmailValue = useWatch({ control, name: 'email' }) || savedEmail;
 
   const onSubmit = async (data: ResetFormValues) => {
     resetAuth(); 
     try {
       await resetPassword({ email: data.email, otp: data.otp, newPassword: data.password } as any);
       toast.success('🎉 Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại.');
+      
+      // Dọn dẹp storage
+      const emailTrimmed = data.email.trim().toLowerCase();
+      sessionStorage.removeItem('reset_flow_email');
+      localStorage.removeItem(`otp_exp_FORGOT_PASSWORD_${emailTrimmed}`);
+
       navigate('/login');
     } catch (err: any) {
       toast.error(err || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
@@ -86,12 +90,13 @@ export function ResetPassword() {
                   label="Mã xác nhận (OTP) *"
                   value={field.value}
                   onChange={field.onChange}
+                  email={currentEmailValue}
+                  otpType="FORGOT_PASSWORD"
                   onResend={async () => {
-                     // Lấy email hiện tại đang gõ trên form để gửi lại mã
-                     const currentEmail = getValues('email');
+                     const currentEmail = getValues('email') || savedEmail;
                      if (!currentEmail || errors.email) {
                         toast.error('Vui lòng nhập Email hợp lệ trước khi gửi lại mã.');
-                        throw new Error("Missing email"); // Quăng lỗi để OTPField không tự reset timer
+                        throw new Error("Missing email");
                      }
                      
                      try {
@@ -99,12 +104,12 @@ export function ResetPassword() {
                         toast.success('Đã gửi lại mã OTP!');
                      } catch (err: any) {
                         toast.error(err || 'Không thể gửi lại mã lúc này');
-                        throw err; // Quăng lỗi để OTPField chặn timer
+                        throw err; // Quăng lỗi để OTPField duy trì cooldown
                      }
                   }}
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
-                  timer={30}
+                  timer={60}
                   timerKey="forgot_pw_otp"
                 />
               )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff } from '@/components/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,14 +6,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 
-
-// Import component OTPField của bạn
-import OTPField from '@/components/customer/OtpField/OTPField'; 
+// Import component OTPField
+import OTPField from '@/components/customer/OtpField/OTPField';
 import { Container } from '@/components/shared/Container';
-
 import { registerSchema, otpSchema, type RegisterFormValues, type OtpFormValues } from '@/schemas';
-
-
 
 export function Register() {
   const navigate = useNavigate();
@@ -21,9 +17,22 @@ export function Register() {
   
   const [showPassword, setShowPassword] = useState(false);
   
-  // Quản lý trạng thái luồng đăng ký
-  const [step, setStep] = useState<1 | 2>(1);
-  const [registeredEmail, setRegisteredEmail] = useState('');
+  // Quản lý trạng thái luồng đăng ký với Session Storage để chống F5 làm mất Step 2
+  const [step, setStep] = useState<1 | 2>(() => {
+    const savedStep = sessionStorage.getItem('register_flow_step');
+    return savedStep === '2' ? 2 : 1;
+  });
+  const [registeredEmail, setRegisteredEmail] = useState<string>(() => {
+    return sessionStorage.getItem('register_flow_email') || '';
+  });
+
+  // Đồng bộ với Session Storage khi step / registeredEmail thay đổi
+  useEffect(() => {
+    if (step === 2 && registeredEmail) {
+      sessionStorage.setItem('register_flow_step', '2');
+      sessionStorage.setItem('register_flow_email', registeredEmail);
+    }
+  }, [step, registeredEmail]);
 
   // Hook Form cho Bước 1
   const formStep1 = useForm<RegisterFormValues>({
@@ -48,8 +57,17 @@ export function Register() {
         phone: data.phone || undefined,
       } as any); 
 
-      setRegisteredEmail(data.email);
+      const emailTrimmed = data.email.trim().toLowerCase();
+      setRegisteredEmail(emailTrimmed);
       setStep(2); // Chuyển sang bước OTP
+      
+      sessionStorage.setItem('register_flow_step', '2');
+      sessionStorage.setItem('register_flow_email', emailTrimmed);
+      
+      // Đặt timestamp hết hạn 30s khi mới kích hoạt gửi OTP
+      const expTime = Date.now() + 30 * 1000;
+      localStorage.setItem(`otp_exp_ACTIVATION_${emailTrimmed}`, expTime.toString());
+
       toast.success('Đã gửi mã xác nhận đến email của bạn!');
     } catch (err: any) {
       toast.error(err || 'Đăng ký thất bại. Email có thể đã tồn tại.');
@@ -62,20 +80,26 @@ export function Register() {
     try {
       await activateAccount({ email: registeredEmail, otp: data.otp });
       toast.success('🎉 Kích hoạt tài khoản thành công! Vui lòng đăng nhập.', { position: 'top-right', autoClose: 3000 });
+      
+      // Dọn dẹp storage sau khi kích hoạt thành công
+      sessionStorage.removeItem('register_flow_step');
+      sessionStorage.removeItem('register_flow_email');
+      localStorage.removeItem(`otp_exp_ACTIVATION_${registeredEmail.trim().toLowerCase()}`);
+      
       navigate('/login');
     } catch (err: any) {
       toast.error(err || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
     }
   };
 
-  // Xử lý Gửi lại OTP (Không cần quản lý timer ở đây nữa vì OTPInput đã tự lo)
+  // Xử lý Gửi lại OTP
   const handleResendOtp = async () => {
     try {
       await resendOtp({ email: registeredEmail, type: 'ACTIVATION' });
       toast.success('Đã gửi lại mã OTP!');
     } catch (err: any) {
       toast.error(err || 'Chưa thể gửi lại mã lúc này.');
-      throw err; // Bắn lỗi ra để OTPInput không reset timer nếu API lỗi
+      throw err; // Ném lỗi để OTPField duy trì cooldown chống spam
     }
   };
 
@@ -196,6 +220,8 @@ export function Register() {
                       helperText={fieldState.error?.message}
                       timer={30}
                       timerKey="register_otp"
+                      email={registeredEmail}
+                      otpType="ACTIVATION"
                     />
                   )}
                 />
@@ -209,7 +235,6 @@ export function Register() {
                     {loading ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN VÀ KÍCH HOẠT'}
                   </button>
                 </div>
-                {/* Chú ý: Đã xóa phần "Chưa nhận được mã" trùng lặp ở đây vì OTPField đã lo việc đó! */}
               </form>
             </div>
           )}
