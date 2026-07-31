@@ -101,34 +101,32 @@ export function Login() {
                 {errors.password && <span className="text-red-500 text-[12px] mt-1 block">{errors.password.message}</span>}
               </div>
 
-              <div className="pt-2">
-                <Link to="/forgot-password" className="text-theme cursor-pointer text-[13px]">
+              <div className="pt-1">
+                <Link to="/forgot-password" className="text-theme cursor-pointer text-[13px] hover:underline">
                   Quên mật khẩu của bạn?
                 </Link>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-[200px] h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer mt-4 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
-              </button>
-            </form>
+              <div className="flex flex-col lg:flex-row items-center gap-3 lg:gap-4 pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full lg:flex-1 h-12 bg-theme hover:bg-theme-hover text-white font-bold text-[14px] rounded-full transition-colors border-none cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
+                >
+                  {loading ? 'ĐANG XỬ LÝ...' : 'ĐĂNG NHẬP'}
+                </button>
 
-            {/* Nút Đăng nhập với Google */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-[13px] text-gray-600 mb-4">Hoặc đăng nhập bằng tài khoản mạng xã hội:</p>
-              <button
-                type="button"
-                onClick={() => handleGoogleLogin()}
-                disabled={loading}
-                className="w-full max-w-[320px] h-12 bg-white hover:bg-gray-50 text-gray-800 font-semibold text-[14px] rounded-full border border-gray-300 transition-all cursor-pointer flex items-center justify-center gap-3 shadow-sm hover:shadow disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                <FcGoogle className="w-5 h-5 shrink-0" />
-                <span>Đăng nhập với Google</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                  className="w-full lg:flex-1 h-12 bg-white hover:bg-gray-50 text-gray-800 font-semibold text-[14px] rounded-full border border-gray-300 transition-all cursor-pointer flex items-center justify-center gap-2.5 shadow-sm hover:shadow disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
+                >
+                  <FcGoogle className="w-5 h-5 shrink-0" />
+                  <span className="truncate">Đăng nhập với Google</span>
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="w-full max-w-[500px]">

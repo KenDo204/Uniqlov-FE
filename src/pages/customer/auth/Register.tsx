@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Eye, EyeOff } from '@/components/ui/icons';
+import { useState, useEffect, useCallback } from 'react';
+import { Eye, EyeOff, ArrowLeft } from '@/components/ui/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useForm, Controller } from 'react-hook-form';
@@ -17,30 +17,49 @@ export function Register() {
   
   const [showPassword, setShowPassword] = useState(false);
   
-  // Quản lý trạng thái luồng đăng ký với Session Storage để chống F5 làm mất Step 2
-  const [step, setStep] = useState<1 | 2>(() => {
-    const savedStep = sessionStorage.getItem('register_flow_step');
-    return savedStep === '2' ? 2 : 1;
-  });
+  // Trạng thái email được đăng ký
   const [registeredEmail, setRegisteredEmail] = useState<string>(() => {
     return sessionStorage.getItem('register_flow_email') || '';
   });
 
-  // Đồng bộ với Session Storage khi step / registeredEmail thay đổi
-  useEffect(() => {
-    if (step === 2 && registeredEmail) {
-      sessionStorage.setItem('register_flow_step', '2');
-      sessionStorage.setItem('register_flow_email', registeredEmail);
+  // Quản lý trạng thái bước đăng ký (Step 1: Nhập thông tin, Step 2: Nhập OTP)
+  const [step, setStep] = useState<1 | 2>(() => {
+    const savedStep = sessionStorage.getItem('register_flow_step');
+    const savedEmail = sessionStorage.getItem('register_flow_email');
+    if (savedStep === '2' && savedEmail) {
+      return 2;
     }
-  }, [step, registeredEmail]);
-
-  // Hook Form cho Bước 1
-  const formStep1 = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { fullName: '', phone: '', email: '', password: '' }
+    return 1;
   });
 
-  // Hook Form cho Bước 2
+  // Hàm dọn dẹp toàn bộ dữ liệu phiên đăng ký OTP
+  const clearRegistrationSession = useCallback((emailToClear?: string) => {
+    const targetEmail = (emailToClear || registeredEmail || '').trim().toLowerCase();
+    sessionStorage.removeItem('register_flow_step');
+    sessionStorage.removeItem('register_flow_email');
+    if (targetEmail) {
+      localStorage.removeItem(`otp_exp_ACTIVATION_${targetEmail}`);
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: `otp_exp_ACTIVATION_${targetEmail}`,
+          newValue: null,
+        })
+      );
+    }
+  }, [registeredEmail]);
+
+  // Hook Form cho Bước 1 (Thông tin hồ sơ)
+  const formStep1 = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      fullName: '',
+      phone: '',
+      email: registeredEmail || '',
+      password: '',
+    }
+  });
+
+  // Hook Form cho Bước 2 (Mã OTP)
   const formStep2 = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
     defaultValues: { otp: '' }
@@ -61,12 +80,20 @@ export function Register() {
       setRegisteredEmail(emailTrimmed);
       setStep(2); // Chuyển sang bước OTP
       
+      // Lưu thông tin phiên vào Session Storage
       sessionStorage.setItem('register_flow_step', '2');
       sessionStorage.setItem('register_flow_email', emailTrimmed);
       
-      // Đặt timestamp hết hạn 30s khi mới kích hoạt gửi OTP
+      // Thiết lập mốc hết hạn OTP (30 giây từ thời điểm gửi)
       const expTime = Date.now() + 30 * 1000;
-      localStorage.setItem(`otp_exp_ACTIVATION_${emailTrimmed}`, expTime.toString());
+      const expKey = `otp_exp_ACTIVATION_${emailTrimmed}`;
+      localStorage.setItem(expKey, expTime.toString());
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: expKey,
+          newValue: expTime.toString(),
+        })
+      );
 
       toast.success('Đã gửi mã xác nhận đến email của bạn!');
     } catch (err: any) {
@@ -82,14 +109,20 @@ export function Register() {
       toast.success('🎉 Kích hoạt tài khoản thành công! Vui lòng đăng nhập.', { position: 'top-right', autoClose: 3000 });
       
       // Dọn dẹp storage sau khi kích hoạt thành công
-      sessionStorage.removeItem('register_flow_step');
-      sessionStorage.removeItem('register_flow_email');
-      localStorage.removeItem(`otp_exp_ACTIVATION_${registeredEmail.trim().toLowerCase()}`);
+      clearRegistrationSession(registeredEmail);
       
       navigate('/login');
     } catch (err: any) {
       toast.error(err || 'Mã OTP không hợp lệ hoặc đã hết hạn.');
     }
+  };
+
+  // Xử lý quay lại Bước 1 để sửa thông tin / email
+  const handleBackToStep1 = () => {
+    clearRegistrationSession(registeredEmail);
+    formStep2.reset();
+    setStep(1);
+    // Giữ nguyên formStep1 để người dùng chỉnh sửa email hoặc thông tin nếu nhập sai
   };
 
   // Xử lý Gửi lại OTP
@@ -196,6 +229,15 @@ export function Register() {
           {/* ---------------- BƯỚC 2: NHẬP OTP ---------------- */}
           {step === 2 && (
             <div className="animate-fade-in">
+              <button
+                type="button"
+                onClick={handleBackToStep1}
+                className="inline-flex items-center gap-1.5 text-[13px] text-gray-600 hover:text-theme mb-6 bg-transparent border-none cursor-pointer p-0 font-medium transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Quay lại chỉnh sửa thông tin</span>
+              </button>
+
               <h2 className="text-[20px] font-medium m-0 mb-4">Xác thực Email</h2>
               <p className="text-[14px] text-gray-800 mb-8 leading-relaxed">
                 Chúng tôi đã gửi một mã xác nhận gồm 6 chữ số đến email <span className="font-bold text-theme">{registeredEmail}</span>. 

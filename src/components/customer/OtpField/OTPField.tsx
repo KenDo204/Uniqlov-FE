@@ -43,14 +43,7 @@ const OTPField: React.FC<OTPFieldProps> = ({
     timer
   );
 
-  useEffect(() => {
-    if (!autoStartOnFirstMount) return;
-    // Tự động kích hoạt timer nếu là lần đầu tiên component mount và chưa có timer
-    const stored = localStorage.getItem(effectiveKey);
-    if (!stored) {
-      startTimer(timer);
-    }
-  }, [effectiveKey, timer, startTimer, autoStartOnFirstMount]);
+
 
   const handleResend = async () => {
     if (!onResend || timeLeft > 0) return;
