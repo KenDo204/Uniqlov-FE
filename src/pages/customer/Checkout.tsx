@@ -219,12 +219,14 @@ export function Checkout() {
       setIsValidatingCoupons(false);
 
       if (!hasUserInteractedWithCoupon) {
-        const orderCoupons = valid.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER');
+        const shopCoupons = valid.filter(c => c.coupon.couponType === 'SHOP_VOUCHER');
         const shippingCoupons = valid.filter(c => c.coupon.couponType === 'FREE_SHIPPING');
+        const paymentCoupons = valid.filter(c => c.coupon.couponType === 'PAYMENT_VOUCHER');
         
         const autoSelected: CouponResponse[] = [];
-        if (orderCoupons.length > 0) autoSelected.push(orderCoupons[0].coupon);
+        if (shopCoupons.length > 0) autoSelected.push(shopCoupons[0].coupon);
         if (shippingCoupons.length > 0) autoSelected.push(shippingCoupons[0].coupon);
+        if (paymentCoupons.length > 0) autoSelected.push(paymentCoupons[0].coupon);
 
         setAppliedCoupons(autoSelected);
         setIsAutoApplied(autoSelected.length > 0);
@@ -236,14 +238,9 @@ export function Checkout() {
   }, [availableCoupons, rawSubtotal, rawShippingCost, hasUserInteractedWithCoupon, previewApplyCoupon]);
 
   const handleSelectCoupon = (coupon: CouponResponse) => {
-    let candidateCoupons: CouponResponse[] = [];
-    if (coupon.couponType === 'FREE_SHIPPING') {
-      const others = appliedCoupons.filter(c => c.couponType !== 'FREE_SHIPPING');
-      candidateCoupons = [...others, coupon];
-    } else {
-      const others = appliedCoupons.filter(c => c.couponType === 'FREE_SHIPPING');
-      candidateCoupons = [...others, coupon];
-    }
+    // Thay thế coupon cùng loại, giữ nguyên các loại coupon khác
+    const others = appliedCoupons.filter(c => c.couponType !== coupon.couponType);
+    const candidateCoupons = [...others, coupon];
 
     const candidateFinancials = calculateOrderFinancials(items, rawShippingCost, candidateCoupons, paymentMethod);
     const isCouponValid = candidateFinancials.validCoupons.some(c => c.couponId === coupon.couponId);
@@ -672,12 +669,12 @@ export function Checkout() {
                 ) : availableCoupons.length > 0 ? (
                   <div className="mt-4 space-y-6">
                     <div>
-                      <h4 className="text-sm font-bold text-gray-800 mb-3">Mã giảm giá đơn hàng (Tối đa 1 mã)</h4>
+                      <h4 className="text-sm font-bold text-gray-800 mb-3">Mã giảm giá sản phẩm (Tối đa 1 mã)</h4>
                       <div className="max-h-60 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
-                        {validCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').length > 0 || invalidCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').length > 0 ? (
+                        {validCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER').length > 0 || invalidCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER').length > 0 ? (
                           <>
-                            {validCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').map(c => renderCouponItem(c.coupon, true, undefined, c.result.discountAmount))}
-                            {invalidCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER' || c.coupon.couponType === 'PAYMENT_VOUCHER').map(c => renderCouponItem(c.coupon, false, c.reason))}
+                            {validCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER').map(c => renderCouponItem(c.coupon, true, undefined, c.result.discountAmount))}
+                            {invalidCoupons.filter(c => c.coupon.couponType === 'SHOP_VOUCHER').map(c => renderCouponItem(c.coupon, false, c.reason))}
                           </>
                         ) : (
                           <p className="text-xs text-gray-500 italic">Không có mã nào.</p>
@@ -692,6 +689,20 @@ export function Checkout() {
                           <>
                             {validCoupons.filter(c => c.coupon.couponType === 'FREE_SHIPPING').map(c => renderCouponItem(c.coupon, true, undefined, c.result.discountAmount))}
                             {invalidCoupons.filter(c => c.coupon.couponType === 'FREE_SHIPPING').map(c => renderCouponItem(c.coupon, false, c.reason))}
+                          </>
+                        ) : (
+                          <p className="text-xs text-gray-500 italic">Không có mã nào.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800 mb-3">Mã giảm giá thanh toán (Tối đa 1 mã)</h4>
+                      <div className="max-h-60 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                        {validCoupons.filter(c => c.coupon.couponType === 'PAYMENT_VOUCHER').length > 0 || invalidCoupons.filter(c => c.coupon.couponType === 'PAYMENT_VOUCHER').length > 0 ? (
+                          <>
+                            {validCoupons.filter(c => c.coupon.couponType === 'PAYMENT_VOUCHER').map(c => renderCouponItem(c.coupon, true, undefined, c.result.discountAmount))}
+                            {invalidCoupons.filter(c => c.coupon.couponType === 'PAYMENT_VOUCHER').map(c => renderCouponItem(c.coupon, false, c.reason))}
                           </>
                         ) : (
                           <p className="text-xs text-gray-500 italic">Không có mã nào.</p>

@@ -48,14 +48,17 @@ export const calculateOrderFinancials = (
     return discount;
   };
 
-  // 2. Lọc mã hợp lệ (Tối đa 1 Order Discount, 1 Shipping Discount)
-  const orderCoupons = appliedCoupons.filter(c => c.couponType === 'SHOP_VOUCHER' || c.couponType === 'PAYMENT_VOUCHER');
+  // 2. Lọc mã hợp lệ (Tối đa 1 SHOP_VOUCHER, 1 FREE_SHIPPING, 1 PAYMENT_VOUCHER)
+  const shopCoupons = appliedCoupons.filter(c => c.couponType === 'SHOP_VOUCHER');
   const shippingCoupons = appliedCoupons.filter(c => c.couponType === 'FREE_SHIPPING');
+  const paymentCoupons = appliedCoupons.filter(c => c.couponType === 'PAYMENT_VOUCHER');
   
-  const activeOrderCoupon = orderCoupons.length > 0 ? orderCoupons[0] : null;
+  const activeShopCoupon = shopCoupons.length > 0 ? shopCoupons[0] : null;
   const activeShippingCoupon = shippingCoupons.length > 0 ? shippingCoupons[0] : null;
+  const activePaymentCoupon = paymentCoupons.length > 0 ? paymentCoupons[0] : null;
 
-  const couponsToProcess = [activeOrderCoupon, activeShippingCoupon].filter(Boolean) as CouponResponse[];
+  // Thứ tự xử lý: SHOP_VOUCHER -> FREE_SHIPPING -> PAYMENT_VOUCHER
+  const couponsToProcess = [activeShopCoupon, activeShippingCoupon, activePaymentCoupon].filter(Boolean) as CouponResponse[];
 
   // 3. Phân loại và xử lý Coupons
   couponsToProcess.forEach((coupon) => {
@@ -99,8 +102,12 @@ export const calculateOrderFinancials = (
             if (conditions.payment_methods.includes(paymentMethod.toUpperCase())) {
               isPaymentValid = true;
             }
+          } else if (conditions.payment_method) {
+            if (String(conditions.payment_method).toUpperCase() === paymentMethod.toUpperCase()) {
+              isPaymentValid = true;
+            }
           } else {
-             isPaymentValid = true;
+            isPaymentValid = true;
           }
         } else {
           isPaymentValid = true;
@@ -138,5 +145,3 @@ export const calculateOrderFinancials = (
     validCoupons
   };
 };
-
-

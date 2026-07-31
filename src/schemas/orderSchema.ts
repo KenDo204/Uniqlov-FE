@@ -9,7 +9,10 @@ export const checkoutSchema = z.object({
     .array(z.number().int().positive())
     .min(1, 'Vui lòng chọn ít nhất 1 sản phẩm để thanh toán'),
   addressId: z.number().int().positive('Vui lòng chọn địa chỉ giao hàng hợp lệ'),
-  couponCodes: z.array(z.string().trim().max(50)).optional(),
+  couponCodes: z
+    .array(z.string().trim().max(50))
+    .max(3, 'Chỉ được áp dụng tối đa 3 mã giảm giá cho một đơn hàng')
+    .optional(),
   paymentMethod: z.nativeEnum(PaymentMethod, {
     message: 'Phương thức thanh toán không hợp lệ',
   }),
