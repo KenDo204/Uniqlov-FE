@@ -1,6 +1,7 @@
 import React from 'react';
 import { 
   TextField, 
+  MenuItem,
   Switch, 
   FormControlLabel, 
   Typography, 
@@ -24,19 +25,20 @@ export const SliderDisplaySettings: React.FC<SliderDisplaySettingsProps> = ({
   setIsActive,
   disabled = false
 }) => {
+  const currentOrder = displayOrder === '2' ? '2' : '1';
+
   return (
     <Box className="space-y-6">
       <div>
         <Typography variant="body2" className="text-gray-700 font-medium mb-2 text-[14px]">Thứ tự hiển thị</Typography>
         <TextField
+          select
           fullWidth
-          type="number"
           variant="outlined"
-          value={displayOrder}
+          value={currentOrder}
           disabled={disabled}
           onChange={(e) => setDisplayOrder(e.target.value)}
           slotProps={{ 
-            htmlInput: { min: 0 },
             input: {
               startAdornment: (
                 <InputAdornment position="start">
@@ -55,9 +57,12 @@ export const SliderDisplaySettings: React.FC<SliderDisplaySettingsProps> = ({
               },
             }
           }}
-        />
+        >
+          <MenuItem value="1">1 (Vị trí 1)</MenuItem>
+          <MenuItem value="2">2 (Vị trí 2)</MenuItem>
+        </TextField>
         <Typography variant="caption" className="text-gray-500 mt-2 block text-[13px]">
-          Slider có thứ tự nhỏ hơn sẽ được ưu tiên hiển thị trước (Vd: 0, 1, 2)
+          Chỉ chấp nhận vị trí 1 hoặc 2. Slider vị trí 1 sẽ hiển thị trước.
         </Typography>
       </div>
 

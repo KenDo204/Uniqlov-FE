@@ -30,32 +30,26 @@ export const OrderPieChart: React.FC<OrderPieChartProps> = ({ orderStats }) => {
   return (
     <Paper
       elevation={0}
-      sx={{
-        p: 3,
-        borderRadius: '16px',
-        border: '1px solid #f3f4f6',
-        bgcolor: '#ffffff',
-        height: '100%',
-      }}
+      className="p-4 sm:p-5 lg:p-6 rounded-2xl border border-gray-100 bg-white h-full flex flex-col justify-between"
     >
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827' }}>
+      <Box className="mb-4">
+        <Typography className="text-base sm:text-lg font-bold text-gray-900">
           Tỷ lệ đơn hàng
         </Typography>
-        <Typography variant="body2" sx={{ color: '#6b7280' }}>
+        <Typography className="text-xs sm:text-sm text-gray-500 mt-0.5">
           Tỷ lệ phần trăm trạng thái xử lý đơn hàng
         </Typography>
       </Box>
 
-      <Box sx={{ width: '100%', height: 300, position: 'relative' }}>
+      <Box className="w-full h-[240px] sm:h-[280px] lg:h-[320px] relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={chartData}
               cx="50%"
               cy="50%"
-              innerRadius={65}
-              outerRadius={95}
+              innerRadius="50%"
+              outerRadius="75%"
               paddingAngle={5}
               dataKey="value"
             >
@@ -68,9 +62,9 @@ export const OrderPieChart: React.FC<OrderPieChartProps> = ({ orderStats }) => {
                 `${value} đơn (${totalOrders > 0 ? ((Number(value) / totalOrders) * 100).toFixed(1) : 0}%)`,
                 'Số lượng',
               ]}
-              contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}
+              contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', fontSize: '13px' }}
             />
-            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
           </PieChart>
         </ResponsiveContainer>
       </Box>

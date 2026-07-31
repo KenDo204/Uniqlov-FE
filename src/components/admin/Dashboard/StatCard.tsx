@@ -21,49 +21,31 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <Paper
       elevation={0}
-      sx={{
-        p: 3,
-        borderRadius: '16px',
-        border: '1px solid #f3f4f6',
-        bgcolor: '#ffffff',
-        transition: 'all 0.3s ease',
-        cursor: 'default',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: '0 12px 24px -10px rgba(0, 146, 124, 0.15)',
-          borderColor: 'rgba(0, 146, 124, 0.3)',
-        },
-      }}
+      className="p-4 sm:p-5 lg:p-6 rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-[#00927c]/30 flex flex-col justify-between h-full cursor-default"
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+      <Box className="flex items-center justify-between mb-3 sm:mb-4">
         <Box
-          sx={{
-            width: 48,
-            height: 48,
-            borderRadius: '12px',
-            bgcolor: iconBgColor,
-            color: iconColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
+          style={{ backgroundColor: iconBgColor, color: iconColor }}
         >
           {icon}
         </Box>
         {subtitle && (
-          <Typography variant="caption" sx={{ color: '#9ca3af', fontWeight: 500 }}>
+          <span className="text-[11px] sm:text-xs text-gray-400 font-medium truncate max-w-[110px] sm:max-w-none">
             {subtitle}
-          </Typography>
+          </span>
         )}
       </Box>
 
-      <Typography variant="body2" sx={{ color: '#6b7280', fontWeight: 600, mb: 0.5 }}>
-        {title}
-      </Typography>
+      <div>
+        <Typography className="text-xs sm:text-sm text-gray-500 font-semibold mb-1 truncate" title={title}>
+          {title}
+        </Typography>
 
-      <Typography variant="h4" sx={{ color: '#111827', fontWeight: 800 }}>
-        {typeof value === 'number' ? value.toLocaleString('vi-VN') : value}
-      </Typography>
+        <Typography className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 truncate">
+          {typeof value === 'number' ? value.toLocaleString('vi-VN') : value}
+        </Typography>
+      </div>
     </Paper>
   );
 };

@@ -14,6 +14,8 @@ import { updateUserSchema as profileSchema, type UpdateUserFormValues as Profile
 
 
 
+import { sanitizePhoneInput } from '@/utils/validationHelpers';
+
 const getGenderLabel = (gender?: Gender) => {
   if (gender === Gender.FEMALE) return 'Nữ';
   if (gender === Gender.MALE) return 'Nam';
@@ -28,7 +30,8 @@ export function ProfileDetails() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isUploading, uploadFile } = useUpload(uploadService.uploadUserAvatar);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormValues>({
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ProfileFormValues>({
+    mode: 'all',
     resolver: zodResolver(profileSchema),
     defaultValues: {
       fullName: '',
@@ -176,8 +179,13 @@ export function ProfileDetails() {
             <label className="block text-[13px] font-medium text-gray-800 mb-2">Điện thoại</label>
             <input 
               type="text" 
-              {...register('phone')}
-              placeholder="0912 345 678"
+              {...register('phone', {
+                onChange: (e) => {
+                  const clean = sanitizePhoneInput(e.target.value);
+                  setValue('phone', clean, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+                }
+              })}
+              placeholder="0912345678"
               maxLength={10}
               className={`w-full border rounded-none px-4 py-2.5 outline-none text-[14px] transition-colors ${errors.phone ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-black'}`}
             />

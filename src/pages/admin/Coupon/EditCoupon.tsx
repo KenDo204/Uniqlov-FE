@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   CircularProgress, Dialog, DialogTitle,
-  DialogContent, DialogActions, Button, TextField, InputAdornment
+  DialogContent, DialogActions, Button, TextField, MenuItem, InputAdornment
 } from '@mui/material';
 import { toast } from 'react-toastify';
 import { useCoupon } from '@/hooks/useCoupon';
+import { validateCouponInputs } from '@/utils/validationHelpers';
 import type { CouponResponse } from '@/types/coupon/responses';
+import type { DiscountType } from '@/types/enums/discountType';
 
 interface EditCouponProps {
   open: boolean;
@@ -28,6 +30,9 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
   const [endDate, setEndDate] = useState('');
   const [applicableConditions, setApplicableConditions] = useState('');
 
+  // Validation errors state
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   // Set initial data when modal opens or coupon changes
   useEffect(() => {
     if (open && coupon) {
@@ -37,8 +42,8 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
       setMinOrderAmount(String(coupon.minOrderAmount || ''));
       setMaxUsage(String(coupon.maxUsage || 100));
       setUserUsageLimit(String(coupon.userUsageLimit || 1));
+      setErrors({});
 
-      // Format dates to ISO local for inputs
       const startStr = coupon.startDate ? coupon.startDate.substring(0, 16) : '';
       const endStr = coupon.endDate ? coupon.endDate.substring(0, 16) : '';
       setStartDate(startStr);
@@ -47,20 +52,40 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
     }
   }, [open, coupon]);
 
+  // Realtime validation runner
+  const validateFieldValues = (overrides?: Partial<{
+    discountValue: string;
+    maxDiscountAmount: string;
+    minOrderAmount: string;
+    maxUsage: string;
+    userUsageLimit: string;
+  }>) => {
+    if (!coupon) return {};
+    const inputs = {
+      discountType: coupon.discountType as DiscountType,
+      discountValue: overrides?.discountValue ?? discountValue,
+      maxDiscountAmount: overrides?.maxDiscountAmount ?? maxDiscountAmount,
+      minOrderAmount: overrides?.minOrderAmount ?? minOrderAmount,
+      maxUsage: overrides?.maxUsage ?? maxUsage,
+      userUsageLimit: overrides?.userUsageLimit ?? userUsageLimit,
+    };
+    const errs = validateCouponInputs(inputs);
+    setErrors(errs);
+    return errs;
+  };
+
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!coupon) return;
 
-    const parsedDiscountValue = Number(discountValue) || 0;
-    if (parsedDiscountValue <= 0) {
-      toast.error('Giá trị giảm giá phải lớn hơn 0');
+    const fieldErrors = validateFieldValues();
+    if (Object.keys(fieldErrors).length > 0) {
+      const firstError = Object.values(fieldErrors)[0];
+      toast.error(`Dữ liệu không hợp lệ: ${firstError}`);
       return;
     }
 
-    if (coupon.discountType === 'PERCENTAGE' && parsedDiscountValue > 100) {
-      toast.error('Phần trăm giảm giá tối đa là 100%');
-      return;
-    }
+    const parsedDiscountValue = Number(discountValue) || 0;
 
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -149,7 +174,12 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 fullWidth
                 required
                 value={discountValue}
-                onChange={(e) => setDiscountValue(e.target.value)}
+                error={!!errors.discountValue}
+                helperText={errors.discountValue}
+                onChange={(e) => {
+                  setDiscountValue(e.target.value);
+                  validateFieldValues({ discountValue: e.target.value });
+                }}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -169,7 +199,12 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 type="number"
                 fullWidth
                 value={minOrderAmount}
-                onChange={(e) => setMinOrderAmount(e.target.value)}
+                error={!!errors.minOrderAmount}
+                helperText={errors.minOrderAmount}
+                onChange={(e) => {
+                  setMinOrderAmount(e.target.value);
+                  validateFieldValues({ minOrderAmount: e.target.value });
+                }}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -184,7 +219,12 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 fullWidth
                 disabled={coupon?.discountType === 'FIXED_AMOUNT'}
                 value={coupon?.discountType === 'FIXED_AMOUNT' ? '' : maxDiscountAmount}
-                onChange={(e) => setMaxDiscountAmount(e.target.value)}
+                error={!!errors.maxDiscountAmount}
+                helperText={errors.maxDiscountAmount}
+                onChange={(e) => {
+                  setMaxDiscountAmount(e.target.value);
+                  validateFieldValues({ maxDiscountAmount: e.target.value });
+                }}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -200,18 +240,34 @@ const EditCoupon: React.FC<EditCouponProps> = ({ open, onClose, onSuccess, coupo
                 type="number"
                 fullWidth
                 value={maxUsage}
-                onChange={(e) => setMaxUsage(e.target.value)}
+                error={!!errors.maxUsage}
+                helperText={errors.maxUsage}
+                onChange={(e) => {
+                  setMaxUsage(e.target.value);
+                  validateFieldValues({ maxUsage: e.target.value });
+                }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
 
               <TextField
+                select
                 label="Lượt dùng tối đa / 1 Khách hàng"
-                type="number"
                 fullWidth
                 value={userUsageLimit}
-                onChange={(e) => setUserUsageLimit(e.target.value)}
+                error={!!errors.userUsageLimit}
+                helperText={errors.userUsageLimit}
+                onChange={(e) => {
+                  setUserUsageLimit(e.target.value);
+                  validateFieldValues({ userUsageLimit: e.target.value });
+                }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-              />
+              >
+                <MenuItem value="1">1 lượt</MenuItem>
+                <MenuItem value="2">2 lượt</MenuItem>
+                <MenuItem value="3">3 lượt</MenuItem>
+                <MenuItem value="4">4 lượt</MenuItem>
+                <MenuItem value="5">5 lượt</MenuItem>
+              </TextField>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

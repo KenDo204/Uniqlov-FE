@@ -57,7 +57,7 @@ export default function AdminLayout() {
           }`}
       >
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
-          <Link to="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 hover:text-theme transition-opacity decoration-none">
+          <Link to="/admin" className="flex items-center gap-3 text-xl font-bold text-gray-900 hover:text-theme transition-opacity decoration-none">
             <img
               src={EasyMall_Logo}
               alt={`${BRAND.NAME} Logo`}

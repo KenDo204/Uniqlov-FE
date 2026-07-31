@@ -14,79 +14,61 @@ export const RevenueCard: React.FC<RevenueCardProps> = ({
   apiRevenue,
   orderStatsRevenue,
 }) => {
-  // Use apiRevenue if available, fallback to orderStatsRevenue
   const mainRevenue = apiRevenue ?? orderStatsRevenue ?? 0;
   const secondaryRevenue = orderStatsRevenue ?? 0;
 
   return (
     <Paper
       elevation={0}
-      sx={{
-        p: 3,
-        borderRadius: '16px',
-        border: '1px solid #f3f4f6',
-        bgcolor: '#ffffff',
+      className="p-4 sm:p-5 lg:p-6 rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:shadow-md flex flex-col justify-between h-full min-h-[220px] sm:min-h-[280px]"
+      style={{
         background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justify: 'space-between',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          boxShadow: '0 10px 20px -5px rgba(0, 146, 124, 0.1)',
-        },
       }}
     >
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 mb-3 sm:mb-4">
           <Box
-            sx={{
-              width: 52,
-              height: 52,
-              borderRadius: '14px',
-              bgcolor: 'var(--color-theme)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 8px 16px -4px rgba(0, 146, 124, 0.4)',
-            }}
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl text-white flex items-center justify-center shrink-0 shadow-md"
+            style={{ backgroundColor: 'var(--color-theme)' }}
           >
-            <AccountBalanceWalletIcon sx={{ fontSize: 28 }} />
+            <AccountBalanceWalletIcon className="text-xl sm:text-2xl" />
           </Box>
           <Chip
-            icon={<TrendingUpIcon sx={{ fontSize: '16px !important', color: 'var(--color-theme) !important' }} />}
+            icon={<TrendingUpIcon style={{ fontSize: '16px', color: 'var(--color-theme)' }} />}
             label="Doanh thu thực tế"
-            sx={{
-              bgcolor: 'var(--color-theme-light)',
+            className="font-bold text-[11px] sm:text-xs rounded-lg border-0"
+            style={{
+              backgroundColor: 'var(--color-theme-light)',
               color: 'var(--color-theme)',
-              fontWeight: 700,
-              fontSize: '12px',
-              borderRadius: '8px',
             }}
           />
         </Box>
 
-        <Typography variant="body2" sx={{ color: '#4b5563', fontWeight: 600, mb: 1 }}>
-          TỔNG DOANH THU HỆ THỐNG
+        <Typography className="text-xs sm:text-sm text-gray-600 font-semibold mb-1.5 tracking-wider uppercase">
+          Tổng doanh thu hệ thống
         </Typography>
 
-        <Typography variant="h3" sx={{ color: 'var(--color-theme)', fontWeight: 800, mb: 2 }}>
+        <Typography
+          className="!font-extrabold tracking-tight break-all sm:break-normal !leading-none"
+          style={{
+            color: 'var(--color-theme)',
+            fontSize: 'clamp(1.5rem, 2vw + 0.5rem, 2.25rem)',
+            lineHeight: 1.1,
+          }}
+        >
           {formatVND(mainRevenue)}
         </Typography>
       </Box>
 
-      <Box>
-        <Divider sx={{ my: 2, borderColor: '#e5e7eb' }} />
+      <Box className="mt-4">
+        <Divider className="my-3 border-gray-200" />
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <ShoppingBagIcon sx={{ fontSize: 18, color: '#6b7280' }} />
-            <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '13px' }}>
-              Doanh thu từ Đơn hàng:
-            </Typography>
+        <Box className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-2">
+          <Box className="flex items-center gap-1.5 text-gray-500 text-xs sm:text-sm">
+            <ShoppingBagIcon fontSize="small" className="text-gray-400" />
+            <span>Doanh thu từ Đơn hàng:</span>
           </Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#111827' }}>
+          <Typography className="text-xs sm:text-sm md:text-base font-bold text-gray-900">
             {formatVND(secondaryRevenue)}
           </Typography>
         </Box>

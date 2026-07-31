@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ReviewResponse } from '@/features/review/types/response';
 import { ReviewStatus } from '@/types/enums/reviewStatus';
 import { Star } from '@/components/ui/icons';
@@ -12,7 +12,6 @@ export interface ReviewProps {
 export const Review: React.FC<ReviewProps> = ({ review, onDelete, onSelectImage }) => {
   const {
     reviewId,
-    orderId,
     userFullName,
     productName,
     rating,
@@ -23,6 +22,8 @@ export const Review: React.FC<ReviewProps> = ({ review, onDelete, onSelectImage 
     variantAttributes,
     createdAt,
   } = review;
+
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   const displayName = userFullName && userFullName.trim().length > 0 ? userFullName : 'Anonymous User';
   const displayProductName = productName && productName.trim().length > 0 ? productName : 'N/A';
@@ -62,6 +63,44 @@ export const Review: React.FC<ReviewProps> = ({ review, onDelete, onSelectImage 
 
   const attributeEntries = variantAttributes ? Object.entries(variantAttributes) : [];
   const hasVariantAttributes = attributeEntries.length > 0;
+
+  const handleOpenPreview = (index: number, url: string) => {
+    setPreviewIndex(index);
+    if (onSelectImage) {
+      onSelectImage(url);
+    }
+  };
+
+  const handleClosePreview = () => {
+    setPreviewIndex(null);
+  };
+
+  const handleNext = () => {
+    if (images && images.length > 0 && previewIndex !== null) {
+      setPreviewIndex((prev) => (prev === null ? 0 : (prev + 1) % images.length));
+    }
+  };
+
+  const handlePrev = () => {
+    if (images && images.length > 0 && previewIndex !== null) {
+      setPreviewIndex((prev) => (prev === null ? 0 : (prev - 1 + images.length) % images.length));
+    }
+  };
+
+  useEffect(() => {
+    if (previewIndex === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClosePreview();
+      } else if (e.key === 'ArrowRight') {
+        handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrev();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewIndex, images]);
 
   return (
     <div className="border border-gray-200 p-6 rounded-xl flex flex-col sm:flex-row gap-6 bg-white shadow-xs text-left">
@@ -112,7 +151,10 @@ export const Review: React.FC<ReviewProps> = ({ review, onDelete, onSelectImage 
                 />
               ))}
             </div>
-            <span className="text-[12px] text-gray-400">{formattedDate}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[13px] font-medium text-gray-700">{displayName}</span>
+              <span className="text-[12px] text-gray-400">{formattedDate}</span>
+            </div>
           </div>
 
           <p className="text-[14px] text-gray-800 leading-relaxed m-0 whitespace-pre-wrap">
@@ -122,11 +164,11 @@ export const Review: React.FC<ReviewProps> = ({ review, onDelete, onSelectImage 
           {/* Attached Image Gallery */}
           {images && images.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4">
-              {images.map((img) => (
+              {images.map((img, index) => (
                 <div
                   key={img.reviewImageId}
                   className="w-14 h-14 border border-gray-200 rounded-lg overflow-hidden block cursor-pointer group"
-                  onClick={() => onSelectImage?.(img.imageUrl)}
+                  onClick={() => handleOpenPreview(index, img.imageUrl)}
                 >
                   <img
                     src={img.imageUrl}
@@ -150,6 +192,82 @@ export const Review: React.FC<ReviewProps> = ({ review, onDelete, onSelectImage 
           </div>
         )}
       </div>
+
+      {/* Lightbox / Modal Image Preview */}
+      {previewIndex !== null && images && images[previewIndex] && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 flex flex-col items-center justify-center p-4 select-none"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleClosePreview();
+          }}
+        >
+          {/* Close Button */}
+          <button
+            onClick={handleClosePreview}
+            className="absolute top-4 right-4 text-white text-3xl font-bold p-2 hover:opacity-80 transition cursor-pointer z-50"
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
+
+          {/* Previous Button */}
+          {images.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrev();
+              }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold cursor-pointer transition z-50 border border-white/20"
+              aria-label="Previous image"
+            >
+              ‹
+            </button>
+          )}
+
+          {/* Main Large Image */}
+          <div className="relative max-w-4xl max-h-[75vh] flex items-center justify-center">
+            <img
+              src={images[previewIndex].imageUrl}
+              alt={`Review attachment ${previewIndex + 1}`}
+              className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
+            />
+          </div>
+
+          {/* Next Button */}
+          {images.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNext();
+              }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold cursor-pointer transition z-50 border border-white/20"
+              aria-label="Next image"
+            >
+              ›
+            </button>
+          )}
+
+          {/* Thumbnails Row */}
+          {images.length > 1 && (
+            <div className="flex gap-2 mt-4 overflow-x-auto max-w-xl p-2 bg-black/40 rounded-xl border border-white/10">
+              {images.map((img, idx) => (
+                <button
+                  key={img.reviewImageId}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewIndex(idx);
+                  }}
+                  className={`w-14 h-14 rounded-md overflow-hidden border-2 transition cursor-pointer shrink-0 ${
+                    idx === previewIndex ? 'border-white scale-105' : 'border-transparent opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img.imageUrl} alt="thumbnail" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -6,6 +6,7 @@ import {
 import { toast } from 'react-toastify';
 import { useCoupon } from '@/hooks/useCoupon';
 import { couponCreateSchema } from '@/schemas';
+import { validateCouponInputs } from '@/utils/validationHelpers';
 import type { DiscountType } from '@/types/enums/discountType';
 import type { CouponType } from '@/types/enums/couponType';
 
@@ -32,6 +33,9 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
   const [couponType, setCouponType] = useState<CouponType>('SHOP_VOUCHER');
   const [applicableConditions, setApplicableConditions] = useState('');
 
+  // Validation errors state
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   // Reset or set defaults when modal opens
   useEffect(() => {
     if (open) {
@@ -43,13 +47,13 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
       setMinOrderAmount('');
       setMaxUsage('100');
       setUserUsageLimit('1');
+      setErrors({});
 
       // Set default times (start: now, end: next week)
       const now = new Date();
       const nextWeek = new Date();
       nextWeek.setDate(now.getDate() + 7);
 
-      // Format to yyyy-MM-ddThh:mm
       const tzOffset = now.getTimezoneOffset() * 60000;
       const localNow = new Date(now.getTime() - tzOffset);
       const localNextWeek = new Date(nextWeek.getTime() - tzOffset);
@@ -61,8 +65,37 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
     }
   }, [open]);
 
+  // Realtime validation runner
+  const validateFieldValues = (overrides?: Partial<{
+    discountType: DiscountType;
+    discountValue: string;
+    maxDiscountAmount: string;
+    minOrderAmount: string;
+    maxUsage: string;
+    userUsageLimit: string;
+  }>) => {
+    const inputs = {
+      discountType: overrides?.discountType ?? discountType,
+      discountValue: overrides?.discountValue ?? discountValue,
+      maxDiscountAmount: overrides?.maxDiscountAmount ?? maxDiscountAmount,
+      minOrderAmount: overrides?.minOrderAmount ?? minOrderAmount,
+      maxUsage: overrides?.maxUsage ?? maxUsage,
+      userUsageLimit: overrides?.userUsageLimit ?? userUsageLimit,
+    };
+    const errs = validateCouponInputs(inputs);
+    setErrors(errs);
+    return errs;
+  };
+
   const handleSaveAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const fieldErrors = validateFieldValues();
+    if (Object.keys(fieldErrors).length > 0) {
+      const firstError = Object.values(fieldErrors)[0];
+      toast.error(`Dữ liệu không hợp lệ: ${firstError}`);
+      return;
+    }
 
     const parsedDiscountValue = Number(discountValue) || 0;
 
@@ -107,7 +140,6 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
       toast.error(error || 'Tạo mã giảm giá thất bại');
     }
   };
-
 
   return (
     <Dialog
@@ -172,8 +204,9 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                   const type = e.target.value as DiscountType;
                   setDiscountType(type);
                   if (type === 'FIXED_AMOUNT') {
-                    setMaxDiscountAmount('0'); // Không cần giới hạn cho tiền mặt
+                    setMaxDiscountAmount('0');
                   }
+                  validateFieldValues({ discountType: type });
                 }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               >
@@ -187,7 +220,12 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 fullWidth
                 required
                 value={discountValue}
-                onChange={(e) => setDiscountValue(e.target.value)}
+                error={!!errors.discountValue}
+                helperText={errors.discountValue}
+                onChange={(e) => {
+                  setDiscountValue(e.target.value);
+                  validateFieldValues({ discountValue: e.target.value });
+                }}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -207,7 +245,12 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 type="number"
                 fullWidth
                 value={minOrderAmount}
-                onChange={(e) => setMinOrderAmount(e.target.value)}
+                error={!!errors.minOrderAmount}
+                helperText={errors.minOrderAmount}
+                onChange={(e) => {
+                  setMinOrderAmount(e.target.value);
+                  validateFieldValues({ minOrderAmount: e.target.value });
+                }}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -222,7 +265,12 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 fullWidth
                 disabled={discountType === 'FIXED_AMOUNT'}
                 value={discountType === 'FIXED_AMOUNT' ? '' : maxDiscountAmount}
-                onChange={(e) => setMaxDiscountAmount(e.target.value)}
+                error={!!errors.maxDiscountAmount}
+                helperText={errors.maxDiscountAmount}
+                onChange={(e) => {
+                  setMaxDiscountAmount(e.target.value);
+                  validateFieldValues({ maxDiscountAmount: e.target.value });
+                }}
                 slotProps={{
                   input: {
                     endAdornment: <InputAdornment position="end">₫</InputAdornment>,
@@ -238,18 +286,34 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
                 type="number"
                 fullWidth
                 value={maxUsage}
-                onChange={(e) => setMaxUsage(e.target.value)}
+                error={!!errors.maxUsage}
+                helperText={errors.maxUsage}
+                onChange={(e) => {
+                  setMaxUsage(e.target.value);
+                  validateFieldValues({ maxUsage: e.target.value });
+                }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
 
               <TextField
+                select
                 label="Lượt dùng tối đa / 1 Khách hàng"
-                type="number"
                 fullWidth
                 value={userUsageLimit}
-                onChange={(e) => setUserUsageLimit(e.target.value)}
+                error={!!errors.userUsageLimit}
+                helperText={errors.userUsageLimit}
+                onChange={(e) => {
+                  setUserUsageLimit(e.target.value);
+                  validateFieldValues({ userUsageLimit: e.target.value });
+                }}
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-              />
+              >
+                <MenuItem value="1">1 lượt</MenuItem>
+                <MenuItem value="2">2 lượt</MenuItem>
+                <MenuItem value="3">3 lượt</MenuItem>
+                <MenuItem value="4">4 lượt</MenuItem>
+                <MenuItem value="5">5 lượt</MenuItem>
+              </TextField>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

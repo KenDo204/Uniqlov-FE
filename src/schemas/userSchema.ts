@@ -52,17 +52,16 @@ export type CreateUserFormValues = z.infer<typeof createUserSchema>;
 /** 3. Update User Schema */
 export const updateUserSchema = z.object({
   fullName: z
+    .string({ message: 'Vui lòng nhập họ và tên' })
+    .trim()
+    .min(1, 'Họ và tên là bắt buộc')
+    .max(50, 'Họ và tên không được vượt quá 50 ký tự'),
+  phone: z
     .string()
     .trim()
-    .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
-    .max(50, 'Họ và tên không được vượt quá 50 ký tự')
-    .optional(),
-  phone: z
-    .union([
-      z.string().trim().regex(/^(0[3|5|7|8|9])+([0-9]{8})$/, 'Số điện thoại Việt Nam không hợp lệ'),
-      z.literal('')
-    ])
-    .optional(),
+    .regex(/^\d{10}$/, 'Số điện thoại phải bao gồm đúng 10 chữ số')
+    .optional()
+    .or(z.literal('')),
   gender: z.nativeEnum(Gender).optional(),
   dob: z
     .string()

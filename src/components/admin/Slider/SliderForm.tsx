@@ -34,7 +34,7 @@ const SliderForm: React.FC<SliderFormProps> = ({ initialData, onSubmit, isSubmit
   const [imageUrl, setImageUrl] = useState('');
   const [targetUrl, setTargetUrl] = useState('');
   const [isActive, setIsActive] = useState(true);
-  const [displayOrder, setDisplayOrder] = useState<string>('0');
+  const [displayOrder, setDisplayOrder] = useState<string>('1');
 
   const { isUploading, uploadFile } = useUpload(uploadService.uploadSliderImage);
   const fileInputRef = useRef<HTMLInputElement>(null);

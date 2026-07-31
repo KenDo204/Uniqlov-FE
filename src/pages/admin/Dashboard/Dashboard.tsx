@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Box, Typography, Skeleton, Alert, Button } from '@mui/material';
+import { Typography, Skeleton, Alert, Button } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PeopleIcon from '@mui/icons-material/People';
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -42,23 +42,24 @@ export const Dashboard: React.FC = () => {
   const isLoading = isFetchingOverview || isFetchingRevenue;
 
   return (
-    <Box sx={{ width: '100%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <div className="w-full max-w-full 2xl:max-w-[1600px] 2xl:mx-auto text-left flex flex-col gap-6 sm:gap-8 overflow-x-hidden">
       {/* Page Header */}
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#111827', m: 0 }}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 m-0">
             Bảng điều khiển (Dashboard)
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6b7280', mt: 0.5 }}>
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 m-0">
             Tổng quan chỉ số kinh doanh và thống kê dữ liệu hệ thống EasyMall
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         <Button
           variant="outlined"
           onClick={handleRefresh}
           disabled={isLoading}
           startIcon={<RefreshIcon />}
+          className="w-full sm:w-auto"
           sx={{
             color: '#374151',
             borderColor: '#d1d5db',
@@ -72,7 +73,7 @@ export const Dashboard: React.FC = () => {
         >
           Làm mới dữ liệu
         </Button>
-      </Box>
+      </div>
 
       {/* Error Alert */}
       {error && (
@@ -82,93 +83,98 @@ export const Dashboard: React.FC = () => {
       )}
 
       {/* Top Revenue & Key Financial Section */}
-      <Box className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <Box className="md:col-span-5 lg:col-span-4">
-          {isLoading && !overview ? (
-            <Skeleton variant="rounded" height={360} sx={{ borderRadius: '16px' }} />
-          ) : (
-            <RevenueCard apiRevenue={totalRevenue} orderStatsRevenue={overview?.orderStats?.totalRevenue} />
-          )}
-        </Box>
-        <Box className="md:col-span-7 lg:col-span-8">
-          {isLoading && !overview ? (
-            <Skeleton variant="rounded" height={360} sx={{ borderRadius: '16px' }} />
-          ) : (
-            <OrderBarChart orderStats={overview?.orderStats} />
-          )}
-        </Box>
-      </Box>
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 items-stretch w-full">
+          <div className="col-span-1 xl:col-span-5 flex flex-col min-w-0">
+            {isLoading && !overview ? (
+              <Skeleton 
+                variant="rounded" 
+                className="w-full h-full min-h-[320px] !rounded-2xl" 
+              />
+            ) : (
+              <div className="h-full min-w-0">
+                <RevenueCard 
+                  apiRevenue={totalRevenue} 
+                  orderStatsRevenue={overview?.orderStats?.totalRevenue} 
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Thẻ Biểu đồ Order: Chiếm 7/12 cột còn lại */}
+          <div className="col-span-1 xl:col-span-7 flex flex-col min-w-0">
+            {isLoading && !overview ? (
+              <Skeleton 
+                variant="rounded" 
+                className="w-full h-full min-h-[320px] !rounded-2xl" 
+              />
+            ) : (
+              <div className="h-full min-w-0">
+                <OrderBarChart orderStats={overview?.orderStats} />
+              </div>
+            )}
+          </div>
+        </div>
 
       {/* Order Ratio Pie Chart & Summary */}
-      <Box className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <Box className="md:col-span-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6">
+        <div className="md:col-span-6">
           {isLoading && !overview ? (
             <Skeleton variant="rounded" height={340} sx={{ borderRadius: '16px' }} />
           ) : (
             <OrderPieChart orderStats={overview?.orderStats} />
           )}
-        </Box>
-        <Box className="md:col-span-6">
+        </div>
+        <div className="md:col-span-6">
           {/* Detailed Summary Card */}
-          <Box
-            sx={{
-              p: 3,
-              borderRadius: '16px',
-              border: '1px solid #f3f4f6',
-              bgcolor: '#ffffff',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              justify: 'center',
-            }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827', mb: 2 }}>
+          <div className="p-4 sm:p-5 lg:p-6 rounded-2xl border border-gray-100 bg-white h-full flex flex-col justify-between">
+            <Typography variant="h6" className="text-base sm:text-lg font-bold text-gray-900 mb-4">
               Thống kê tổng đơn hàng
             </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#fffbeb', borderRadius: '12px', border: '1px solid #fef3c7' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#b45309' }}>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3.5 sm:p-4 bg-amber-50 rounded-xl border border-amber-200/60 gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm font-semibold text-amber-800">
                   Đơn hàng chờ xử lý (Pending)
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#d97706' }}>
-                  {overview?.orderStats?.totalPendingOrders || 0}
-                </Typography>
-              </Box>
+                </span>
+                <span className="text-lg sm:text-xl font-extrabold text-amber-600">
+                  {overview?.orderStats?.totalPendingOrders?.toLocaleString('vi-VN') || 0}
+                </span>
+              </div>
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#ecfdf5', borderRadius: '12px', border: '1px solid #d1fae5' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#047857' }}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3.5 sm:p-4 bg-emerald-50 rounded-xl border border-emerald-200/60 gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm font-semibold text-emerald-800">
                   Đơn hàng thành công (Success)
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#059669' }}>
-                  {overview?.orderStats?.totalSuccessOrders || 0}
-                </Typography>
-              </Box>
+                </span>
+                <span className="text-lg sm:text-xl font-extrabold text-emerald-600">
+                  {overview?.orderStats?.totalSuccessOrders?.toLocaleString('vi-VN') || 0}
+                </span>
+              </div>
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#fef2f2', borderRadius: '12px', border: '1px solid #fee2e2' }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#b91c1c' }}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3.5 sm:p-4 bg-rose-50 rounded-xl border border-rose-200/60 gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm font-semibold text-rose-800">
                   Đơn hàng thất bại (Failed)
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: '#dc2626' }}>
-                  {overview?.orderStats?.totalFailedOrders || 0}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+                </span>
+                <span className="text-lg sm:text-xl font-extrabold text-rose-600">
+                  {overview?.orderStats?.totalFailedOrders?.toLocaleString('vi-VN') || 0}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* KPI Cards Section Title */}
-      <Box sx={{ mt: 1 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: '#111827' }}>
+      <div className="mt-2">
+        <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 m-0">
           Chỉ số tài nguyên hệ thống (System KPIs)
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#6b7280' }}>
+        </h2>
+        <p className="text-xs sm:text-sm text-gray-500 mt-0.5 m-0">
           Tổng số lượng thực thể được ghi nhận trong cơ sở dữ liệu
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {/* Grid of 10 KPI Cards */}
-      <Box className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
         {isLoading && !overview ? (
           Array.from({ length: 10 }).map((_, idx) => (
             <Skeleton key={idx} variant="rounded" height={140} sx={{ borderRadius: '16px' }} />
@@ -239,8 +245,8 @@ export const Dashboard: React.FC = () => {
             />
           </>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 

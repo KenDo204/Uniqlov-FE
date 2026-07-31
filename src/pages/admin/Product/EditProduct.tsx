@@ -18,6 +18,7 @@ import { useUpload } from '@/hooks/useUpload';
 import { VariantDefaultInputs } from '@/components/admin/Product/VariantDefaultInputs';
 import VariantColorImageCard from '@/components/admin/Product/VariantColorImageCard';
 import { generateVariantCombinations, checkCartesianMatch } from '@/utils/variantHelpers';
+import { validateProductTagInput, validateProductDimensions, validateProductPricing } from '@/utils/validationHelpers';
 
 interface TempOption {
   name: string; // e.g. "colorName" or "size"
@@ -383,16 +384,15 @@ export default function EditProduct() {
       newErrors.maxOrderQuantity = 'Số lượng đặt tối đa phải từ 1 đến 99';
     }
 
-    // Shipping
-    const w = Number(weightKg);
-    const l = Number(lengthM);
-    const wi = Number(widthM);
-    const h = Number(heightM);
+    // Product Tags validation (no digits allowed)
+    const tagCheck = validateProductTagInput(tagsInput);
+    if (!tagCheck.isValid) {
+      newErrors.tagsInput = tagCheck.errorMessage!;
+    }
 
-    if (isNaN(w) || w <= 0) newErrors.weightKg = 'Khối lượng phải lớn hơn 0';
-    if (isNaN(l) || l <= 0) newErrors.lengthM = 'Chiều dài phải lớn hơn 0';
-    if (isNaN(wi) || wi <= 0) newErrors.widthM = 'Chiều rộng phải lớn hơn 0';
-    if (isNaN(h) || h <= 0) newErrors.heightM = 'Chiều cao phải lớn hơn 0';
+    // Shipping Dimensions validation
+    const dimErrors = validateProductDimensions(weightKg, lengthM, widthM, heightM);
+    Object.assign(newErrors, dimErrors);
 
     // Images
     if (images.length === 0) {
@@ -406,14 +406,14 @@ export default function EditProduct() {
 
     // Variants Pricing & Inventory
     if (productType === 'simple') {
-      const price = Number(simplePrice);
-      const cost = Number(simpleCostPrice);
-      const stock = Number(simpleStock);
+      const { errors: pErrors } = validateProductPricing(simplePrice, simpleCostPrice);
+      if (pErrors.price) newErrors.simplePrice = pErrors.price;
+      if (pErrors.costPrice) newErrors.simpleCostPrice = pErrors.costPrice;
 
-      if (isNaN(price) || price <= 0) newErrors.simplePrice = 'Giá bán phải lớn hơn 0';
-      if (isNaN(cost) || cost <= 0) newErrors.simpleCostPrice = 'Giá vốn phải lớn hơn 0';
-      if (price < cost) newErrors.simplePrice = 'Giá bán không được nhỏ hơn giá vốn';
-      if (isNaN(stock) || stock < 0) newErrors.simpleStock = 'Tồn kho phải >= 0';
+      const stock = Number(simpleStock);
+      if (simpleStock === '' || isNaN(stock) || stock < 0) {
+        newErrors.simpleStock = 'Tồn kho phải >= 0';
+      }
     } else {
       if (variants.length === 0) {
         newErrors.variants = 'Vui lòng cấu hình thuộc tính và sinh biến thể';
@@ -433,20 +433,12 @@ export default function EditProduct() {
         }
 
         variants.forEach((v, idx) => {
-          const vPrice = Number(v.price) || 0;
-          const vCost = Number(v.costPrice) || 0;
-          const vStock = Number(v.stockQuantity) || 0;
+          const { errors: pErrors } = validateProductPricing(v.price, v.costPrice);
+          if (pErrors.price) newErrors[`variant_price_${idx}`] = pErrors.price;
+          if (pErrors.costPrice) newErrors[`variant_cost_${idx}`] = pErrors.costPrice;
 
-          if (vPrice <= 0) {
-            newErrors[`variant_price_${idx}`] = 'Giá bán phải > 0';
-          }
-          if (vCost <= 0) {
-            newErrors[`variant_cost_${idx}`] = 'Giá vốn phải > 0';
-          }
-          if (vPrice < vCost) {
-            newErrors[`variant_price_${idx}`] = 'Giá bán phải >= Giá vốn';
-          }
-          if (vStock < 0) {
+          const vStock = Number(v.stockQuantity);
+          if (v.stockQuantity === '' || isNaN(vStock) || vStock < 0) {
             newErrors[`variant_stock_${idx}`] = 'Tồn kho phải >= 0';
           }
         });
@@ -698,9 +690,25 @@ export default function EditProduct() {
                     variant="outlined"
                     fullWidth
                     value={tagsInput}
-                    onChange={(e) => { setTagsInput(e.target.value); setIsDirty(true); }}
-                    placeholder="e.g. vintage, polo"
+                    error={!!errors.tagsInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setTagsInput(val);
+                      setIsDirty(true);
+                      const check = validateProductTagInput(val);
+                      if (!check.isValid) {
+                        setErrors(prev => ({ ...prev, tagsInput: check.errorMessage! }));
+                      } else {
+                        setErrors(prev => {
+                          const copy = { ...prev };
+                          delete copy.tagsInput;
+                          return copy;
+                        });
+                      }
+                    }}
+                    placeholder="e.g. Cotton, Summer, Fashion"
                     size="small"
+                    helperText={errors.tagsInput || 'Tags không chứa chữ số'}
                   />
                 </div>
 
@@ -899,10 +907,35 @@ export default function EditProduct() {
                 <div>
                   <TextField
                     label="Giá bán đề xuất (VND) *"
+                    type="number"
                     variant="outlined"
                     fullWidth
                     value={simplePrice}
-                    onChange={(e) => { setSimplePrice(e.target.value); setIsDirty(true); }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSimplePrice(val);
+                      setIsDirty(true);
+                      const { errors: pErrors } = validateProductPricing(val, simpleCostPrice);
+                      setErrors(prev => {
+                        const copy = { ...prev };
+                        if (pErrors.price) copy.simplePrice = pErrors.price;
+                        else delete copy.simplePrice;
+                        if (pErrors.costPrice) copy.simpleCostPrice = pErrors.costPrice;
+                        else delete copy.simpleCostPrice;
+                        return copy;
+                      });
+                    }}
+                    onBlur={() => {
+                      const { errors: pErrors } = validateProductPricing(simplePrice, simpleCostPrice);
+                      setErrors(prev => {
+                        const copy = { ...prev };
+                        if (pErrors.price) copy.simplePrice = pErrors.price;
+                        else delete copy.simplePrice;
+                        if (pErrors.costPrice) copy.simpleCostPrice = pErrors.costPrice;
+                        else delete copy.simpleCostPrice;
+                        return copy;
+                      });
+                    }}
                     error={!!errors.simplePrice}
                     helperText={errors.simplePrice}
                     size="small"
@@ -911,10 +944,35 @@ export default function EditProduct() {
                 <div>
                   <TextField
                     label="Giá vốn sản phẩm (VND) *"
+                    type="number"
                     variant="outlined"
                     fullWidth
                     value={simpleCostPrice}
-                    onChange={(e) => { setSimpleCostPrice(e.target.value); setIsDirty(true); }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSimpleCostPrice(val);
+                      setIsDirty(true);
+                      const { errors: pErrors } = validateProductPricing(simplePrice, val);
+                      setErrors(prev => {
+                        const copy = { ...prev };
+                        if (pErrors.price) copy.simplePrice = pErrors.price;
+                        else delete copy.simplePrice;
+                        if (pErrors.costPrice) copy.simpleCostPrice = pErrors.costPrice;
+                        else delete copy.simpleCostPrice;
+                        return copy;
+                      });
+                    }}
+                    onBlur={() => {
+                      const { errors: pErrors } = validateProductPricing(simplePrice, simpleCostPrice);
+                      setErrors(prev => {
+                        const copy = { ...prev };
+                        if (pErrors.price) copy.simplePrice = pErrors.price;
+                        else delete copy.simplePrice;
+                        if (pErrors.costPrice) copy.simpleCostPrice = pErrors.costPrice;
+                        else delete copy.simpleCostPrice;
+                        return copy;
+                      });
+                    }}
                     error={!!errors.simpleCostPrice}
                     helperText={errors.simpleCostPrice}
                     size="small"
