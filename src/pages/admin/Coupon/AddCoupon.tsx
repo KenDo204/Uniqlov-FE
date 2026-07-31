@@ -340,14 +340,14 @@ const AddCoupon: React.FC<AddCouponProps> = ({ open, onClose, onSuccess }) => {
               />
             </div>
 
-            <TextField
+            {/* <TextField
               label="Điều kiện áp dụng khác (ghi chú)"
               placeholder="VD: Không áp dụng kèm các chương trình khuyến mãi khác..."
               fullWidth
               value={applicableConditions}
               onChange={(e) => setApplicableConditions(e.target.value)}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-            />
+            /> */}
           </div>
         </DialogContent>
 
