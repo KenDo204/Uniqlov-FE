@@ -89,6 +89,7 @@ const CreateAddressModal = ({ open, setOpen, onCreated }: CreateAddressModalProp
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setErrors({});
 
     if (hasBadWords(recipientName || "")) {

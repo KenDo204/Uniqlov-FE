@@ -3,7 +3,8 @@ import { authService } from '@/services/authService';
 import type {
   LoginRequest,
   RegisterRequest,
-  ActivateAccountRequest,
+  SendOtpRequest,
+  VerifyOtpRequest,
   ResendOtpRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -90,9 +91,14 @@ export const registerThunk = createAsyncThunk('auth/register', async (payload: R
   catch (error: any) { return rejectWithValue(error.response?.data?.message || 'Đăng ký thất bại'); }
 });
 
-export const activateAccountThunk = createAsyncThunk('auth/active', async (payload: ActivateAccountRequest, { rejectWithValue }) => {
-  try { return await authService.activateAccount(payload); } 
-  catch (error: any) { return rejectWithValue(error.response?.data?.message || 'Kích hoạt thất bại'); }
+export const sendOtpThunk = createAsyncThunk('auth/sendOtp', async (payload: SendOtpRequest, { rejectWithValue }) => {
+  try { return await authService.sendOtp(payload); } 
+  catch (error: any) { return rejectWithValue(error.response?.data?.message || 'Gửi OTP thất bại'); }
+});
+
+export const verifyOtpThunk = createAsyncThunk('auth/verifyOtp', async (payload: VerifyOtpRequest, { rejectWithValue }) => {
+  try { return await authService.verifyOtp(payload); } 
+  catch (error: any) { return rejectWithValue(error.response?.data?.message || 'Xác thực OTP thất bại'); }
 });
 
 export const resendOtpThunk = createAsyncThunk('auth/resendOtp', async (payload: ResendOtpRequest, { rejectWithValue }) => {

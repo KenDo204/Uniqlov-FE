@@ -36,7 +36,6 @@ export const PaymentStatusPage: React.FC = () => {
 
   const [isVerifying, setIsVerifying] = useState<boolean>(true);
   const [isVerifiedSuccess, setIsVerifiedSuccess] = useState<boolean>(false);
-  const [orderStatusText, setOrderStatusText] = useState<string>('');
 
   const hasProcessedRef = useRef<boolean>(false);
 
@@ -67,22 +66,29 @@ export const PaymentStatusPage: React.FC = () => {
           const orderRes = await orderService.getMyOrderDetail(orderIdNum);
           if (isMounted && orderRes && orderRes.result) {
             const currentStatus = orderRes.result.orderStatus;
-            setOrderStatusText(currentStatus);
 
-            // Verified success if order status is updated beyond PENDING_PAYMENT / CANCELLED
-            if (currentStatus !== 'PENDING_PAYMENT' && currentStatus !== 'CANCELLED') {
+            // Verified success if order status is updated beyond CANCELLED
+            if (currentStatus === 'CANCELLED') {
+              setIsVerifiedSuccess(false);
+            } else if (currentStatus === 'PENDING_PAYMENT') {
+              // IPN callback might be delayed. If URL says success, we trust it for UI.
+              // (Backend is still secure as it relies on IPN for actual processing)
+              setIsVerifiedSuccess(isParamSuccess);
+              
+              if (isParamSuccess && !hasProcessedRef.current) {
+                hasProcessedRef.current = true;
+                fetchCart().catch(() => {});
+                trackPurchase({ orderId: orderIdNum, source: Source.CHECKOUT_PAGE });
+              }
+            } else {
+              // Status is PAID, SHIPPING, COMPLETED, etc.
               setIsVerifiedSuccess(true);
 
               if (!hasProcessedRef.current) {
                 hasProcessedRef.current = true;
-                // Dispatch action to clear cart after successful payment
                 fetchCart().catch(() => {});
-                // Track Purchase
                 trackPurchase({ orderId: orderIdNum, source: Source.CHECKOUT_PAGE });
               }
-            } else {
-              // Status is still PENDING_PAYMENT or CANCELLED
-              setIsVerifiedSuccess(false);
             }
           } else if (isMounted) {
             // Fallback to param success if order query returned no result
@@ -166,7 +172,7 @@ export const PaymentStatusPage: React.FC = () => {
                 : 'Giao dịch bị hủy hoặc thanh toán không thành công. Vui lòng kiểm tra lại đơn hàng hoặc thử lại.'}
             </Typography>
 
-            {trackingNumber && (
+            {/* {trackingNumber && (
               <Box className="bg-gray-100 p-4 rounded-lg mb-8 flex items-center justify-between">
                 <Box className="text-left">
                   <Typography variant="caption" className="text-gray-500 font-medium block">
@@ -175,11 +181,6 @@ export const PaymentStatusPage: React.FC = () => {
                   <Typography variant="subtitle1" className="font-bold text-gray-800">
                     {trackingNumber}
                   </Typography>
-                  {orderStatusText && (
-                    <Typography variant="caption" className="text-gray-500 block mt-0.5">
-                      Trạng thái: <span className="font-semibold text-theme">{orderStatusText}</span>
-                    </Typography>
-                  )}
                 </Box>
                 <Button
                   onClick={handleCopyTracking}
@@ -192,9 +193,9 @@ export const PaymentStatusPage: React.FC = () => {
                   <ContentCopy fontSize="small" className="text-gray-500" />
                 </Button>
               </Box>
-            )}
+            )} */}
 
-            <Box className="flex flex-col gap-3">
+            <Box className="flex flex-col gap-3 p-4 rounded-lg mb-8">
               {isVerifiedSuccess ? (
                 <>
                   <Button
@@ -238,7 +239,7 @@ export const PaymentStatusPage: React.FC = () => {
                     fullWidth
                     size="large"
                     component={Link}
-                    to={paths.customer.checkout}
+                    to={`${paths.customer.account}/orders`}
                     sx={{
                       bgcolor: 'var(--color-theme, #00927c)',
                       borderRadius: '12px',

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { hasBadWords } from '@/utils/badWordsValidator';
 import { DiscountType } from '@/types/enums/discountType';
 import { CouponType } from '@/types/enums/couponType';
 
@@ -24,7 +25,7 @@ export const couponCreateSchema = z
       .min(3, 'Mã giảm giá từ 3 - 20 ký tự')
       .max(20, 'Mã giảm giá tối đa 20 ký tự')
       .regex(/^[A-Z0-9_-]+$/, 'Mã giảm giá chỉ gồm chữ hoa, số, dấu gạch ngang'),
-    description: z.string().trim().max(500, 'Mô tả không quá 500 ký tự').optional(),
+    description: z.string().trim().max(500, 'Mô tả không quá 500 ký tự').optional().refine((val) => !hasBadWords(val), 'Mô tả chứa từ ngữ không phù hợp'),
     discountType: z.nativeEnum(DiscountType),
     discountValue: z.number({ message: 'Giá trị giảm giá phải lớn hơn 0' }).positive('Giá trị giảm giá phải lớn hơn 0'),
     maxDiscountAmount: z

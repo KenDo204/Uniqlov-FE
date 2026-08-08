@@ -4,6 +4,7 @@ import { CreditCard, ArrowRight, ChevronLeft, Ticket, CheckCircle2 } from '@/com
 import { toast } from 'react-toastify';
 import BackHome from '@/components/general/BackHomeButton';
 import { formatVND, translateAttribute } from '@/utils/formatters';
+import { hasBadWords } from '@/utils/badWordsValidator';
 import { checkoutSchema } from '@/schemas';
 import { useOrder } from '@/hooks/useOrder';
 
@@ -21,6 +22,7 @@ import CreateAddressModal from '@/components/customer/Account/createAdressModal'
 import OrderSuccess from '@/components/customer/Checkout/OrderSuccess';
 import { calculateOrderFinancials } from '@/utils/couponUtils';
 import type { CouponResponse, CouponApplyResponse } from '@/types/coupon/responses';
+import { paymentService } from '@/services/paymentService';
 import { Container } from '@/components/shared/Container';
 
 export function Checkout() {
@@ -140,6 +142,15 @@ export function Checkout() {
   const [validCoupons, setValidCoupons] = useState<{ coupon: CouponResponse; result: CouponApplyResponse }[]>([]);
   const [invalidCoupons, setInvalidCoupons] = useState<{ coupon: CouponResponse; reason: string }[]>([]);
   const [isValidatingCoupons, setIsValidatingCoupons] = useState(false);
+
+  // Check if returning from VNPAY via browser Back button
+  React.useEffect(() => {
+    if (sessionStorage.getItem('vnpay_redirected') === 'true') {
+      sessionStorage.removeItem('vnpay_redirected');
+      toast.info('Giao dịch chưa hoàn tất. Vui lòng kiểm tra và thanh toán lại trong Lịch sử đơn hàng.');
+      navigate('/account/orders', { replace: true });
+    }
+  }, [navigate]);
 
   // Redirect if not logged in
   React.useEffect(() => {
@@ -273,6 +284,11 @@ export function Checkout() {
       toast.error('Vui lòng điền đầy đủ thông tin giao hàng.');
       return;
     }
+    
+    if (hasBadWords(orderNote)) {
+      toast.error('Ghi chú chứa từ ngữ không phù hợp.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -302,10 +318,22 @@ export function Checkout() {
       const res = await checkout(payload);
 
       if (res) {
-        if (res.paymentUrl) {
+        if (paymentMethod === 'vnpay') {
           toast.info('Đã tạo đơn hàng! Đang chuyển hướng sang cổng thanh toán VNPAY...');
           setIsRedirecting(true);
-          window.location.href = res.paymentUrl;
+          try {
+            const paymentRes = await paymentService.createPaymentUrl(res.orderId);
+            if (paymentRes && paymentRes.result && paymentRes.result.paymentUrl) {
+              sessionStorage.setItem('vnpay_redirected', 'true');
+              window.location.href = paymentRes.result.paymentUrl;
+            } else {
+              toast.error('Không thể lấy URL thanh toán.');
+              setIsRedirecting(false);
+            }
+          } catch (err: any) {
+            toast.error(err || 'Lỗi khi tạo URL thanh toán VNPAY.');
+            setIsRedirecting(false);
+          }
         } else {
           toast.success('Đặt đơn hàng thành công!');
           fetchCart();

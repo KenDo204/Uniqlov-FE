@@ -2,7 +2,8 @@ import { axiosClient } from '@/services/axiosClient';
 import { type ApiResponse } from '@/types/common/apiResponse';
 import type {
   RegisterRequest,
-  ActivateAccountRequest,
+  SendOtpRequest,
+  VerifyOtpRequest,
   ResendOtpRequest,
   LoginRequest,
   LogoutRequest,
@@ -12,6 +13,7 @@ import type {
   ResetPasswordRequest,
   OAuth2ExchangeRequest,
   AuthResponse,
+  VerifyOtpResponse,
   IntrospectResponse,
   UserResponse
 } from '@/types/auth';
@@ -24,8 +26,13 @@ export const authService = {
     return response.data;
   },
 
-  activateAccount: async (data: ActivateAccountRequest): Promise<ApiResponse<void>> => {
-    const response = await axiosClient.post<ApiResponse<void>>(`${API_URL}/active`, data);
+  sendOtp: async (data: SendOtpRequest): Promise<ApiResponse<void>> => {
+    const response = await axiosClient.post<ApiResponse<void>>(`${API_URL}/send-otp`, data);
+    return response.data;
+  },
+
+  verifyOtp: async (data: VerifyOtpRequest): Promise<ApiResponse<VerifyOtpResponse>> => {
+    const response = await axiosClient.post<ApiResponse<VerifyOtpResponse>>(`${API_URL}/verify-otp`, data);
     return response.data;
   },
 

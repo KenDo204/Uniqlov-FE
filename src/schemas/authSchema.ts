@@ -17,17 +17,12 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 
 /** 2. Register Schema */
 export const registerSchema = z.object({
+  registrationToken: z.string().min(1, 'Thiếu token đăng ký'),
   fullName: z
     .string()
     .trim()
     .min(2, 'Họ và tên phải từ 2 đến 50 ký tự')
     .max(50, 'Họ và tên không được vượt quá 50 ký tự'),
-  email: z
-    .string()
-    .trim()
-    .min(1, 'Vui lòng nhập địa chỉ email')
-    .email('Định dạng email không hợp lệ')
-    .max(100, 'Email không được vượt quá 100 ký tự'),
   password: z
     .string()
     .min(8, 'Mật khẩu phải từ 8 đến 64 ký tự')
@@ -51,12 +46,16 @@ export const otpSchema = z.object({
 });
 export type OtpFormValues = z.infer<typeof otpSchema>;
 
-/** 4. Activate Account Schema */
-export const activateAccountSchema = z.object({
-  email: z.string().trim().email('Email không hợp lệ'),
-  otp: z.string().trim().length(6, 'Mã OTP phải bao gồm 6 chữ số').regex(/^[0-9]{6}$/, 'OTP chỉ bao gồm số'),
+/** 4. Send OTP Schema */
+export const sendOtpSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, 'Vui lòng nhập địa chỉ email')
+    .email('Định dạng email không hợp lệ')
+    .max(100, 'Email không được vượt quá 100 ký tự'),
 });
-export type ActivateAccountFormValues = z.infer<typeof activateAccountSchema>;
+export type SendOtpFormValues = z.infer<typeof sendOtpSchema>;
 
 /** 5. Forgot Password Schema */
 export const forgotPasswordSchema = z.object({

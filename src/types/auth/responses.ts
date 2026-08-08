@@ -1,5 +1,9 @@
 import { Gender } from '@/types/enums/genderType';
 
+export interface VerifyOtpResponse {
+  registrationToken: string;
+}
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;

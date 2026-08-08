@@ -1,18 +1,11 @@
 import { type OtpType } from '../enums/otpType';
-export interface ActivateAccountRequest {
-  /**
-   * Địa chỉ email cần kích hoạt
-   * - Ánh xạ từ: @NotBlank, @Email
-   * @format email
-   */
-  email: string;
 
-  /**
-   * Mã OTP xác thực gửi về email
-   * - Ánh xạ từ: @NotBlank, @Size(min = 6, max = 6)
-   * @minLength 6
-   * @maxLength 6
-   */
+export interface SendOtpRequest {
+  email: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
   otp: string;
 }
 
@@ -22,21 +15,9 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  /** Bắt buộc nhập */
+  registrationToken: string;
   fullName: string;
-
-  /**
-   * @format email
-   */
-  email: string;
-
-  /**
-   * Mật khẩu người dùng
-   * @minLength 8
-   */
   password: string;
-
-  /** Số điện thoại (Không bắt buộc) */
   phone?: string;
 }
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { hasBadWords } from '@/utils/badWordsValidator';
 import { Gender } from '@/types/enums/genderType';
 
 /** Product Image Schema */
@@ -39,8 +40,9 @@ const baseProductCreateSchema = z.object({
     .string()
     .trim()
     .min(3, 'Tên sản phẩm phải có ít nhất 3 ký tự')
-    .max(150, 'Tên sản phẩm không được vượt quá 150 ký tự'),
-  productDescription: z.string().trim().max(5000, 'Mô tả không được vượt quá 5000 ký tự').optional(),
+    .max(150, 'Tên sản phẩm không được vượt quá 150 ký tự')
+    .refine((val) => !hasBadWords(val), 'Tên sản phẩm chứa từ ngữ không phù hợp'),
+  productDescription: z.string().trim().max(5000, 'Mô tả không được vượt quá 5000 ký tự').optional().refine((val) => !hasBadWords(val), 'Mô tả sản phẩm chứa từ ngữ không phù hợp'),
   inPopular: z.boolean().optional(),
   targetGender: z.nativeEnum(Gender).optional(),
   maxOrderQuantity: z.number().int().min(1, 'Số lượng mua tối đa phải >= 1').max(100, 'Số lượng mua tối đa <= 100').optional(),
@@ -49,7 +51,7 @@ const baseProductCreateSchema = z.object({
     .array(
       z.string().trim().refine((t) => !/\d/.test(t), {
         message: 'Thẻ sản phẩm không được chứa chữ số',
-      })
+      }).refine((val) => !hasBadWords(val), 'Thẻ sản phẩm chứa từ ngữ không phù hợp')
     )
     .optional(),
   categoryId: z.number().int().positive('Vui lòng chọn danh mục hợp lệ').optional(),

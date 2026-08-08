@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { hasBadWords } from '@/utils/badWordsValidator';
 import { ReviewStatus } from '@/types/enums/reviewStatus';
 
 /** 1. Create Review Schema */
@@ -14,7 +15,8 @@ export const createReviewSchema = z.object({
     .string()
     .trim()
     .min(5, 'Nội dung đánh giá phải có ít nhất 5 ký tự')
-    .max(1000, 'Nội dung đánh giá không được vượt quá 1000 ký tự'),
+    .max(1000, 'Nội dung đánh giá không được vượt quá 1000 ký tự')
+    .refine((val) => !hasBadWords(val), 'Nội dung đánh giá chứa từ ngữ không phù hợp'),
   imageUrls: z
     .array(z.string().trim().url('URL hình ảnh không hợp lệ').max(500))
     .max(5, 'Tối đa 5 hình ảnh đánh giá')

@@ -1,11 +1,13 @@
 import { z } from 'zod';
+import { hasBadWords } from '@/utils/badWordsValidator';
 
 export const addressSchema = z.object({
   recipientName: z
     .string()
     .trim()
     .min(2, 'Họ và tên người nhận phải có ít nhất 2 ký tự')
-    .max(50, 'Họ và tên người nhận không được quá 50 ký tự'),
+    .max(50, 'Họ và tên người nhận không được quá 50 ký tự')
+    .refine((val) => !hasBadWords(val), 'Họ và tên chứa từ ngữ không phù hợp'),
   phone: z
     .string()
     .trim()
@@ -17,8 +19,10 @@ export const addressSchema = z.object({
     .string()
     .trim()
     .min(5, 'Địa chỉ cụ thể (số nhà, đường...) phải có ít nhất 5 ký tự')
-    .max(200, 'Địa chỉ cụ thể không được vượt quá 200 ký tự'),
+    .max(200, 'Địa chỉ cụ thể không được vượt quá 200 ký tự')
+    .refine((val) => !hasBadWords(val), 'Địa chỉ chứa từ ngữ không phù hợp'),
   isDefault: z.boolean().default(false),
 });
 
 export type AddressFormValues = z.infer<typeof addressSchema>;
+

@@ -621,7 +621,7 @@ export function ProductDetail() {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       let val = parseInt(quantityInput);
-                      const maxQty = activeVariant ? Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999) : 999;
+                      const maxQty = activeVariant ? (activeVariant.stock_quantity ?? 999) : 999;
                       if (isNaN(val) || quantityInput === '') {
                         toast.error("Số lượng không được để trống.");
                         setQuantityInput("1");
@@ -638,7 +638,7 @@ export function ProductDetail() {
                   }}
                   onBlur={() => {
                     let val = parseInt(quantityInput);
-                    const maxQty = activeVariant ? Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999) : 999;
+                    const maxQty = activeVariant ? (activeVariant.stock_quantity ?? 999) : 999;
                     if (isNaN(val) || quantityInput === '') {
                       toast.error("Số lượng không được để trống.");
                       setQuantityInput("1");
@@ -656,7 +656,7 @@ export function ProductDetail() {
                 />
                 <button onClick={() => {
                   const currentQty = parseInt(quantityInput) || 1;
-                  const maxQty = activeVariant ? Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999) : 999;
+                  const maxQty = activeVariant ? (activeVariant.stock_quantity ?? 999) : 999;
                   if (currentQty >= maxQty) {
                     toast.error(`Chỉ được mua tối đa ${maxQty} sản phẩm.`);
                     setQuantityInput(String(maxQty));
@@ -670,7 +670,7 @@ export function ProductDetail() {
               
               {activeVariant && (
                 <div className="text-[13px] text-gray-500 font-medium">
-                  Mua tối đa: {Math.min(product?.max_order_quantity || 999, activeVariant.stock_quantity || 999)} sản phẩm
+                  Kho còn: {activeVariant.stock_quantity} sản phẩm
                 </div>
               )}
 

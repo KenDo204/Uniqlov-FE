@@ -19,6 +19,7 @@ import { VariantDefaultInputs } from '@/components/admin/Product/VariantDefaultI
 import VariantColorImageCard from '@/components/admin/Product/VariantColorImageCard';
 import { generateVariantCombinations, checkCartesianMatch } from '@/utils/variantHelpers';
 import { validateProductTagInput, validateProductDimensions, validateProductPricing } from '@/utils/validationHelpers';
+import { hasBadWords } from '@/utils/badWordsValidator';
 
 interface TempOption {
   name: string; // e.g. "colorName" or "size"
@@ -243,18 +244,23 @@ export default function AddProduct() {
     // 1. Basic Info
     if (!productName.trim()) newErrors.productName = 'Tên sản phẩm bắt buộc nhập';
     else if (productName.length > 150) newErrors.productName = 'Tên sản phẩm không quá 150 ký tự';
+    else if (hasBadWords(productName)) newErrors.productName = 'Tên sản phẩm chứa từ ngữ không phù hợp';
+
+    if (hasBadWords(productDescription)) newErrors.productDescription = 'Mô tả chứa từ ngữ không phù hợp';
 
     if (!categoryId) newErrors.categoryId = 'Danh mục bắt buộc chọn';
 
-    const parsedMaxOrderQuantity = Number(maxOrderQuantity);
-    if (isNaN(parsedMaxOrderQuantity) || parsedMaxOrderQuantity < 1 || parsedMaxOrderQuantity > 99) {
-      newErrors.maxOrderQuantity = 'Số lượng đặt tối đa phải từ 1 đến 99';
-    }
+    // const parsedMaxOrderQuantity = Number(maxOrderQuantity);
+    // if (isNaN(parsedMaxOrderQuantity) || parsedMaxOrderQuantity < 1 || parsedMaxOrderQuantity > 99) {
+    //   newErrors.maxOrderQuantity = 'Số lượng đặt tối đa phải từ 1 đến 99';
+    // }
 
     // Product Tags validation (no digits allowed)
     const tagCheck = validateProductTagInput(tagsInput);
     if (!tagCheck.isValid) {
       newErrors.tagsInput = tagCheck.errorMessage!;
+    } else if (hasBadWords(tagsInput)) {
+      newErrors.tagsInput = 'Tags chứa từ ngữ không phù hợp';
     }
 
     // 2. Shipping Dimensions validation (weightKg, lengthM, widthM, heightM + relationship length >= width >= height)
@@ -387,7 +393,7 @@ export default function AddProduct() {
       productDescription,
       inPopular,
       targetGender,
-      maxOrderQuantity: Number(maxOrderQuantity),
+      maxOrderQuantity: 0,
       optionsConfig: optionsConfigObj,
       productTags,
       categoryId: Number(categoryId),
@@ -521,7 +527,7 @@ export default function AddProduct() {
                   </FormControl>
                 </div>
 
-                <div className="md:col-span-1">
+                {/* <div className="md:col-span-1">
                   <TextField
                     label="Số lượng mua tối đa/đơn *"
                     type="number"
@@ -534,7 +540,7 @@ export default function AddProduct() {
                     slotProps={{ htmlInput: { min: 1, max: 99 } }}
                     size="small"
                   />
-                </div>
+                </div> */}
               </div>
 
               {/* Row 3 */}
@@ -547,7 +553,8 @@ export default function AddProduct() {
                   rows={4}
                   value={productDescription}
                   onChange={(e) => { setProductDescription(e.target.value); setIsDirty(true); }}
-                  helperText="Chi tiết chất liệu, xuất xứ và quy cách giặt là. Không quá 2000 ký tự."
+                  error={!!errors.productDescription}
+                  helperText={errors.productDescription || "Chi tiết chất liệu, xuất xứ và quy cách giặt là. Không quá 2000 ký tự."}
                   slotProps={{ htmlInput: { maxLength: 2000 } }}
                 />
               </div>

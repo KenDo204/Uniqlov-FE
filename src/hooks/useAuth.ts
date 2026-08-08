@@ -10,10 +10,11 @@ import {
   forgotPasswordThunk,
   resetPasswordThunk,
   resendOtpThunk,
-  activateAccountThunk,
+  sendOtpThunk,
+  verifyOtpThunk,
   introspectThunk
 } from '@/stores/slices/authSlice';
-import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResendOtpRequest, ResetPasswordRequest, OAuth2ExchangeRequest } from '@/types/auth';
+import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResendOtpRequest, ResetPasswordRequest, OAuth2ExchangeRequest, SendOtpRequest, VerifyOtpRequest } from '@/types/auth';
 import { jwtDecode } from 'jwt-decode';
 
 interface CustomJwtPayload {
@@ -49,8 +50,12 @@ export const useAuth = () => {
     return await dispatch(forgotPasswordThunk(payload)).unwrap();
   }, [dispatch]);
 
-  const activateAccount = useCallback(async (payload: { email: string, otp: string }) => {
-    return await dispatch(activateAccountThunk(payload)).unwrap();
+  const sendOtp = useCallback(async (payload: SendOtpRequest) => {
+    return await dispatch(sendOtpThunk(payload)).unwrap();
+  }, [dispatch]);
+
+  const verifyOtp = useCallback(async (payload: VerifyOtpRequest) => {
+    return await dispatch(verifyOtpThunk(payload)).unwrap();
   }, [dispatch]);
 
   const resendOtp = useCallback(async (payload: ResendOtpRequest) => {
@@ -116,11 +121,12 @@ export const useAuth = () => {
     resetAuth,
     register,
     forgotPassword,
-    activateAccount,
+    sendOtp,
+    verifyOtp,
     resendOtp,
     resetPassword,
     introspectToken,
     hasPermission
-  }), [user, isAuthenticated, isCustomer, accessToken, isLoading, error, login, exchangeOAuth2Code, logout, fetchProfile, resetAuth, register, forgotPassword, activateAccount, resendOtp, resetPassword, introspectToken, hasPermission]);
+  }), [user, isAuthenticated, isCustomer, accessToken, isLoading, error, login, exchangeOAuth2Code, logout, fetchProfile, resetAuth, register, forgotPassword, sendOtp, verifyOtp, resendOtp, resetPassword, introspectToken, hasPermission]);
 };
 

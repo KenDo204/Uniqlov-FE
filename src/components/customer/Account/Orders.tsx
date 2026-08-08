@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrder } from '@/hooks/useOrder';
+import { paymentService } from '@/services/paymentService';
 import { useCart } from '@/hooks/useCart';
 import { useReview } from '@/hooks/useReview';
 import { useTracking } from '@/hooks/useTracking';
@@ -73,6 +74,9 @@ export function Orders() {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [orderDetails, setOrderDetails] = useState<Record<number, OrderResponse>>({});
   const [loadingDetails, setLoadingDetails] = useState<Record<number, boolean>>({});
+  
+  // State for retry payment
+  const [isCreatingPayment, setIsCreatingPayment] = useState<Record<number, boolean>>({});
 
   // Cancel order modal state
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -90,6 +94,23 @@ export function Orders() {
     fetchMyReviews(0, 100).catch(err => {
       console.error('Error fetching my reviews:', err);
     });
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchMyOrders(0, 10).catch(console.error);
+      }
+    };
+    const handleFocus = () => {
+      fetchMyOrders(0, 10).catch(console.error);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [fetchMyOrders, fetchMyReviews]);
 
   // Set chứa các khóa của sản phẩm đã được đánh giá (orderId_productId hoặc p_productId)
@@ -132,6 +153,25 @@ export function Orders() {
     }
   };
 
+  const handleRetryPayment = async (orderId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsCreatingPayment(prev => ({ ...prev, [orderId]: true }));
+    try {
+      const res = await paymentService.createPaymentUrl(orderId);
+      if (res && res.result && res.result.paymentUrl) {
+        window.location.href = res.result.paymentUrl;
+      } else {
+        toast.error('Không thể lấy URL thanh toán lúc này. Vui lòng thử lại sau.');
+        setIsCreatingPayment(prev => ({ ...prev, [orderId]: false }));
+      }
+    } catch (err: any) {
+      toast.error(err || 'Đã có lỗi xảy ra. Đơn hàng có thể đã được thanh toán hoặc hủy.');
+      setIsCreatingPayment(prev => ({ ...prev, [orderId]: false }));
+      // Reload orders to get the latest status if it failed due to status change
+      fetchMyOrders(0, 10);
+    }
+  };
+
   const handleOpenCancel = (orderId: number, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid expanding/collapsing card
     setCancelOrderId(orderId);
@@ -165,7 +205,11 @@ export function Orders() {
       setIsCancelModalOpen(false);
       setCancelOrderId(null);
     } catch (err: any) {
-      toast.error(err || 'Không thể hủy đơn hàng lúc này.');
+      toast.error(err || 'Không thể hủy đơn hàng lúc này. Đơn hàng có thể đã chuyển trạng thái.');
+      // Reload orders to get the latest status if it failed
+      fetchMyOrders(0, 10);
+      setIsCancelModalOpen(false);
+      setCancelOrderId(null);
     } finally {
       setIsCancelling(false);
     }
@@ -274,12 +318,25 @@ export function Orders() {
                     }`}>
                       {getOrderStatusLabel(ord.orderStatus)}
                     </span>
-                    {['PENDING', 'PENDING_PAYMENT', 'PENDING_REVIEW'].includes(ord.orderStatus) && (
+                    {['PENDING', 'AWAITING_SHIPMENT'].includes(ord.orderStatus) && (
                       <button
                         onClick={(e) => handleOpenCancel(ord.orderId, e)}
                         className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded border-none font-bold text-[12px] cursor-pointer transition-colors"
                       >
                         Hủy đơn
+                      </button>
+                    )}
+                    {ord.orderStatus === 'PENDING_PAYMENT' && ord.paymentMethod === 'VNPAY' && (
+                      <button
+                        onClick={(e) => handleRetryPayment(ord.orderId, e)}
+                        disabled={isCreatingPayment[ord.orderId]}
+                        className={`px-3 py-1.5 rounded border-none font-bold text-[12px] transition-colors ${
+                          isCreatingPayment[ord.orderId] 
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                            : 'bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer'
+                        }`}
+                      >
+                        {isCreatingPayment[ord.orderId] ? 'Đang tạo URL...' : 'Thanh toán lại'}
                       </button>
                     )}
                     <button className="px-3 py-1.5 border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-[12px] font-bold uppercase rounded cursor-pointer transition-colors">

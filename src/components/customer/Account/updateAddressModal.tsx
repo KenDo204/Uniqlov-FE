@@ -94,6 +94,7 @@ const UpdateAddressModal = ({ open, setOpen, address }: UpdateAddressModalProps)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (!address) return;
     setErrors({});
 

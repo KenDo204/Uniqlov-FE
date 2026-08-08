@@ -4,7 +4,7 @@ import {
   DialogContent, DialogActions, TextField, FormControlLabel,
   Switch, Select, MenuItem, FormControl, InputLabel, CircularProgress, Tooltip, IconButton
 } from '@mui/material';
-import { Edit, WarningAmber, CheckCircle, Shield, Assessment, TaskAlt } from '@mui/icons-material';
+import { Edit, WarningAmber, CheckCircle, Shield, Assessment, TaskAlt, Visibility } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useRisk } from '@/hooks/useRisk';
 import type { RiskRuleResponse, RiskAlertResponse } from '@/types/risk';
@@ -320,6 +320,7 @@ const RiskAlertsTab: React.FC = () => {
   const [resolveAlertData, setResolveAlertData] = useState<RiskAlertResponse | null>(null);
   const [resolveStatus, setResolveStatus] = useState<RiskAlertStatus>(RiskAlertStatus.RESOLVED);
   const [isResolving, setIsResolving] = useState(false);
+  const [viewAlertData, setViewAlertData] = useState<RiskAlertResponse | null>(null);
 
   useEffect(() => {
     fetchAlerts({ page: page - 1, size, status: statusFilter || undefined });
@@ -346,6 +347,9 @@ const RiskAlertsTab: React.FC = () => {
       setResolveAlertData(null);
     }
   };
+
+  const handleViewClick = (alert: RiskAlertResponse) => setViewAlertData(alert);
+  const handleCloseView = () => setViewAlertData(null);
 
   const handleSaveResolve = async () => {
     if (resolveAlertData) {
@@ -434,6 +438,15 @@ const RiskAlertsTab: React.FC = () => {
                     <td className="px-6 py-4 text-center">
                       {alert.status === RiskAlertStatus.PENDING ? (
                         <div className="flex items-center justify-center gap-1">
+                          <Tooltip title="Xem chi tiết" arrow>
+                            <IconButton
+                              onClick={() => handleViewClick(alert)}
+                              size="small"
+                              sx={{ color: '#4b5563', bgcolor: '#f3f4f6', '&:hover': { bgcolor: '#e5e7eb' } }}
+                            >
+                              <Visibility fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                           <Tooltip title="Xử lý cảnh báo" arrow>
                             <IconButton
                               onClick={() => handleResolveClick(alert)}
@@ -446,6 +459,15 @@ const RiskAlertsTab: React.FC = () => {
                         </div>
                       ) : (
                         <div className="flex items-center justify-center gap-1">
+                          <Tooltip title="Xem chi tiết" arrow>
+                            <IconButton
+                              onClick={() => handleViewClick(alert)}
+                              size="small"
+                              sx={{ color: '#4b5563', bgcolor: '#f3f4f6', '&:hover': { bgcolor: '#e5e7eb' } }}
+                            >
+                              <Visibility fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                           <Tooltip title="Đã xử lý" arrow>
                             <IconButton
                               disabled
@@ -544,6 +566,62 @@ const RiskAlertsTab: React.FC = () => {
             }}
           >
             {isResolving ? <CircularProgress size={20} color="inherit" /> : 'Xác nhận'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog 
+        open={!!viewAlertData} 
+        onClose={handleCloseView} 
+        maxWidth="sm" 
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
+      >
+        <DialogTitle sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, pb: 1 }}>
+          <Assessment sx={{ fontSize: 48, color: 'var(--color-theme)' }} />
+          <Typography variant="h6" color="text.primary" sx={{ fontWeight: 'bold' }}>
+            Chi tiết Cảnh báo #{viewAlertData?.alertId}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Box className="mt-4 p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col gap-3">
+            <div className="flex justify-between border-b border-gray-200 pb-2">
+              <span className="font-semibold text-gray-600">Mã Rule:</span>
+              <span className="text-gray-900 font-medium">{viewAlertData?.ruleCode}</span>
+            </div>
+            <div className="flex justify-between border-b border-gray-200 pb-2">
+              <span className="font-semibold text-gray-600">Trạng thái:</span>
+              <span className="text-gray-900 font-medium">{viewAlertData?.status}</span>
+            </div>
+            <div className="flex justify-between border-b border-gray-200 pb-2">
+              <span className="font-semibold text-gray-600">Người dùng:</span>
+              <span className="text-gray-900 font-medium">{viewAlertData?.userEmail || viewAlertData?.userId || '-'}</span>
+            </div>
+            <div className="flex justify-between border-b border-gray-200 pb-2">
+              <span className="font-semibold text-gray-600">Mã đơn hàng:</span>
+              <span className="text-gray-900 font-medium">{viewAlertData?.orderCode || viewAlertData?.orderId || '-'}</span>
+            </div>
+            <div className="flex justify-between border-b border-gray-200 pb-2">
+              <span className="font-semibold text-gray-600">Ngày tạo:</span>
+              <span className="text-gray-900 font-medium">{viewAlertData?.createdAt ? formatDate(viewAlertData.createdAt) : '-'}</span>
+            </div>
+            <div className="flex flex-col gap-1 pt-2">
+              <span className="font-semibold text-gray-600">Mô tả vi phạm:</span>
+              <span className="text-gray-900">{viewAlertData?.description}</span>
+            </div>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button 
+            onClick={handleCloseView} 
+            variant="contained"
+            sx={{
+              backgroundColor: 'var(--color-theme)', textTransform: 'none', px: 4,
+              fontWeight: 'bold', fontSize: '14px', borderRadius: '10px', boxShadow: 'none',
+              '&:hover': { backgroundColor: 'var(--color-theme-hover)', boxShadow: 'none' }
+            }}
+          >
+            Đóng
           </Button>
         </DialogActions>
       </Dialog>

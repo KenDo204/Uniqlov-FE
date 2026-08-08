@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { hasBadWords } from '@/utils/badWordsValidator';
 import { Gender } from '@/types/enums/genderType';
 
 /** 1. Base User Schema */
@@ -7,7 +8,8 @@ export const userSchema = z.object({
     .string()
     .trim()
     .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
-    .max(50, 'Họ và tên không được vượt quá 50 ký tự'),
+    .max(50, 'Họ và tên không được vượt quá 50 ký tự')
+    .refine((val) => !hasBadWords(val), 'Họ và tên chứa từ ngữ không phù hợp'),
   email: z
     .string()
     .trim()
@@ -28,7 +30,8 @@ export const createUserSchema = z.object({
     .string()
     .trim()
     .min(2, 'Họ và tên phải có ít nhất 2 ký tự')
-    .max(50, 'Họ và tên không được vượt quá 50 ký tự'),
+    .max(50, 'Họ và tên không được vượt quá 50 ký tự')
+    .refine((val) => !hasBadWords(val), 'Họ và tên chứa từ ngữ không phù hợp'),
   email: z
     .string()
     .trim()
@@ -55,7 +58,8 @@ export const updateUserSchema = z.object({
     .string({ message: 'Vui lòng nhập họ và tên' })
     .trim()
     .min(1, 'Họ và tên là bắt buộc')
-    .max(50, 'Họ và tên không được vượt quá 50 ký tự'),
+    .max(50, 'Họ và tên không được vượt quá 50 ký tự')
+    .refine((val) => !hasBadWords(val), 'Họ và tên chứa từ ngữ không phù hợp'),
   phone: z
     .string()
     .trim()

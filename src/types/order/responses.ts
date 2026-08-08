@@ -7,7 +7,6 @@ export interface CheckoutResponse {
   orderId: number;
   orderStatus: OrderStatus;
   finalPaymentMoney: number;
-  paymentUrl: string | null;
 }
 
 export interface OrderDetailResponse {

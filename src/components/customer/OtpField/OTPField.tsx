@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import OTPInput from './OTPInput';
 import { useOtpTimer } from '@/hooks/useOtpTimer';
 
@@ -31,9 +31,8 @@ const OTPField: React.FC<OTPFieldProps> = ({
   timerKey,
   email,
   otpType,
-  autoStartOnFirstMount = true,
 }) => {
-  const { timeLeft, startTimer, timerKey: effectiveKey } = useOtpTimer(
+  const { timeLeft, startTimer } = useOtpTimer(
     {
       key: timerKey,
       email,
